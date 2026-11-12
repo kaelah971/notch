@@ -1,0 +1,127 @@
+{
+  "schema_version": "notch.s5.near-ai-verification/1",
+  "generated_at": "2026-11-12T08:51:54.395960Z",
+  "provider": {
+    "name": "NEAR AI Cloud",
+    "base_url": "https://cloud-api.near.ai/v1",
+    "openai_compatible": true
+  },
+  "configuration": {
+    "key_present": false,
+    "configured_model": "z-ai/glm-5.3-flash",
+    "model_verified": true,
+    "catalog_count": 63
+  },
+  "selected_model": {
+    "context_length": 1048576,
+    "is_ready": true,
+    "max_output_length": 1048576,
+    "model_id": "z-ai/glm-5.3-flash",
+    "owned_by": "nearai",
+    "pricing": {
+      "completion": "0.0000005",
+      "image": "0",
+      "input": 0.08,
+      "input_cache_read": "0.000000012",
+      "output": 0.5,
+      "prompt": "0.00000008",
+      "request": "0"
+    },
+    "supported_features": [
+      "tools",
+      "structured_outputs",
+      "reasoning",
+      "json_mode"
+    ]
+  },
+  "live_inference": {
+    "attempted": false,
+    "succeeded": false,
+    "reason": "NEAR_AI_KEY is not configured",
+    "ai_calls": 0,
+    "cost_usd": 0.0
+  },
+  "estimated_cost_per_brief_usd": 0.0003,
+  "briefs": [
+    {
+      "file": "docs/evidence/s5_radar_nvidia_20261112.json",
+      "brief_id": "brief_a86813abf29efd116c49",
+      "brief_type": "radar",
+      "topic": "Nvidia",
+      "candidate_id": "cand_b279c92126deeecb4beb",
+      "market_id": null,
+      "headline": "Nvidia: 123,851 Wikimedia views on 2026-11-10",
+      "generation_status": "NON_AI_FALLBACK",
+      "provider": "deterministic",
+      "model": "none",
+      "cache_hit": true,
+      "evidence_refs": 4,
+      "has_resolution": false
+    },
+    {
+      "file": "docs/evidence/s5_radar_bitcoin_20261112.json",
+      "brief_id": "brief_f383d159aa28c513005d",
+      "brief_type": "radar",
+      "topic": "Bitcoin",
+      "candidate_id": "cand_9118da9248a28ca00f02",
+      "market_id": null,
+      "headline": "Bitcoin: 4,359 Wikimedia views on 2026-11-10",
+      "generation_status": "NON_AI_FALLBACK",
+      "provider": "deterministic",
+      "model": "none",
+      "cache_hit": false,
+      "evidence_refs": 2,
+      "has_resolution": false
+    },
+    {
+      "file": "docs/evidence/s5_market_nvidia_replay_20261112.json",
+      "brief_id": "brief_f41f9078ec97e2eb78ae",
+      "brief_type": "market",
+      "topic": "Nvidia",
+      "candidate_id": "cand_b279c92126deeecb4beb",
+      "market_id": "s3b-replay-trend-nvidia-20261103-20261110",
+      "headline": "Historical replay: Nvidia outcome UP",
+      "generation_status": "NON_AI_FALLBACK",
+      "provider": "deterministic",
+      "model": "none",
+      "cache_hit": true,
+      "evidence_refs": 3,
+      "has_resolution": true
+    }
+  ],
+  "tests": {
+    "count": 36,
+    "command": "python -m unittest discover -s services/near_ai/tests -t ."
+  },
+  "fallback": {
+    "generation_status": "NON_AI_FALLBACK",
+    "provider": "deterministic",
+    "model": "none",
+    "label": "source-only, non-AI"
+  },
+  "setup_required": [
+    "Set NEAR_AI_KEY in the server environment.",
+    "Set NEAR_AI_MODEL (default z-ai/glm-5.3-flash, verified in the live catalog).",
+    "Set NEAR_AI_BASE_URL=https://cloud-api.near.ai/v1.",
+    "Add NEAR AI credits; no credits were purchased or spent in this run."
+  ],
+  "limitations": [
+    "No live NEAR AI inference was possible without a key.",
+    "Generated briefs are deterministic source-only fallbacks, not AI text.",
+    "Quote/funding and market settlement are outside this brief service.",
+    "No frontend or S5 consumer surface is implemented."
+  ],
+  "frontend_interface": [
+    "GET /api/trends/:slug/brief",
+    "GET /api/markets/:id/brief",
+    "GET /api/briefs/:briefId",
+    "GET /api/briefs/status"
+  ],
+  "evidence_files": [
+    "docs/evidence/s5_radar_nvidia_20261112.json",
+    "docs/evidence/s5_radar_bitcoin_20261112.json",
+    "docs/evidence/s5_market_nvidia_replay_20261112.json",
+    "docs/evidence/s5_ai_status_20261112.json",
+    "docs/evidence/s5_near_ai_models_20261112.json"
+  ]
+}

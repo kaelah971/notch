@@ -1,0 +1,145 @@
+{
+  "schema_version": "notch.s2.5-execution/1",
+  "executed_at": "2026-11-12T05:40:04.553463Z",
+  "network": "testnet",
+  "contract": "market.notch-dev.testnet",
+  "collateral": "usdc.tidepool-sandbox.testnet",
+  "operator": "notch-dev.testnet",
+  "rule_approval": {
+    "operator": "notch-dev.testnet",
+    "approved_at": [
+      "2026-11-12T04:22:16.064903Z",
+      "2026-11-12T04:22:16.458513Z"
+    ],
+    "status": "APPROVED"
+  },
+  "market_count": 2,
+  "markets": [
+    {
+      "name": "Nvidia historical replay",
+      "mode": "trend_trading",
+      "market_id": "s3b-short-trend-nvidia-20261112T040029Z",
+      "question": "HISTORICAL REPLAY (not a forecast): Will daily en.wikipedia.org pageviews for Nvidia grow by at least 13.50% on the full UTC day 2026-11-10 versus the full UTC day 2026-11-03? (Wikimedia Pageviews, all-access, user)",
+      "outcome": "UP",
+      "winning_outcome": 0,
+      "winning_choice": "UP",
+      "rule_hash": "sha256:79c8f464a8cb4fe1c2cd42b636755c9d31c5ad87abe2bca84af3427ccb47d0a9",
+      "evidence_digest": "sha256:583eac071d0b3d8a9ad661f02180c2d1c58fbac435e68b5c6346a28348257e06",
+      "timing": {
+        "open_at": "2026-11-12T04:00:29.473464Z",
+        "close_at": "2026-11-12T05:30:29.473464Z",
+        "resolve_after": "2026-11-12T05:35:29.473464Z"
+      },
+      "created_at": "2026-11-12T04:26:35.870270327Z",
+      "closed_at": "2026-11-12T05:37:02.836273647Z",
+      "resolved_at": "2026-11-12T05:38:06.615121843Z",
+      "deposit": {
+        "amount": "1000000",
+        "outcome": 0,
+        "label": "1 test USDC on UP"
+      },
+      "transactions": {
+        "create": "2k4v9StY83xsyqAkR36Zke92HxA6U6UbXejVZGDDNxdJ",
+        "deposit": "CMLP8mVWgEZLHb2EXF29EXGSbvJjAbP9LSRC9WjVuXRB",
+        "close": "2q7oAYrCZN49n9PwKWXZNxhqxRQFef4z9jb9ytXzu7Xv",
+        "resolve": "Bh7kDST6dhMDwz5gMfsjrmmmtpbZZsSvKkukjkGzL4u1",
+        "claim": "C4b882jAwpnZgo1ofHwAhQz55rFR7pjPyyGTMS1SD7pr"
+      },
+      "final": {
+        "status": "resolved",
+        "totals": [
+          "1000000",
+          "0"
+        ],
+        "escrow_total": "1000000",
+        "paid_total": "1000000",
+        "pending_total": "0",
+        "unclaimed_reserve": "0",
+        "position_claimed_total": "1000000",
+        "position_claimable": "0",
+        "claim_state": "claimed"
+      }
+    },
+    {
+      "name": "Bitcoin vs ChatGPT historical replay",
+      "mode": "trend_battle",
+      "market_id": "s3b-short-battle-btc-chatgpt-20261112T040029Z",
+      "question": "HISTORICAL REPLAY (not a forecast): Which topic had higher normalized Wikimedia pageview growth from the full UTC day 2026-11-03 to the full UTC day 2026-11-10: Bitcoin or ChatGPT? A difference within 930 bps is a tie and voids the market.",
+      "outcome": "TOPIC_A",
+      "winning_outcome": 0,
+      "winning_choice": "Bitcoin",
+      "rule_hash": "sha256:b6a5c88950744db167b02743ec5bab517d7dc0073911ef2dab478f55934c6e57",
+      "evidence_digest": "sha256:ad15ea91fa97e32cc97e5dd94dc5db72a511e5fa980b1e8c7615b2db0ccd3e5d",
+      "timing": {
+        "open_at": "2026-11-12T04:00:29.473464Z",
+        "close_at": "2026-11-12T05:30:29.473464Z",
+        "resolve_after": "2026-11-12T05:35:29.473464Z"
+      },
+      "created_at": "2026-11-12T04:26:51.021522982Z",
+      "closed_at": "2026-11-12T05:37:13.128869670Z",
+      "resolved_at": "2026-11-12T05:38:28.510063258Z",
+      "deposit": {
+        "amount": "1000000",
+        "outcome": 0,
+        "label": "1 test USDC on Bitcoin / TOPIC_A"
+      },
+      "transactions": {
+        "create": "2suiYW9xYGPPYiX3DpHuuQ7NAUrxGuTVxvyrctibvev8",
+        "deposit": "6MSX3WrtgZ2pPAEr5McodeU9g8x3rq2Dkog7uRv9Nik6",
+        "close": "FrKG8vK1EN2FXWAgBDqPat7HmTa6AodRVxM4UdGTwd7X",
+        "resolve": "2tvcgQA4Y7wDHvFv3EaQ3WJNvwnsgZZLvyxfxm5hsqmH",
+        "claim": "C2sVEw9poAa9wqf4zGkkkXcrF1YxXw1yTPskBmoTntNU"
+      },
+      "final": {
+        "status": "resolved",
+        "totals": [
+          "1000000",
+          "0"
+        ],
+        "escrow_total": "1000000",
+        "paid_total": "1000000",
+        "pending_total": "0",
+        "unclaimed_reserve": "0",
+        "position_claimed_total": "1000000",
+        "position_claimable": "0",
+        "claim_state": "claimed"
+      }
+    }
+  ],
+  "token_balances": {
+    "wallet_before": "100000000",
+    "wallet_after_deposits": "98000000",
+    "wallet_after_claims": "100000000",
+    "market_before": "0",
+    "market_after_deposits": "2000000",
+    "market_after_claims": "0",
+    "wallet_storage_registered": true,
+    "market_storage_registered": true
+  },
+  "duplicate_claim_rejection": {
+    "market_id": "s3b-short-trend-nvidia-20261112T040029Z",
+    "tx_hash": "FEMWzAad5BWYGk8pHQKT87CfMqAUYj2qaoQzNtoMUHu4",
+    "result": "FAILED \u2014 expected duplicate-claim rejection",
+    "state_unchanged": true
+  },
+  "caveats": [
+    "Only the winning side was funded in each market; there was no opposing trader.",
+    "Claims returned 1 test USDC of stake per market. They demonstrate collateral recovery and settlement mechanics, not trading profit.",
+    "No fees were charged (fee_bps = 0).",
+    "All activity is NEAR testnet with Tidepool test USDC; no mainnet assets."
+  ],
+  "tests": {
+    "s3b_oracle": 65,
+    "s3a_trend_radar": 76,
+    "rust_market": 109
+  },
+  "final_chain": {
+    "height": 277321649,
+    "time": "2026-11-12T05:48:19.586604Z"
+  },
+  "near_balances": {
+    "wallet": "2.9854050633191377",
+    "market": "6.9965434877283138"
+  },
+  "no_contract_redeploy": true
+}

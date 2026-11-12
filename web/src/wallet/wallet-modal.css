@@ -1,0 +1,27 @@
+/* Re-skin the wallet-selector modal to Notch tokens (no purple). */
+#near-wallet-selector-modal .nws-modal-wrapper.dark-theme,
+#near-wallet-selector-modal .dark-theme,
+#near-wallet-selector-modal {
+  --wallet-selector-backdrop-bg: rgba(0, 0, 0, .7);
+  --wallet-selector-heading-color: #fff;
+  --wallet-selector-text-color: rgba(235, 235, 245, .62);
+  --wallet-selector-sidebar-border-color: rgba(255, 255, 255, .08);
+  --wallet-selector-selected-wallet-bg: rgba(252, 235, 83, .14);
+  --wallet-selector-selected-wallet-bg-hover: rgba(252, 235, 83, .2);
+  --wallet-selector-wallet-option-border-color: rgba(255, 255, 255, .08);
+  --wallet-selector-wallet-option-bg-hover: rgba(255, 255, 255, .05);
+  --wallet-selector-content-bg: #1c1c1e;
+  --wallet-selector-change-path-bg: #2a2a2c;
+  --wallet-selector-home-button-bg: #2a2a2c;
+  --wallet-selector-confirm-button-bg: #fceb53;
+  --wallet-selector-confirm-button-bg-hover: #ffe745;
+  --wallet-selector-error: #ff6b5e;
+  --wallet-selector-close-button-bg-color: #2a2a2c;
+  --wallet-selector-close-button-fill-icon-colour: #fff;
+  --wallet-selector-spinner-color: #fceb53;
+  --wallet-selector-bottom-section: #1c1c1e;
+  --wallet-selector-mobile-text: #fff;
+  --wallet-selector-connected-green: #fceb53;
+  font-family: var(--font);
+}
+#near-wallet-selector-modal .nws-modal-wrapper .nws-modal { border-radius: 28px; }

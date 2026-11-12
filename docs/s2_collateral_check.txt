@@ -1,0 +1,99 @@
+Notch S2 collateral compatibility evidence
+Captured at (UTC): 2026-11-11T22:25:57.155465+00:00
+RPC: https://rpc.testnet.near.org
+
+Tidepool /v0/tokens USDC entry (https://www.usetidepool.tech/v0/tokens):
+{
+  "assetId": "nep141:usdc.tidepool-sandbox.testnet",
+  "decimals": 6,
+  "blockchain": "near",
+  "symbol": "USDC",
+  "price": 0.999573,
+  "priceUpdatedAt": "2026-11-11T22:25:35.046Z",
+  "contractAddress": "usdc.tidepool-sandbox.testnet",
+  "coingeckoId": "usd-coin"
+}
+
+view_account(usdc.tidepool-sandbox.testnet):
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "amount": "2347114902976716900000630",
+    "block_hash": "5f2a5y7ZHWyvM7j6GKkvGVkarEAGeUvKyS8C2bF2u69K",
+    "block_height": 277276390,
+    "code_hash": "DgV3WsKJsGtCjNWxYzFvi599szo7oojkKXWCoGBBAHwj",
+    "locked": "0",
+    "storage_paid_at": 0,
+    "storage_usage": 180612
+  },
+  "id": "1"
+}
+
+view_account(notch-market.testnet):
+{
+  "jsonrpc": "2.0",
+  "error": {
+    "name": "HANDLER_ERROR",
+    "cause": {
+      "info": {
+        "block_hash": "2cmo1DrNPXoxwXQPk1tMvpCvYSRLGDEmLwFP4LqnUVHP",
+        "block_height": 277276396,
+        "requested_account_id": "notch-market.testnet"
+      },
+      "name": "UNKNOWN_ACCOUNT"
+    },
+    "code": -32000,
+    "message": "Server error",
+    "data": "account notch-market.testnet does not exist while viewing"
+  },
+  "id": "1"
+}
+
+ft_metadata({}):
+{
+  "block_height": 277276402,
+  "result": "{\"spec\":\"ft-1.0.0\",\"name\":\"Tidepool Testnet USDC (no value)\",\"symbol\":\"USDC\",\"icon\":null,\"reference\":null,\"reference_hash\":null,\"decimals\":6}"
+}
+
+ft_total_supply({}):
+{
+  "block_height": 277276409,
+  "result": "\"2005900000000\""
+}
+
+storage_balance_bounds({}):
+{
+  "block_height": 277276415,
+  "result": "{\"min\":\"1250000000000000000000\",\"max\":\"1250000000000000000000\"}"
+}
+
+storage_balance_of({"account_id": "notch-market.testnet"}):
+{
+  "block_height": 277276421,
+  "result": "null"
+}
+
+Read-only method existence probes (these cannot mutate; expected to panic on missing yocto/storage or view restriction):
+ft_transfer:
+{
+  "block_height": 277276428,
+  "error": "wasm execution failed with error: HostError(GuestPanic { panic_msg: \"Requires attached deposit of exactly 1 yoctoNEAR\" })"
+}
+
+ft_transfer_call:
+{
+  "block_height": 277276435,
+  "error": "wasm execution failed with error: HostError(GuestPanic { panic_msg: \"Requires attached deposit of exactly 1 yoctoNEAR\" })"
+}
+
+storage_deposit:
+{
+  "block_height": 277276441,
+  "error": "wasm execution failed with error: HostError(GuestPanic { panic_msg: \"The attached deposit is less than the minimum storage balance\" })"
+}
+
+ft_resolve_transfer:
+{
+  "block_height": 277276447,
+  "error": "wasm execution failed with error: HostError(ProhibitedInView { method_name: \"predecessor_account_id\" })"
+}

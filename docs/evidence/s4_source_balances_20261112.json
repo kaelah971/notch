@@ -1,0 +1,57 @@
+{
+  "account": "notch-dev.testnet",
+  "network": "testnet",
+  "balances": {
+    "USDC": {
+      "contract": "usdc.tidepool-sandbox.testnet",
+      "base_units": "100000000"
+    },
+    "USDT": {
+      "contract": "usdt.tidepool-sandbox.testnet",
+      "base_units": "100000000"
+    },
+    "wNEAR": {
+      "contract": "wnear.tidepool-sandbox.testnet",
+      "base_units": "40000000000000000000000000"
+    },
+    "wBTC": {
+      "contract": "wbtc.tidepool-sandbox.testnet",
+      "base_units": "100000"
+    },
+    "ETH": {
+      "contract": "eth.tidepool-sandbox.testnet",
+      "base_units": "30000000000000000"
+    },
+    "XAUT": {
+      "contract": "xaut.tidepool-sandbox.testnet",
+      "base_units": "30000"
+    }
+  },
+  "storage": {
+    "USDC": {
+      "total": "1250000000000000000000",
+      "available": "0"
+    },
+    "USDT": {
+      "total": "1250000000000000000000",
+      "available": "0"
+    },
+    "wNEAR": {
+      "total": "1250000000000000000000",
+      "available": "0"
+    },
+    "wBTC": {
+      "total": "1250000000000000000000",
+      "available": "0"
+    },
+    "ETH": {
+      "total": "1250000000000000000000",
+      "available": "0"
+    },
+    "XAUT": {
+      "total": "1250000000000000000000",
+      "available": "0"
+    }
+  },
+  "near_yocto": "2985405063319137699999998"
+}

@@ -1,0 +1,237 @@
+{
+  "schema_version": "notch.s4.intents-verification/1",
+  "generated_at": "2026-11-12T07:07:42.627462Z",
+  "provider": {
+    "name": "Tidepool 1Click-compatible testnet sandbox",
+    "base_url": "https://www.usetidepool.tech",
+    "affiliation": "community-operated; not affiliated with NEAR, Defuse or 1Click",
+    "official_1click_testnet": false,
+    "mainnet_used": false
+  },
+  "destination": {
+    "asset": "nep141:usdc.tidepool-sandbox.testnet",
+    "symbol": "USDC",
+    "decimals": 6,
+    "verifier_account": "verifier.tidepool-sandbox.testnet"
+  },
+  "discovery": {
+    "token_count": 31,
+    "route_count": 5,
+    "near_source_assets": [
+      "nep141:usdt.tidepool-sandbox.testnet",
+      "nep141:wnear.tidepool-sandbox.testnet",
+      "nep141:wbtc.tidepool-sandbox.testnet",
+      "nep141:eth.tidepool-sandbox.testnet",
+      "nep141:xaut.tidepool-sandbox.testnet"
+    ],
+    "routes": [
+      "USDT (near) -> USDC",
+      "wNEAR (near) -> USDC",
+      "wBTC (near) -> USDC",
+      "ETH (near) -> USDC",
+      "XAUT (near) -> USDC"
+    ]
+  },
+  "dry_quote": {
+    "quote_id": "e8322ba0-a816-453d-a1bd-a6ea575c76dc",
+    "source_asset": "nep141:usdt.tidepool-sandbox.testnet",
+    "amount_in": "1000000",
+    "amount_out": "999511",
+    "min_amount_out": "989515",
+    "implied_fee_usd": "0.0001",
+    "deadline": "2026-11-12T08:06:24.735885Z",
+    "signature": "ed25519:3FWiQ64GfF6r6GVXcM17uRBExLNwYKhJbBRBkSQ3PhT1s4sCSaqMCpQaaJdLkfMxJ9CAtBj37mbHCtcz9Wx3BJiD",
+    "state": "QUOTED"
+  },
+  "live_quote": {
+    "quote_id": "c12aa519-9789-439e-aa4e-33732730b46b",
+    "source_asset": "nep141:usdt.tidepool-sandbox.testnet",
+    "amount_in": "1000000",
+    "amount_out": "999511",
+    "min_amount_out": "989515",
+    "implied_fee_usd": "0.0001",
+    "deposit_address": "e9fa20cc07cb1d7d5f01a7a1f81febae87ea1260601eb845c74513c7b4f8c204",
+    "deposit_memo": null,
+    "deadline": "2026-11-12T08:06:30.332Z",
+    "signature": "ed25519:549sTEUKrWEcrjas9S4DuEWHdWGk5hdLU3qWaaBxMVMCTACDbM9ptChRicDenX2KQhiyDMpa3S1AVgTH861tVZdE",
+    "deposit_type": "INTENTS",
+    "instructions": {
+      "amount_in": "1000000",
+      "blocker": null,
+      "deadline": "2026-11-12T08:06:30.332Z",
+      "deposit_memo": null,
+      "deposit_type": "INTENTS",
+      "destination_asset": "nep141:usdc.tidepool-sandbox.testnet",
+      "destination_decimals": 6,
+      "destination_symbol": "USDC",
+      "min_amount_out": "989515",
+      "provider_deposit_address": "e9fa20cc07cb1d7d5f01a7a1f81febae87ea1260601eb845c74513c7b4f8c204",
+      "quote_id": "c12aa519-9789-439e-aa4e-33732730b46b",
+      "recipient": "notch-dev.testnet",
+      "refund_to": "notch-dev.testnet",
+      "source_asset": "nep141:usdt.tidepool-sandbox.testnet",
+      "source_chain": "near",
+      "source_decimals": 6,
+      "source_symbol": "USDT",
+      "steps": [
+        {
+          "action": "ft_transfer_call_to_intents_verifier",
+          "args": {
+            "amount": "1000000",
+            "msg": "e9fa20cc07cb1d7d5f01a7a1f81febae87ea1260601eb845c74513c7b4f8c204",
+            "receiver_id": "verifier.tidepool-sandbox.testnet"
+          },
+          "attached_deposit_yocto": "1",
+          "contract": "usdt.tidepool-sandbox.testnet",
+          "gas_tgas": 100,
+          "method": "ft_transfer_call",
+          "note": "Deposit into the Intents verifier. The msg is the quote deposit address; no separate storage registration is required.",
+          "step": 1
+        }
+      ],
+      "supported": true,
+      "warnings": [
+        "TESTNET ONLY: Tidepool test tokens have no value. Never send real assets.",
+        "Use the exact provider deposit address and memo; do not substitute another address.",
+        "The backend does not sign or broadcast these steps. User approval is required."
+      ]
+    },
+    "provider_status": "PENDING_DEPOSIT",
+    "state": "AWAITING_DEPOSIT",
+    "executed": false
+  },
+  "origin_chain_quote": {
+    "quote_id": "3a4ba860-143a-4a90-b244-83c8f4e339e3",
+    "deposit_address": "ff4dab0d75dfd8529bc6700a327eece121758f0c6d4b686d91f2e1211775911b",
+    "deadline": "2026-11-12T08:07:06.545Z",
+    "deposit_type": "ORIGIN_CHAIN",
+    "steps": [
+      {
+        "action": "storage_deposit_for_deposit_account",
+        "args": {
+          "account_id": "ff4dab0d75dfd8529bc6700a327eece121758f0c6d4b686d91f2e1211775911b",
+          "registration_only": true
+        },
+        "attached_deposit_yocto": "1250000000000000000000",
+        "contract": "usdt.tidepool-sandbox.testnet",
+        "gas_tgas": 30,
+        "method": "storage_deposit",
+        "note": "Register the quote's fresh NEAR deposit account on the source token contract. Verify the current storage price before sending.",
+        "step": 1
+      },
+      {
+        "action": "ft_transfer_to_origin_chain_deposit_account",
+        "args": {
+          "amount": "1000000",
+          "receiver_id": "ff4dab0d75dfd8529bc6700a327eece121758f0c6d4b686d91f2e1211775911b"
+        },
+        "attached_deposit_yocto": "1",
+        "contract": "usdt.tidepool-sandbox.testnet",
+        "gas_tgas": 30,
+        "method": "ft_transfer",
+        "note": "Send exactly quote.amountIn to the provider deposit account. Do not add funds beyond the quoted amount.",
+        "step": 2
+      }
+    ],
+    "executed": false
+  },
+  "funding_readiness": {
+    "account": "notch-dev.testnet",
+    "asset_id": "nep141:usdc.tidepool-sandbox.testnet",
+    "balance": "100000000",
+    "blocker": null,
+    "checked_at": "2026-11-12T07:06:58.551246Z",
+    "decimals": 6,
+    "min_market_entry": "1000000",
+    "ready": true,
+    "storage_registered": true,
+    "storage_total": "1250000000000000000000",
+    "symbol": "USDC"
+  },
+  "transactions": {
+    "signed": 0,
+    "broadcast": 0,
+    "deposit_tx_hash": null,
+    "swap_status": "NOT_EXECUTED_AWAITING_APPROVAL"
+  },
+  "security": {
+    "quote_signature_shape_valid": true,
+    "quote_signature_cryptographically_verified_by_backend": false,
+    "approval_required_before_transfer": true,
+    "testnet_only": true,
+    "secrets_logged": false
+  },
+  "tests": {
+    "s4_unittest_count": 47,
+    "command": "python -m unittest discover -s services/intents/tests -t ."
+  },
+  "blockers": [
+    "Explicit operator approval is required before the USDT ft_transfer_call deposit.",
+    "The live quote expires at 2026-11-12T08:06:30.332Z; request a fresh quote if approval is later."
+  ],
+  "source_balances": {
+    "account": "notch-dev.testnet",
+    "network": "testnet",
+    "balances": {
+      "USDC": {
+        "contract": "usdc.tidepool-sandbox.testnet",
+        "base_units": "100000000"
+      },
+      "USDT": {
+        "contract": "usdt.tidepool-sandbox.testnet",
+        "base_units": "100000000"
+      },
+      "wNEAR": {
+        "contract": "wnear.tidepool-sandbox.testnet",
+        "base_units": "40000000000000000000000000"
+      },
+      "wBTC": {
+        "contract": "wbtc.tidepool-sandbox.testnet",
+        "base_units": "100000"
+      },
+      "ETH": {
+        "contract": "eth.tidepool-sandbox.testnet",
+        "base_units": "30000000000000000"
+      },
+      "XAUT": {
+        "contract": "xaut.tidepool-sandbox.testnet",
+        "base_units": "30000"
+      }
+    },
+    "storage": {
+      "USDC": {
+        "total": "1250000000000000000000",
+        "available": "0"
+      },
+      "USDT": {
+        "total": "1250000000000000000000",
+        "available": "0"
+      },
+      "wNEAR": {
+        "total": "1250000000000000000000",
+        "available": "0"
+      },
+      "wBTC": {
+        "total": "1250000000000000000000",
+        "available": "0"
+      },
+      "ETH": {
+        "total": "1250000000000000000000",
+        "available": "0"
+      },
+      "XAUT": {
+        "total": "1250000000000000000000",
+        "available": "0"
+      }
+    },
+    "near_yocto": "2985405063319137699999998"
+  },
+  "constraints": {
+    "contract_redeployed": false,
+    "accounting_changed": false,
+    "frontend_implemented": false,
+    "s5_implemented": false,
+    "paid_provider_used": false,
+    "mainnet_transaction": false
+  }
+}

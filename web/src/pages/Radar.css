@@ -1,0 +1,11 @@
+.rlist { list-style: none; margin: 0; padding: 0; background: var(--surface-1); border-radius: var(--radius-lg); box-shadow: inset 0 0 0 1px var(--hairline); overflow: hidden; }
+.rrow { display: grid; grid-template-columns: 28px 1fr auto auto 24px; align-items: center; gap: 14px; padding: 14px 18px; border-top: 1px solid var(--hairline); }
+.rrow:first-child { border-top: 0; }
+.rrank { color: var(--text-3); font-size: 14px; }
+.rtitle { font-weight: 600; font-size: 16px; }
+.rmeta { color: var(--text-3); font-size: 13px; }
+.rviews { font-size: 14px; }
+.rscore { min-width: 40px; height: 28px; display: grid; place-items: center; border-radius: 9px; background: var(--accent-tint); color: var(--sunburst); font-weight: 700; font-size: 14px; }
+.rlink { color: var(--text-3); display: grid; place-items: center; }
+.rlink:hover { color: var(--text); }
+@media (max-width: 640px) { .rrow { grid-template-columns: 24px 1fr auto; } .rviews, .rlink { display: none; } }

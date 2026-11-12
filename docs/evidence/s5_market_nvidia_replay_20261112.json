@@ -1,0 +1,115 @@
+{
+  "brief_id": "brief_f41f9078ec97e2eb78ae",
+  "brief_type": "market",
+  "cache_hit": true,
+  "candidate_id": "cand_b279c92126deeecb4beb",
+  "data_as_of": "2026-11-12T01:07:34.707435Z",
+  "evidence_references": [
+    {
+      "kind": "oracle",
+      "observed_at": null,
+      "raw_hash": null,
+      "ref_id": "market:s3b-replay-trend-nvidia-20261103-20261110:1",
+      "source": "s3b-rule",
+      "title": "Frozen S3B market rule",
+      "url": null
+    },
+    {
+      "kind": "oracle",
+      "observed_at": "2026-11-12T01:07:34.707435Z",
+      "raw_hash": null,
+      "ref_id": "market:s3b-replay-trend-nvidia-20261103-20261110:2",
+      "source": "s3b-evidence",
+      "title": "Frozen S3B evidence receipt",
+      "url": null
+    },
+    {
+      "kind": "oracle",
+      "observed_at": "2026-11-12T01:07:34.707435Z",
+      "raw_hash": "f372687814e75ca213ef31e014a2a9a8dc204340f249a44922ae9e1401e436f2",
+      "ref_id": "market:s3b-replay-trend-nvidia-20261103-20261110:3",
+      "source": "wikimedia-pageviews-v1",
+      "title": "Nvidia baseline and target",
+      "url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Nvidia/daily/20260901/20261110"
+    }
+  ],
+  "fallback_reason": "NEAR_AI_KEY is not configured; source-only fallback returned",
+  "generated_at": "2026-11-12T08:45:13.320864Z",
+  "generation_status": "NON_AI_FALLBACK",
+  "headline": "Historical replay: Nvidia outcome UP",
+  "input_digest": "sha256:4a41cde5f25f05f1da4325649ff418a022e6ca7c21bd27b2950a69caa832eff9",
+  "market_id": "s3b-replay-trend-nvidia-20261103-20261110",
+  "measurement_window": {
+    "baseline_date": "2026-11-03",
+    "baseline_window_utc": "2026-11-03T00:00:00Z/2026-11-03T23:59:59Z",
+    "replay": true,
+    "target_date": "2026-11-10",
+    "target_window_utc": "2026-11-10T00:00:00Z/2026-11-10T23:59:59Z"
+  },
+  "missing_evidence": [
+    "No social-post content, sentiment labels, or causal attribution is included.",
+    "The brief does not alter the frozen rule, evidence digest, or outcome."
+  ],
+  "model": "none",
+  "notable_changes": [],
+  "observed_signals": [
+    {
+      "evidence_refs": [
+        "market:s3b-replay-trend-nvidia-20261103-20261110:3"
+      ],
+      "kind": "FACT",
+      "text": "Nvidia recorded 4,743 views on 2026-11-03 and 123,851 views on 2026-11-10."
+    },
+    {
+      "evidence_refs": [
+        "market:s3b-replay-trend-nvidia-20261103-20261110:2"
+      ],
+      "kind": "FACT",
+      "text": "The calculation records growth of 251,123 bps against a 1,350 bps threshold; the outcome is UP."
+    }
+  ],
+  "provider": "deterministic",
+  "resolution": {
+    "evidence_digest": "sha256:0c5ede6be9542b2d161601d6e5e6205c725dc8bf7ad9a488a63911c5f22ddbb2",
+    "formula": "growth_bps = floor((target_views - baseline_views) * 10000 / baseline_views); UP if growth_bps >= 1,350; otherwise DOWN.",
+    "mode": "trend_trading",
+    "observation_window": {
+      "baseline_date": "2026-11-03",
+      "baseline_window_utc": "2026-11-03T00:00:00Z/2026-11-03T23:59:59Z",
+      "target_date": "2026-11-10",
+      "target_window_utc": "2026-11-10T00:00:00Z/2026-11-10T23:59:59Z"
+    },
+    "outcome": "UP",
+    "rule_hash": "sha256:1c42a2d04a29c5ba2a0bde3cb8e8a65d06292c965180143022cb07e979c6a47b",
+    "text": "The frozen rule uses full UTC-day pageviews for Nvidia on 2026-11-03 (baseline) and 2026-11-10 (target). Growth is floor((target - baseline) * 10000 / baseline). The evidence records 4,743 baseline views, 123,851 target views, and 251,123 bps growth. Because growth is at least the frozen 1,350 bps threshold, the recorded outcome is UP."
+  },
+  "schema_version": "notch.near-ai.brief/1",
+  "suggested_research_questions": [
+    "What events coincided with the recorded change?",
+    "How sensitive is the outcome to the frozen threshold or tie tolerance?",
+    "What independent source would confirm the pattern?"
+  ],
+  "summary": "This is a historical replay, not a forecast. The frozen rule compares 2026-11-03 with 2026-11-10; the recorded outcome is UP.",
+  "topic": "Nvidia",
+  "uncertainty": [
+    {
+      "evidence_refs": [],
+      "kind": "UNKNOWN",
+      "text": "This is a historical replay, not a forecast."
+    },
+    {
+      "evidence_refs": [],
+      "kind": "UNKNOWN",
+      "text": "Pageviews measure attention, not sentiment or market direction."
+    },
+    {
+      "evidence_refs": [],
+      "kind": "UNKNOWN",
+      "text": "The evidence digest proves recorded-payload integrity, not organic attention."
+    }
+  ],
+  "usage": {
+    "model": "z-ai/glm-5.3-flash",
+    "model_catalog_verified": true
+  }
+}

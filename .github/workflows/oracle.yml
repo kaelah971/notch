@@ -1,0 +1,39 @@
+name: oracle
+
+on:
+  push:
+    paths:
+      - "services/oracle/**"
+      - "docs/evidence/s3a_live_scan_20261112.json"
+      - ".github/workflows/oracle.yml"
+  pull_request:
+    paths:
+      - "services/oracle/**"
+
+jobs:
+  test:
+    name: Oracle tests and fixture demo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        run: python -m unittest discover -s services/oracle/tests -t .
+      - name: Fixture demo
+        run: |
+          python -m services.oracle \
+            --data-dir /tmp/notch-oracle \
+            --now 2026-11-12T02:00:00Z \
+            --fixtures services/oracle/fixtures \
+            demo --summary
+      - name: Verify a replay receipt
+        run: |
+          EVIDENCE=$(python - <<'PY'
+          import json
+          d = json.load(open('/tmp/notch-oracle/demo.json'))
+          print(next(r['evidence']['path'] for r in d['rules'] if r['evidence']))
+          PY
+          )
+          python -m services.oracle verify-evidence "$EVIDENCE"

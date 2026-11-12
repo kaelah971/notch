@@ -1,0 +1,211 @@
+{
+  "schema_version": "notch.s2_5.short-window-preparation/1",
+  "prepared_at_utc": "2026-11-12T03:58:29.473464Z",
+  "chain_time_source": "live NEAR testnet block",
+  "entry_minutes": 90,
+  "resolution_delay_minutes": 5,
+  "previous_timing": {
+    "trend": {
+      "market_id": "s3b-replay-trend-nvidia-20261103-20261110",
+      "rule_hash": "sha256:1c42a2d04a29c5ba2a0bde3cb8e8a65d06292c965180143022cb07e979c6a47b",
+      "timing": {
+        "open_at_ns": "1794452400000000000",
+        "close_at_ns": "1794787140000000000",
+        "resolve_after_ns": "1794916800000000000",
+        "open_at_utc": "2026-11-12T03:00:00Z",
+        "close_at_utc": "2026-11-15T23:59:00Z",
+        "resolve_after_utc": "2026-11-17T12:00:00Z"
+      },
+      "evidence_digest": "sha256:0c5ede6be9542b2d161601d6e5e6205c725dc8bf7ad9a488a63911c5f22ddbb2",
+      "evidence_outcome": "UP"
+    },
+    "battle": {
+      "market_id": "s3b-replay-battle-btc-chatgpt-20261103-20261110",
+      "rule_hash": "sha256:64a41270b9b68a7c33a972001adc1122b35c0877d1e04692f2cf2742fad1c19d",
+      "timing": {
+        "open_at_ns": "1794452400000000000",
+        "close_at_ns": "1794787140000000000",
+        "resolve_after_ns": "1794916800000000000",
+        "open_at_utc": "2026-11-12T03:00:00Z",
+        "close_at_utc": "2026-11-15T23:59:00Z",
+        "resolve_after_utc": "2026-11-17T12:00:00Z"
+      },
+      "evidence_digest": "sha256:cef387d5905985f5bf2644d2cb4daad735dfd8b076fc429a598d199927a60e12",
+      "evidence_outcome": "TOPIC_A"
+    }
+  },
+  "new_markets": [
+    {
+      "name": "trend_nvidia",
+      "market_id": "s3b-short-trend-nvidia-20261112T040029Z",
+      "mode": "trend_trading",
+      "rule_hash": "sha256:79c8f464a8cb4fe1c2cd42b636755c9d31c5ad87abe2bca84af3427ccb47d0a9",
+      "status": "DRAFT",
+      "timing": {
+        "open_at_ns": "1794456029000000000",
+        "close_at_ns": "1794461429000000000",
+        "resolve_after_ns": "1794461729000000000",
+        "open_at_utc": "2026-11-12T04:00:29.473464Z",
+        "close_at_utc": "2026-11-12T05:30:29.473464Z",
+        "resolve_after_utc": "2026-11-12T05:35:29.473464Z"
+      },
+      "observation": {
+        "baseline_date": "2026-11-03",
+        "target_date": "2026-11-10",
+        "baseline_window_utc": "2026-11-03T00:00:00Z/2026-11-03T23:59:59Z",
+        "target_window_utc": "2026-11-10T00:00:00Z/2026-11-10T23:59:59Z",
+        "replay": true,
+        "replay_label": "HISTORICAL_REPLAY"
+      },
+      "formula": {
+        "version": "growth-threshold-v1",
+        "growth_bps": "floor((target_views - baseline_views) * 10000 / baseline_views)",
+        "threshold_bps": 1350,
+        "up_if": "growth_bps >= threshold_bps",
+        "down_if": "growth_bps < threshold_bps",
+        "integer_only": true,
+        "rounding": "mathematical floor; negative numerators floor below zero"
+      },
+      "evidence_digest": "sha256:583eac071d0b3d8a9ad661f02180c2d1c58fbac435e68b5c6346a28348257e06",
+      "evidence_outcome": "UP",
+      "evidence_verification": {
+        "valid": true,
+        "reasons": [],
+        "evidence_digest": "sha256:583eac071d0b3d8a9ad661f02180c2d1c58fbac435e68b5c6346a28348257e06",
+        "outcome": "UP",
+        "rule_hash": "sha256:79c8f464a8cb4fe1c2cd42b636755c9d31c5ad87abe2bca84af3427ccb47d0a9",
+        "integrity_note": "The evidence digest proves the integrity of the recorded source payload hashes and calculation inputs. It does not prove that Wikimedia pageviews are organic, complete or free of manipulation."
+      },
+      "create_args": {
+        "args": {
+          "market_id": "s3b-short-trend-nvidia-20261112T040029Z",
+          "mode": "trend_trading",
+          "question": "HISTORICAL REPLAY (not a forecast): Will daily en.wikipedia.org pageviews for Nvidia grow by at least 13.50% on the full UTC day 2026-11-10 versus the full UTC day 2026-11-03? (Wikimedia Pageviews, all-access, user)",
+          "choices": [
+            "UP",
+            "DOWN"
+          ],
+          "source_id": "wikimedia-pageviews-v1",
+          "rule_hash": "sha256:79c8f464a8cb4fe1c2cd42b636755c9d31c5ad87abe2bca84af3427ccb47d0a9",
+          "open_at": "1794456029000000000",
+          "close_at": "1794461429000000000",
+          "resolve_after": "1794461729000000000",
+          "invalidation_policy": "refund_on_void"
+        }
+      }
+    },
+    {
+      "name": "battle_bitcoin_chatgpt",
+      "market_id": "s3b-short-battle-btc-chatgpt-20261112T040029Z",
+      "mode": "trend_battle",
+      "rule_hash": "sha256:b6a5c88950744db167b02743ec5bab517d7dc0073911ef2dab478f55934c6e57",
+      "status": "DRAFT",
+      "timing": {
+        "open_at_ns": "1794456029000000000",
+        "close_at_ns": "1794461429000000000",
+        "resolve_after_ns": "1794461729000000000",
+        "open_at_utc": "2026-11-12T04:00:29.473464Z",
+        "close_at_utc": "2026-11-12T05:30:29.473464Z",
+        "resolve_after_utc": "2026-11-12T05:35:29.473464Z"
+      },
+      "observation": {
+        "baseline_date": "2026-11-03",
+        "target_date": "2026-11-10",
+        "baseline_window_utc": "2026-11-03T00:00:00Z/2026-11-03T23:59:59Z",
+        "target_window_utc": "2026-11-10T00:00:00Z/2026-11-10T23:59:59Z",
+        "replay": true,
+        "replay_label": "HISTORICAL_REPLAY"
+      },
+      "formula": {
+        "version": "growth_comparison_v1",
+        "growth_bps": "floor((target_views - baseline_views) * 10000 / baseline_views)",
+        "comparison": "difference_bps = growth_a_bps - growth_b_bps",
+        "tie_tolerance_bps": 930,
+        "tie_policy": "void",
+        "tie_if": "abs(difference_bps) <= tie_tolerance_bps",
+        "winner_if": "abs(difference_bps) > tie_tolerance_bps",
+        "integer_only": true
+      },
+      "evidence_digest": "sha256:ad15ea91fa97e32cc97e5dd94dc5db72a511e5fa980b1e8c7615b2db0ccd3e5d",
+      "evidence_outcome": "TOPIC_A",
+      "evidence_verification": {
+        "valid": true,
+        "reasons": [],
+        "evidence_digest": "sha256:ad15ea91fa97e32cc97e5dd94dc5db72a511e5fa980b1e8c7615b2db0ccd3e5d",
+        "outcome": "TOPIC_A",
+        "rule_hash": "sha256:b6a5c88950744db167b02743ec5bab517d7dc0073911ef2dab478f55934c6e57",
+        "integrity_note": "The evidence digest proves the integrity of the recorded source payload hashes and calculation inputs. It does not prove that Wikimedia pageviews are organic, complete or free of manipulation."
+      },
+      "create_args": {
+        "args": {
+          "market_id": "s3b-short-battle-btc-chatgpt-20261112T040029Z",
+          "mode": "trend_battle",
+          "question": "HISTORICAL REPLAY (not a forecast): Which topic had higher normalized Wikimedia pageview growth from the full UTC day 2026-11-03 to the full UTC day 2026-11-10: Bitcoin or ChatGPT? A difference within 930 bps is a tie and voids the market.",
+          "choices": [
+            "Bitcoin",
+            "ChatGPT"
+          ],
+          "source_id": "wikimedia-pageviews-v1",
+          "rule_hash": "sha256:b6a5c88950744db167b02743ec5bab517d7dc0073911ef2dab478f55934c6e57",
+          "open_at": "1794456029000000000",
+          "close_at": "1794461429000000000",
+          "resolve_after": "1794461729000000000",
+          "invalidation_policy": "refund_on_void",
+          "battle": {
+            "topic_a": {
+              "topic_id": "bitcoin",
+              "source_id": "wikimedia-pageviews-v1",
+              "project": "en.wikipedia.org",
+              "article_title": "Bitcoin",
+              "metric": "daily_pageviews_growth_comparison"
+            },
+            "topic_b": {
+              "topic_id": "chatgpt",
+              "source_id": "wikimedia-pageviews-v1",
+              "project": "en.wikipedia.org",
+              "article_title": "ChatGPT",
+              "metric": "daily_pageviews_growth_comparison"
+            },
+            "observation_start": "1793664000000000000",
+            "observation_end": "1794355199000000000",
+            "formula": "growth_comparison_v1",
+            "min_baseline_views": "1000",
+            "tie_tolerance_bps": 930,
+            "tie_policy": "void"
+          }
+        }
+      }
+    }
+  ],
+  "old_rules_preserved_in": "var\\oracle_live_final\\oracle.sqlite3",
+  "new_rules_store": "var\\oracle_s2_5_short\\oracle.sqlite3",
+  "source_ranges": {
+    "Bitcoin": {
+      "start": "2026-10-27",
+      "end": "2026-11-10",
+      "observations": 71,
+      "missing_dates": [],
+      "raw_response_hash": "a5f812634989d338a959859e293c4bf51e02bb579a59a39a739a0829ea4226c7"
+    },
+    "ChatGPT": {
+      "start": "2026-10-27",
+      "end": "2026-11-10",
+      "observations": 71,
+      "missing_dates": [],
+      "raw_response_hash": "f3992626c971b8eafc4b661f88a3edbdb712727ec96de97b80b3902463c663e7"
+    },
+    "Nvidia": {
+      "start": "2026-10-27",
+      "end": "2026-11-10",
+      "observations": 71,
+      "missing_dates": [],
+      "raw_response_hash": "f372687814e75ca213ef31e014a2a9a8dc204340f249a44922ae9e1401e436f2"
+    }
+  },
+  "notes": [
+    "No transaction was signed or sent by this script.",
+    "New rules are DRAFT and require explicit operator approval.",
+    "Old S3B rules and evidence are preserved in the source store.",
+    "If approval arrives after the entry close, rerun with a fresh chain time."
+  ]
+}

@@ -1,0 +1,17 @@
+/* iOS segmented control */
+.seg {
+  display: inline-flex; gap: 2px; padding: 3px; margin-bottom: 28px;
+  background: var(--surface-2); border-radius: 12px;
+  max-width: 100%; overflow-x: auto; scrollbar-width: none;
+}
+.seg::-webkit-scrollbar { display: none; }
+.seg-btn {
+  height: 34px; padding: 0 14px; border-radius: 9px;
+  font-size: 13.5px; font-weight: 500; color: var(--text-2); white-space: nowrap;
+  transition: background .15s, color .15s;
+}
+.seg-btn[aria-selected='true'] { background: var(--surface-3); color: var(--text); box-shadow: 0 1px 3px rgba(0, 0, 0, .4); }
+
+.msec { margin-bottom: 36px; }
+.msec-h { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); margin-bottom: 12px; }
+.mgrid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); }

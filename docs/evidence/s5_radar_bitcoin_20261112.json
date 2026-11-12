@@ -1,0 +1,101 @@
+{
+  "brief_id": "brief_f383d159aa28c513005d",
+  "brief_type": "radar",
+  "cache_hit": false,
+  "candidate_id": "cand_9118da9248a28ca00f02",
+  "data_as_of": "2026-11-12T00:21:09.888384Z",
+  "evidence_references": [
+    {
+      "kind": "measurement",
+      "observed_at": "2026-11-12T00:21:09.888384Z",
+      "raw_hash": "61e0275378df2881273bbc038d1f7e9fc34f735a9ff7a720766e0a4a104cee9f",
+      "ref_id": "radar:cand_9118da9248a28ca00f02:1",
+      "source": "coingecko",
+      "title": "Bitcoin",
+      "url": "https://www.coingecko.com/en/coins/bitcoin"
+    },
+    {
+      "kind": "measurement",
+      "observed_at": "2026-11-10",
+      "raw_hash": "83d267f3db791577c3b0715d632b2267dc71e7f4184fd01fdf2186a99c9c400f",
+      "ref_id": "radar:cand_9118da9248a28ca00f02:2",
+      "source": "wikimedia-pageviews",
+      "title": "Bitcoin daily pageviews",
+      "url": null
+    }
+  ],
+  "fallback_reason": "NEAR_AI_KEY is not configured; source-only fallback returned",
+  "generated_at": "2026-11-12T08:51:14.953601Z",
+  "generation_status": "NON_AI_FALLBACK",
+  "headline": "Bitcoin: 4,359 Wikimedia views on 2026-11-10",
+  "input_digest": "sha256:ecbcff3c6a49b65d3c3130a79d4b74edf12a54b5a0f355e1bf94c0e85d45a553",
+  "market_id": null,
+  "measurement_window": {
+    "end": "2026-11-10",
+    "metric": "Wikimedia daily pageviews and Radar discovery signals",
+    "start": "2026-11-04",
+    "timezone": "UTC"
+  },
+  "missing_evidence": [
+    "No social-post content, search-intent data, or sentiment labels are included.",
+    "No full source snapshot is embedded in the brief.",
+    "No frozen market rule is attached to this Radar brief."
+  ],
+  "model": "none",
+  "notable_changes": [
+    {
+      "evidence_refs": [
+        "radar:cand_9118da9248a28ca00f02:2"
+      ],
+      "kind": "FACT",
+      "text": "Daily views moved from 7,955 on 2026-11-04 to 4,359 on 2026-11-10."
+    }
+  ],
+  "observed_signals": [
+    {
+      "evidence_refs": [
+        "radar:cand_9118da9248a28ca00f02:1"
+      ],
+      "kind": "FACT",
+      "text": "CoinGecko listed Bitcoin at trending rank 4."
+    },
+    {
+      "evidence_refs": [
+        "radar:cand_9118da9248a28ca00f02:2"
+      ],
+      "kind": "FACT",
+      "text": "The coverage window 2026-11-04 to 2026-11-10 had a minimum of 2,767 daily views and a mean of 4,105 daily views."
+    }
+  ],
+  "provider": "deterministic",
+  "resolution": null,
+  "schema_version": "notch.near-ai.brief/1",
+  "suggested_research_questions": [
+    "What events coincided with the view changes?",
+    "Are the same signals visible outside Wikimedia?",
+    "Which frozen rule would make this topic measurable?"
+  ],
+  "summary": "Bitcoin is an ELIGIBLE S3A candidate with 1 source(s). The measurements describe attention, not sentiment or price direction.",
+  "topic": "Bitcoin",
+  "uncertainty": [
+    {
+      "evidence_refs": [],
+      "kind": "UNKNOWN",
+      "text": "Pageviews measure attention, not sentiment or market direction."
+    },
+    {
+      "evidence_refs": [],
+      "kind": "UNKNOWN",
+      "text": "S3A coverage is an eligibility probe, not finalized settlement evidence."
+    },
+    {
+      "evidence_refs": [],
+      "kind": "UNKNOWN",
+      "text": "The brief does not establish a causal explanation for the observed change."
+    }
+  ],
+  "usage": {
+    "model": "z-ai/glm-5.3-flash",
+    "model_catalog_verified": true
+  }
+}

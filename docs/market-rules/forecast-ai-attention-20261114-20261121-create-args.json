@@ -1,0 +1,17 @@
+{
+  "args": {
+    "market_id": "forecast-ai-attention-20261114-20261121",
+    "mode": "trend_trading",
+    "question": "FORECAST (not a replay): Will daily en.wikipedia.org pageviews for Artificial_intelligence grow by at least 15.00% on the full UTC day 2026-11-21 versus the full UTC day 2026-11-14? (Wikimedia Pageviews, all-access, user)",
+    "choices": [
+      "UP",
+      "DOWN"
+    ],
+    "source_id": "wikimedia-pageviews-v1",
+    "rule_hash": "sha256:a35c5ca6f0c0fe86f15d1512f96909f66a07ed1036608454fb43db16d0cfb350",
+    "open_at": "1794441600000000000",
+    "close_at": "1794614340000000000",
+    "resolve_after": "1795435200000000000",
+    "invalidation_policy": "refund_on_void"
+  }
+}

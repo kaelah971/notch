@@ -1,0 +1,133 @@
+{
+  "brief_id": "brief_a86813abf29efd116c49",
+  "brief_type": "radar",
+  "cache_hit": true,
+  "candidate_id": "cand_b279c92126deeecb4beb",
+  "data_as_of": "2026-11-12T00:21:10.784731Z",
+  "evidence_references": [
+    {
+      "kind": "measurement",
+      "observed_at": "2026-11-10T23:59:59Z",
+      "raw_hash": "6dd62760d823d9d70685773f4c164935b2683d3c4f47a0e02cfc0e0d8c9c9ae5",
+      "ref_id": "radar:cand_b279c92126deeecb4beb:1",
+      "source": "wikimedia",
+      "title": "Nvidia",
+      "url": "https://en.wikipedia.org/wiki/Nvidia"
+    },
+    {
+      "kind": "measurement",
+      "observed_at": "2026-11-12T00:21:10.784731Z",
+      "raw_hash": "d3c9a5b1eea37e90748623a1a0104853cf4ec9bb25eb89c450d464f75926950a",
+      "ref_id": "radar:cand_b279c92126deeecb4beb:2",
+      "source": "hackernews",
+      "title": "Nvidia is preparing to oust Jensen Huang",
+      "url": "https://www.wsj.com/business/nvidia-is-preparing-to-oust-nvidia-ceo-jensen-huang-30f421ad"
+    },
+    {
+      "kind": "measurement",
+      "observed_at": "2026-11-12T00:21:10.784731Z",
+      "raw_hash": "d3c9a5b1eea37e90748623a1a0104853cf4ec9bb25eb89c450d464f75926950a",
+      "ref_id": "radar:cand_b279c92126deeecb4beb:3",
+      "source": "hackernews",
+      "title": "Nvidia prepares to fire CEO Jensen Huang, WSJ reports",
+      "url": "https://twitter.com/watcherguru/status/2120645607866188008"
+    },
+    {
+      "kind": "measurement",
+      "observed_at": "2026-11-10",
+      "raw_hash": "95e0e5f62b22c8c49acebb39c6a73cf637273f59948d96289eecbb3d79ccf16e",
+      "ref_id": "radar:cand_b279c92126deeecb4beb:4",
+      "source": "wikimedia-pageviews",
+      "title": "Nvidia daily pageviews",
+      "url": null
+    }
+  ],
+  "fallback_reason": "NEAR_AI_KEY is not configured; source-only fallback returned",
+  "generated_at": "2026-11-12T08:45:03.863604Z",
+  "generation_status": "NON_AI_FALLBACK",
+  "headline": "Nvidia: 123,851 Wikimedia views on 2026-11-10",
+  "input_digest": "sha256:455cc2673463becb650de2962d3a13372789eaf27875eb776ea365c90ee740b7",
+  "market_id": null,
+  "measurement_window": {
+    "end": "2026-11-10",
+    "metric": "Wikimedia daily pageviews and Radar discovery signals",
+    "start": "2026-11-04",
+    "timezone": "UTC"
+  },
+  "missing_evidence": [
+    "No social-post content, search-intent data, or sentiment labels are included.",
+    "No full source snapshot is embedded in the brief.",
+    "No frozen market rule is attached to this Radar brief."
+  ],
+  "model": "none",
+  "notable_changes": [
+    {
+      "evidence_refs": [
+        "radar:cand_b279c92126deeecb4beb:4"
+      ],
+      "kind": "FACT",
+      "text": "Daily views moved from 4,112 on 2026-11-04 to 123,851 on 2026-11-10."
+    }
+  ],
+  "observed_signals": [
+    {
+      "evidence_refs": [
+        "radar:cand_b279c92126deeecb4beb:1"
+      ],
+      "kind": "FACT",
+      "text": "Wikimedia recorded 123,851 daily pageviews for Nvidia on 2026-11-10 (rank 17)."
+    },
+    {
+      "evidence_refs": [
+        "radar:cand_b279c92126deeecb4beb:2"
+      ],
+      "kind": "FACT",
+      "text": "Hacker News story \"Nvidia is preparing to oust Jensen Huang\" recorded 338 points and 314 comments."
+    },
+    {
+      "evidence_refs": [
+        "radar:cand_b279c92126deeecb4beb:3"
+      ],
+      "kind": "FACT",
+      "text": "Hacker News story \"Nvidia prepares to fire CEO Jensen Huang, WSJ reports\" recorded 160 points and 67 comments."
+    },
+    {
+      "evidence_refs": [
+        "radar:cand_b279c92126deeecb4beb:4"
+      ],
+      "kind": "FACT",
+      "text": "The coverage window 2026-11-04 to 2026-11-10 had a minimum of 4,112 daily views and a mean of 43,298 daily views."
+    }
+  ],
+  "provider": "deterministic",
+  "resolution": null,
+  "schema_version": "notch.near-ai.brief/1",
+  "suggested_research_questions": [
+    "What events coincided with the view changes?",
+    "Are the same signals visible outside Wikimedia?",
+    "Which frozen rule would make this topic measurable?"
+  ],
+  "summary": "Nvidia is an ELIGIBLE S3A candidate with 2 source(s). The measurements describe attention, not sentiment or price direction.",
+  "topic": "Nvidia",
+  "uncertainty": [
+    {
+      "evidence_refs": [],
+      "kind": "UNKNOWN",
+      "text": "Pageviews measure attention, not sentiment or market direction."
+    },
+    {
+      "evidence_refs": [],
+      "kind": "UNKNOWN",
+      "text": "S3A coverage is an eligibility probe, not finalized settlement evidence."
+    },
+    {
+      "evidence_refs": [],
+      "kind": "UNKNOWN",
+      "text": "The brief does not establish a causal explanation for the observed change."
+    }
+  ],
+  "usage": {
+    "model": "z-ai/glm-5.3-flash",
+    "model_catalog_verified": true
+  }
+}

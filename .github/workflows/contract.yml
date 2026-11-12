@@ -1,0 +1,59 @@
+name: contract-s1
+
+on:
+  push:
+    paths:
+      - "contracts/**"
+      - "tests/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - ".github/workflows/contract.yml"
+  pull_request:
+    paths:
+      - "contracts/**"
+      - "tests/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+
+jobs:
+  unit-and-build:
+    name: Unit tests and WASM build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: rustfmt
+      - name: Format check
+        run: cargo fmt --check
+      - name: Unit tests
+        run: cargo test -p notch-market
+      - name: Build contract
+        run: cargo build --release --target wasm32-unknown-unknown -p notch-market
+      - name: Hash artifact
+        run: sha256sum target/wasm32-unknown-unknown/release/notch_market.wasm
+      - uses: actions/upload-artifact@v4
+        with:
+          name: notch_market.wasm
+          path: target/wasm32-unknown-unknown/release/notch_market.wasm
+
+  integration:
+    name: near-workspaces sandbox tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - name: Build market artifact
+        run: |
+          cargo build --release --target wasm32-unknown-unknown -p notch-market
+          mkdir -p contracts/market/res
+          cp target/wasm32-unknown-unknown/release/notch_market.wasm contracts/market/res/notch_market.wasm
+      - name: Build test NEP-141 token
+        working-directory: tests/test-token
+        run: cargo build --release --target wasm32-unknown-unknown
+      - name: Run sandbox integration tests
+        working-directory: tests/integration
+        run: cargo test --test market_flow -- --nocapture

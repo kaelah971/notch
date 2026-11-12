@@ -1,0 +1,25 @@
+{
+  "captured_at_utc": "2026-11-12T01:09:03.341612Z",
+  "contract_account": "market.notch-dev.testnet",
+  "rpc_url": "https://rpc.testnet.near.org",
+  "latest_block_timestamp_ns": "1794445730470270496",
+  "latest_block_timestamp_utc": "2026-11-12T01:08:50.470270Z",
+  "contract_config": {
+    "owner": "notch-dev.testnet",
+    "operator": "notch-dev.testnet",
+    "resolver": "notch-dev.testnet",
+    "collateral_token": "usdc.tidepool-sandbox.testnet",
+    "min_entry_amount": "1000000",
+    "entries_paused": false,
+    "market_count": 0,
+    "fee_bps": 0
+  },
+  "market_count": 0,
+  "prepared_market_lookups": {
+    "s3b-future-btc-20261116-20261123": null,
+    "s3b-replay-trend-nvidia-20261103-20261110": null,
+    "s3b-replay-battle-btc-chatgpt-20261103-20261110": null
+  },
+  "submitted_transactions": [],
+  "note": "Read-only RPC calls. No transaction was signed or sent."
+}

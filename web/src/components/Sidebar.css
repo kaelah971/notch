@@ -1,0 +1,63 @@
+/* Ref 04 — floating pill sidebar. Purple → Sunburst. */
+.sidebar {
+  position: fixed; z-index: 40;
+  top: 16px; bottom: 16px; left: 16px;
+  width: var(--sidebar-collapsed);
+  display: flex; flex-direction: column;
+  padding: 14px 12px;
+  background: var(--surface-2);
+  border-radius: 28px;
+  overflow: hidden;
+  transition: width .32s var(--ease), box-shadow .32s var(--ease);
+}
+.sidebar:hover, .sidebar:focus-within, .sidebar.is-pinned {
+  width: var(--sidebar-expanded);
+}
+/* Unpinned hover floats over content; pinned pushes content (see AppShell). */
+.sidebar:not(.is-pinned):hover, .sidebar:not(.is-pinned):focus-within {
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .6);
+}
+
+.sb-head { display: flex; align-items: center; gap: 14px; height: 48px; flex: none; }
+.sb-logo {
+  width: 48px; height: 48px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 14px; background: var(--surface-3);
+  transition: background .15s;
+}
+.sb-logo:hover { background: #343437; }
+.sb-logo[aria-pressed='true'] { color: var(--sunburst); }
+.sb-wordmark { font-size: 20px; font-weight: 700; letter-spacing: -.02em; }
+
+.sb-rule { border: 0; height: 1px; background: var(--hairline); margin: 18px 6px; flex: none; }
+.sb-rule-bottom { margin-top: auto; }
+
+.sb-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.sb-item {
+  display: flex; align-items: center; gap: 14px;
+  height: 48px; padding: 0 13px;
+  border-radius: 16px;
+  color: var(--text);
+  white-space: nowrap;
+  transition: background .15s;
+}
+.sb-item:hover { background: rgba(255, 255, 255, .05); }
+.sb-icon { width: 22px; height: 22px; flex: none; display: grid; place-items: center; }
+.sb-item.is-active { background: var(--accent-tint); }
+.sb-item.is-active .sb-icon { color: var(--sunburst); }
+
+/* Labels fade with the width transition; icons never move. */
+.sb-label, .sb-wordmark { font-size: 16px; font-weight: 500; opacity: 0; transition: opacity .18s var(--ease); }
+.sb-wordmark { font-size: 20px; font-weight: 700; }
+.sidebar:hover .sb-label, .sidebar:focus-within .sb-label, .sidebar.is-pinned .sb-label,
+.sidebar:hover .sb-wordmark, .sidebar:focus-within .sb-wordmark, .sidebar.is-pinned .sb-wordmark { opacity: 1; transition-delay: .06s; }
+
+/* Collapsed active state: ring like ref 04's circular highlight. */
+.sidebar:not(.is-pinned):not(:hover):not(:focus-within) .sb-item.is-active {
+  box-shadow: inset 0 0 0 1.5px var(--accent-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar, .sb-label, .sb-wordmark { transition: none; }
+}
+@media (max-width: 899px) { .sidebar { display: none; } }

@@ -1,0 +1,53 @@
+{
+  "items": [
+    {
+      "project": "en.wikipedia",
+      "access": "all-access",
+      "year": "2026",
+      "month": "11",
+      "day": "10",
+      "articles": [
+        {
+          "article": "Main_Page",
+          "views": 3990822,
+          "rank": 1
+        },
+        {
+          "article": "Special:Search",
+          "views": 807054,
+          "rank": 3
+        },
+        {
+          "article": "Wikipedia:Featured_pictures",
+          "views": 563755,
+          "rank": 4
+        },
+        {
+          "article": "Deaths_in_2026",
+          "views": 138565,
+          "rank": 14
+        },
+        {
+          "article": "Nvidia",
+          "views": 123851,
+          "rank": 17
+        },
+        {
+          "article": "ChatGPT",
+          "views": 59377,
+          "rank": 44
+        },
+        {
+          "article": "Artificial_intelligence",
+          "views": 14924,
+          "rank": 334
+        },
+        {
+          "article": "List_of_highest-grossing_Indian_films",
+          "views": 122614,
+          "rank": 18
+        }
+      ]
+    }
+  ]
+}

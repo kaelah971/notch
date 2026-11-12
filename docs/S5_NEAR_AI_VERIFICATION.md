@@ -1,0 +1,283 @@
+# S5 — NEAR AI Trend Intelligence
+
+Date: 2026-11-12 (UTC)
+Status: **BACKEND IMPLEMENTED — LIVE INFERENCE BLOCKED BY MISSING KEY — DETERMINISTIC FALLBACK BRIEFS GENERATED**
+
+No NEAR AI credits were purchased or spent. No live inference is claimed. The
+briefs in this document were generated from real S3A/S3B data through the
+deterministic fallback path and are explicitly labeled `NON_AI_FALLBACK`.
+
+## 1. Purpose and boundary
+
+S5 adds evidence-grounded research briefs for:
+
+- **Radar Brief** — an S3A candidate and its observed attention signals.
+- **Market Brief** — a frozen S3B market rule, evidence receipt, and a
+  plain-English resolution explanation.
+- **How This Resolves** — deterministic text derived from the frozen rule, not
+  from model output.
+- **Uncertainty** — explicit limits, missing signals, and non-causal language.
+
+NEAR AI is a research assistant. It is not an oracle, resolver, trader, or
+payout authority. The S3B rule/evidence remains the sole deterministic
+measurement-and-outcome layer.
+
+## 2. Architecture
+
+```
+S3A Radar SQLite ─┐
+                  ├─> grounding context (facts, refs, allowed numbers)
+S3B Oracle SQLite ┘             │
+                                ├─> prompt + JSON schema
+                                │
+                     NEAR AI /chat/completions
+                                │
+                     strict JSON validation
+                     ├─ valid -> AI_GENERATED
+                     └─ invalid/unavailable -> NON_AI_FALLBACK
+                                │
+                        SQLite brief cache
+```
+
+Implemented in `services/near_ai/`:
+
+| Module | Responsibility |
+| --- | --- |
+| `config.py` | Environment config, model, limits, DB paths |
+| `client.py` | OpenAI-compatible `/models` and `/chat/completions` client |
+| `grounding.py` | Loads S3A candidates and S3B rule/evidence; builds context and deterministic fallback |
+| `prompt.py` | System/user prompts with allowed numbers, dates and refs |
+| `validation.py` | Structured JSON validation, numeric/date/ref checks, banned-claim checks |
+| `store.py` | SQLite brief cache keyed by input digest, model and prompt version |
+| `service.py` | On-demand generation, fallback, cache and status |
+| `cli.py` | Backend CLI |
+
+No S1–S4 code was changed. No contract calls, signing or market actions exist in
+this module.
+
+## 3. Exact NEAR AI integration
+
+| Field | Value |
+| --- | --- |
+| Provider | NEAR AI Cloud |
+| Base URL | `https://cloud-api.near.ai/v1` |
+| API shape | OpenAI-compatible |
+| Model catalog | `GET /v1/models` |
+| Chat | `POST /v1/chat/completions` |
+| Auth | `Authorization: Bearer $NEAR_AI_KEY` |
+| Structured output | `response_format: {"type":"json_object"}` |
+| Default model | `z-ai/glm-5.3-flash` |
+| Model owner | `nearai` |
+| Model readiness | `is_ready: true` in the live catalog |
+| Model features | `tools`, `structured_outputs`, `reasoning`, `json_mode` |
+| Pricing | `$0.08` input / `$0.50` output per million tokens |
+| Catalog size observed | 63 models |
+| Timeout | 20 seconds |
+| Max output | 600 tokens |
+| Temperature | 0.2 |
+| Rate limit | 2 seconds between requests |
+| Retries | None for chat completions; no automatic loop |
+| Calls per CLI run | 1 maximum |
+| Cache TTL | 24 hours |
+| Secret handling | Server-side env only; never logged or returned |
+
+The live catalog was checked on 2026-11-12. The selected model exists and is
+ready. `POST /chat/completions` was **not called** because `NEAR_AI_KEY` is not
+configured.
+
+## 4. Configuration
+
+`.env.example` documents:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `NEAR_AI_BASE_URL` | `https://cloud-api.near.ai/v1` | Gateway base URL |
+| `NEAR_AI_KEY` | empty | Server-side API key |
+| `NEAR_AI_MODEL` | `z-ai/glm-5.3-flash` | Configurable model; must exist in live catalog |
+| `AI_BRIEFS_DATA_DIR` | `var/ai_briefs` | Brief cache SQLite directory |
+| `RADAR_DB_PATH` | `var/trend_radar_live_final/radar.sqlite3` | S3A source |
+| `ORACLE_DB_PATH` | `var/oracle_live_final/oracle.sqlite3` | S3B source |
+
+No key is committed. No frontend receives the key.
+
+## 5. Grounding
+
+### Radar Brief
+
+The context is built from an existing S3A candidate:
+
+- candidate ID, topic, category, eligibility status, observed time;
+- discovery evidence from Wikimedia, Hacker News and CoinGecko;
+- exact metrics such as views, rank, points, comments, trending rank;
+- S3A settlement-coverage daily views and window;
+- stable source URLs and raw hashes;
+- source count and Radar score components.
+
+### Market Brief
+
+The context is built from the existing S3B store:
+
+- frozen rule: question, choices, mode, source, observation window, formula,
+  threshold/tie tolerance, invalidation policy;
+- evidence receipt: baseline/target views, calculation, outcome, digest,
+  integrity note;
+- stable Wikimedia source URL and raw hash;
+- deterministic resolution explanation generated by Notch code.
+
+### Numeric and evidence validation
+
+Every numeric token in model text must match a number supplied in the context.
+Every date must match an allowed date. Every FACT/INTERPRETATION claim must cite
+an allowed evidence ref. Unknown fields, invented outcome fields, unsupported
+numbers/dates, missing refs and certainty/sentiment/return claims invalidate the
+AI draft and trigger the deterministic fallback.
+
+The model never supplies:
+- the market outcome;
+- the rule;
+- the evidence digest;
+- the resolution explanation;
+- any transaction or payout.
+
+## 6. Brief schema
+
+`TrendBrief` includes the requested fields:
+
+- `candidate_id`, `market_id`, `topic`, `brief_type`
+- `headline`, `summary`
+- `observed_signals` (FACT claims with refs)
+- `notable_changes` (FACT/INTERPRETATION claims with refs)
+- `evidence_references` (stable IDs, source, URL, observed time, raw hash)
+- `measurement_window`, `data_as_of`
+- `uncertainty` (UNKNOWN claims)
+- `missing_evidence`
+- `suggested_research_questions`
+- `generated_at`, `provider`, `model`, `generation_status`
+- `resolution` for market briefs (deterministic)
+- `fallback_reason`, `usage`, `input_digest`, `cache_hit`
+
+`generation_status` values:
+
+- `AI_GENERATED`
+- `NON_AI_FALLBACK`
+- `INVALID_AI_FALLBACK`
+- `AI_UNAVAILABLE_FALLBACK`
+
+## 7. Real generated briefs
+
+All three were generated from real stored source data on 2026-11-12. Because no
+key is configured, they are **deterministic non-AI fallbacks**, not live model
+output.
+
+| Brief | ID | Headline | Status | Evidence refs |
+| --- | --- | --- | --- | --- |
+| Radar — Nvidia | `brief_a86813abf29efd116c49` | Nvidia: 123,851 Wikimedia views on 2026-11-10 | `NON_AI_FALLBACK` | 4 |
+| Radar — Bitcoin | `brief_f383d159aa28c513005d` | Bitcoin: 4,359 Wikimedia views on 2026-11-10 | `NON_AI_FALLBACK` | 2 |
+| Market — Nvidia historical replay | `brief_f41f9078ec97e2eb78ae` | Historical replay: Nvidia outcome UP | `NON_AI_FALLBACK` | 3 |
+
+Evidence:
+
+- `docs/evidence/s5_radar_nvidia_20261112.json`
+- `docs/evidence/s5_radar_bitcoin_20261112.json`
+- `docs/evidence/s5_market_nvidia_replay_20261112.json`
+- `docs/evidence/s5_ai_status_20261112.json`
+- `docs/evidence/s5_near_ai_models_20261112.json`
+- `docs/evidence/s5_summary_20261112.json`
+
+The Nvidia Radar brief and market brief were cache hits on a second run; Bitcoin
+was a fresh fallback generation. Cache behavior is recorded in the evidence.
+
+## 8. Resolution explanation
+
+The market brief's `resolution` is generated deterministically from the frozen
+S3B rule/evidence:
+
+- Nvidia trend replay: baseline `4,743` views on `2026-11-03`, target `123,851`
+  views on `2026-11-10`, growth `251,123` bps, threshold `1,350` bps, outcome
+  `UP`.
+- Formula: `floor((target - baseline) * 10000 / baseline)`.
+- The brief explains the frozen calculation; the model cannot change it.
+
+A test explicitly rejects an AI payload containing an `outcome` field and
+confirms the deterministic resolution remains `UP`.
+
+## 9. Tests
+
+```bash
+python -m unittest discover -s services/near_ai/tests -t .
+```
+
+**36 tests passed.**
+
+Coverage:
+
+- S3A/S3B grounding, exact measurements and stable refs;
+- missing coverage/missing measurements;
+- numeric claim rejection, date rejection, unknown refs;
+- FACT/INTERPRETATION/UNKNOWN validation;
+- unknown fields and market-outcome tamper rejection;
+- model catalog and selected-model verification;
+- chat request shape, JSON parsing, auth/rate-limit/provider errors;
+- invalid AI output fallback;
+- no-key deterministic fallback;
+- cache hit/idempotency;
+- per-run call limit;
+- deterministic market resolution and rule preservation;
+- provider unavailability without automatic retry.
+
+Tests use deterministic fixtures and fake transports; no live AI calls are made.
+
+## 10. Cost and usage
+
+- Live inference calls: **0**
+- NEAR AI spend: **$0.00**
+- Credits purchased: **none**
+- Estimated cost if the key were used: approximately **$0.0003 per brief** at
+  600 max output tokens and the selected model's pricing.
+- No paid provider was substituted.
+
+## 11. Limitations and blockers
+
+1. `NEAR_AI_KEY` is not configured, so no live NEAR AI generation was possible.
+2. All checked-in briefs are source-only deterministic fallbacks, not model text.
+3. No frontend/S5 consumer surface is implemented.
+4. The AI service does not resolve markets, place trades, sign transactions or
+   modify oracle receipts.
+5. The provider model catalog can change; the configured model is re-verified on
+   each status/generation attempt.
+6. The quote signature / funding path is S4 and unrelated to this brief service.
+
+## 12. Frontend-ready interface (not implemented)
+
+Proposed server routes:
+
+| Method | Route | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/trends/:slug/brief` | Cached Radar brief by candidate/topic |
+| `GET` | `/api/markets/:id/brief` | Cached market brief with deterministic resolution |
+| `GET` | `/api/briefs/:briefId` | One cached brief |
+| `GET` | `/api/briefs/status` | Key/model/catalog status, no secret values |
+
+The frontend should:
+
+- show `generation_status` and provider/model labels;
+- never label a `NON_AI_FALLBACK` as AI-generated;
+- display evidence links and measurement windows;
+- render the deterministic resolution block separately from AI prose;
+- never expose `NEAR_AI_KEY`.
+
+## 13. Setup requirements
+
+To enable live inference:
+
+1. Create a NEAR AI Cloud account at `https://cloud.near.ai/`.
+2. Add credits (requires explicit budget approval; none were purchased here).
+3. Generate an API key.
+4. Set `NEAR_AI_KEY` in the server environment.
+5. Keep `NEAR_AI_MODEL=z-ai/glm-5.3-flash` or another model verified in
+   `GET /v1/models`.
+6. Keep `NEAR_AI_BASE_URL=https://cloud-api.near.ai/v1`.
+7. Re-run the brief commands; valid AI output will be labeled `AI_GENERATED`.
+
+Do not substitute another provider and call it NEAR AI. Do not spend money or
+purchase credits without explicit approval.

@@ -1,0 +1,49 @@
+{
+  "service": "tidepool",
+  "network": "testnet",
+  "verifier": "verifier.tidepool-sandbox.testnet",
+  "maker": "maker.tidepool-sandbox.testnet",
+  "verifierWasmSha256": "a1afab98916d9f213746544dcf8e4e6bdb22c0be6bc5dfbd8ea8814c9922b547",
+  "verifierRelease": "https://github.com/near/intents/tree/defuse/v0.4.5",
+  "checks": {
+    "rpc": {
+      "ok": true,
+      "height": 277332334,
+      "ms": 35
+    },
+    "verifier": {
+      "ok": true,
+      "codeHashHex": "a1afab98916d9f213746544dcf8e4e6bdb22c0be6bc5dfbd8ea8814c9922b547"
+    },
+    "prices": {
+      "ok": false,
+      "source": "fallback",
+      "updatedAt": "2026-11-12T07:30:46.247Z",
+      "error": "coingecko 429"
+    },
+    "makerInventory": {
+      "ok": true,
+      "balances": {
+        "USDC": "200003.03637",
+        "USDT": "199823.001962",
+        "wNEAR": "789681.294685486459294306671653",
+        "wBTC": "19.75180337",
+        "ETH": "4.606050959838489433",
+        "XAUT": "592.55568",
+        "SOL": "99.774743209",
+        "XLM": "100091.5451389",
+        "SUI": "99989.591350225",
+        "XRP": "19997.032018",
+        "BTC": "20.00055596"
+      }
+    }
+  },
+  "verifierStorage": {
+    "balanceNear": 29.979119,
+    "storageStakeNear": 26.2859,
+    "spareNear": 3.6932,
+    "storageBytes": 2628588,
+    "lowSpareThresholdNear": 2,
+    "low": false
+  }
+}

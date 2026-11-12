@@ -1,0 +1,15 @@
+/target
+**/target
+.near-credentials/
+neardev/
+.env
+.env.*
+*.log
+
+# Trend Radar local data/cache
+var/
+!.env.example
+
+# Python bytecode
+__pycache__/
+*.py[cod]

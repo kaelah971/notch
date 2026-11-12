@@ -1,0 +1,17 @@
+{
+  "args": {
+    "market_id": "s3b-replay-trend-nvidia-20261103-20261110",
+    "mode": "trend_trading",
+    "question": "HISTORICAL REPLAY (not a forecast): Will daily en.wikipedia.org pageviews for Nvidia grow by at least 13.50% on the full UTC day 2026-11-10 versus the full UTC day 2026-11-03? (Wikimedia Pageviews, all-access, user)",
+    "choices": [
+      "UP",
+      "DOWN"
+    ],
+    "source_id": "wikimedia-pageviews-v1",
+    "rule_hash": "sha256:1c42a2d04a29c5ba2a0bde3cb8e8a65d06292c965180143022cb07e979c6a47b",
+    "open_at": "1794452400000000000",
+    "close_at": "1794787140000000000",
+    "resolve_after": "1794916800000000000",
+    "invalidation_policy": "refund_on_void"
+  }
+}

@@ -1,0 +1,151 @@
+{
+  "schema_version": "notch.s4.1.live-swap-verification/1",
+  "generated_at": "2026-11-12T07:31:45.857301Z",
+  "quote": {
+    "quote_id": "4787bc69-6a13-4ef6-853a-abfdaca6a0a6",
+    "source_asset": "nep141:usdt.tidepool-sandbox.testnet",
+    "source_symbol": "USDT",
+    "amount_in": "2000000",
+    "destination_asset": "nep141:usdc.tidepool-sandbox.testnet",
+    "amount_out": "1998953",
+    "min_amount_out": "1978963",
+    "min_output_at_least_1000000": true,
+    "implied_fee_usd": "0.0002",
+    "slippage_bps": 100,
+    "deadline": "2026-11-12T08:30:41.527Z",
+    "deposit_type": "INTENTS",
+    "deposit_address": "c4990383f59eb49521cbe155bfc0f9cf567aff9411d72e127199df0bee72e6e9",
+    "deposit_memo": null,
+    "recipient": "notch-dev.testnet",
+    "refund_to": "notch-dev.testnet",
+    "signature": "ed25519:55FYfaW2i82ZoQwLTyQLdWqYwc3KMqxt8znmeKMm9ZnKrLvFj9pjxGERSbEgy6zRNscGrXY4JrNymqBbPfwBwLcU",
+    "state": "SUCCESS",
+    "provider_status": "SUCCESS",
+    "actual_received": "1998769",
+    "actual_received_explorer": "https://testnet.nearblocks.io/txns/2C9xGtKeMDfBvwdZwEAnkPAg2DRXGAPnggursmHWBY8N"
+  },
+  "instructions": {
+    "amount_in": "2000000",
+    "blocker": null,
+    "deadline": "2026-11-12T08:30:41.527Z",
+    "deposit_memo": null,
+    "deposit_type": "INTENTS",
+    "destination_asset": "nep141:usdc.tidepool-sandbox.testnet",
+    "destination_decimals": 6,
+    "destination_symbol": "USDC",
+    "min_amount_out": "1978963",
+    "provider_deposit_address": "c4990383f59eb49521cbe155bfc0f9cf567aff9411d72e127199df0bee72e6e9",
+    "quote_id": "4787bc69-6a13-4ef6-853a-abfdaca6a0a6",
+    "recipient": "notch-dev.testnet",
+    "refund_to": "notch-dev.testnet",
+    "source_asset": "nep141:usdt.tidepool-sandbox.testnet",
+    "source_chain": "near",
+    "source_decimals": 6,
+    "source_symbol": "USDT",
+    "steps": [
+      {
+        "action": "ft_transfer_call_to_intents_verifier",
+        "args": {
+          "amount": "2000000",
+          "msg": "c4990383f59eb49521cbe155bfc0f9cf567aff9411d72e127199df0bee72e6e9",
+          "receiver_id": "verifier.tidepool-sandbox.testnet"
+        },
+        "attached_deposit_yocto": "1",
+        "contract": "usdt.tidepool-sandbox.testnet",
+        "gas_tgas": 100,
+        "method": "ft_transfer_call",
+        "note": "Deposit into the Intents verifier. The msg is the quote deposit address; no separate storage registration is required.",
+        "step": 1
+      }
+    ],
+    "supported": true,
+    "warnings": [
+      "TESTNET ONLY: Tidepool test tokens have no value. Never send real assets.",
+      "Use the exact provider deposit address and memo; do not substitute another address.",
+      "The backend does not sign or broadcast these steps. User approval is required."
+    ]
+  },
+  "funding_readiness": {
+    "account": "notch-dev.testnet",
+    "asset_id": "nep141:usdc.tidepool-sandbox.testnet",
+    "balance": "100000000",
+    "blocker": null,
+    "checked_at": "2026-11-12T07:31:08.938302Z",
+    "decimals": 6,
+    "min_market_entry": "1000000",
+    "ready": true,
+    "storage_registered": true,
+    "storage_total": "1250000000000000000000",
+    "symbol": "USDC"
+  },
+  "provider_health": {
+    "service": "tidepool",
+    "network": "testnet",
+    "verifier": "verifier.tidepool-sandbox.testnet",
+    "maker": "maker.tidepool-sandbox.testnet",
+    "prices_ok": false,
+    "prices_source": "fallback",
+    "rpc_ok": true,
+    "verifier_ok": true
+  },
+  "approval": {
+    "required": true,
+    "status": "APPROVED_AND_EXECUTED",
+    "approved_by": "operator",
+    "specific_transaction": true
+  },
+  "transactions": {
+    "signed": 1,
+    "broadcast": 1,
+    "deposit_tx_hash": "E4125h7BZDbubswjLr2mmM4BfVpxtVVGZ1Qmcq9beuq2",
+    "settlement_tx_hash": "2C9xGtKeMDfBvwdZwEAnkPAg2DRXGAPnggursmHWBY8N",
+    "provider_status": "SUCCESS",
+    "swap_status": "SUCCESS",
+    "explorer": {
+      "deposit": "https://testnet.nearblocks.io/txns/E4125h7BZDbubswjLr2mmM4BfVpxtVVGZ1Qmcq9beuq2",
+      "settlement": "https://testnet.nearblocks.io/txns/2C9xGtKeMDfBvwdZwEAnkPAg2DRXGAPnggursmHWBY8N"
+    }
+  },
+  "tests": {
+    "s4_unittest_count": 47,
+    "command": "python -m unittest discover -s services/intents/tests -t ."
+  },
+  "blockers": [],
+  "balances": {
+    "before": {
+      "usdc": "100000000",
+      "usdt": "100000000"
+    },
+    "after": {
+      "usdc": "101998769",
+      "usdt": "98000000"
+    },
+    "actual_received_usdc": "1998769",
+    "quote_estimated_usdc": "1998953",
+    "quote_minimum_usdc": "1978963",
+    "balance_verified": true
+  },
+  "funding_readiness_after": {
+    "account": "notch-dev.testnet",
+    "asset_id": "nep141:usdc.tidepool-sandbox.testnet",
+    "balance": "101998769",
+    "blocker": null,
+    "checked_at": "2026-11-12T08:13:29.032213Z",
+    "decimals": 6,
+    "min_market_entry": "1000000",
+    "ready": true,
+    "storage_registered": true,
+    "storage_total": "1250000000000000000000",
+    "symbol": "USDC"
+  },
+  "market_entry": {
+    "submitted": false,
+    "market_count": 2,
+    "minimum_entry": "1000000"
+  },
+  "remaining_gaps": [
+    "Market entry is a separate approval and separate NEP-141 transaction.",
+    "Quote signature is shape-validated; cryptographic verification via the official TypeScript SDK remains production hardening.",
+    "No frontend/S5."
+  ]
+}

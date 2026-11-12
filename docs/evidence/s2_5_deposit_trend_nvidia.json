@@ -1,0 +1,5 @@
+{
+  "receiver_id": "market.notch-dev.testnet",
+  "amount": "1000000",
+  "msg": "{\"market_id\":\"s3b-short-trend-nvidia-20261112T040029Z\",\"outcome\":0}"
+}

@@ -1,0 +1,218 @@
+{
+  "schema_version": "notch.s6.future-market-api-verification/1",
+  "checked_at": "2026-11-12T10:10:58.424899Z",
+  "market_id": "s3b-future-btc-20261116-20261123",
+  "market_count": 3,
+  "market_list_entry": {
+    "market_id": "s3b-future-btc-20261116-20261123",
+    "mode": "trend_trading",
+    "status": "open",
+    "display_status": "open_future",
+    "is_historical_replay": false,
+    "winning_choice": null
+  },
+  "market_detail": {
+    "market_id": "s3b-future-btc-20261116-20261123",
+    "status": "open",
+    "display_status": "open_future",
+    "is_historical_replay": false,
+    "is_future_prediction": true,
+    "entries_open": true,
+    "close_at_utc": "2026-11-15T23:59:00Z",
+    "resolve_after_utc": "2026-11-25T12:00:00Z",
+    "rule_available": true,
+    "evidence_available": false,
+    "evidence_hash": null
+  },
+  "evidence_status": 200,
+  "evidence": {
+    "market_id": "s3b-future-btc-20261116-20261123",
+    "rule": {
+      "schema_version": "notch.market-rule/2",
+      "rule_version": "s3b-oracle/1",
+      "market_id": "s3b-future-btc-20261116-20261123",
+      "mode": "trend_trading",
+      "question": "FORECAST (not a replay): Will daily en.wikipedia.org pageviews for Bitcoin grow by at least 23.00% on the full UTC day 2026-11-23 versus the full UTC day 2026-11-16? (Wikimedia Pageviews, all-access, user)",
+      "choices": [
+        "UP",
+        "DOWN"
+      ],
+      "source": {
+        "id": "wikimedia-pageviews-v1",
+        "provider": "Wikimedia Analytics API",
+        "project": "en.wikipedia.org",
+        "access": "all-access",
+        "agent": "user",
+        "metric": "daily_pageviews",
+        "granularity": "daily",
+        "timezone": "UTC",
+        "article": "Bitcoin",
+        "documentation": "https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/documentation/getting-started.html"
+      },
+      "topics": [
+        {
+          "topic_id": "bitcoin",
+          "article_title": "Bitcoin",
+          "page_id": 28249265,
+          "source_url": "https://en.wikipedia.org/wiki/Bitcoin"
+        }
+      ],
+      "observation": {
+        "baseline_date": "2026-11-16",
+        "target_date": "2026-11-23",
+        "baseline_window_utc": "2026-11-16T00:00:00Z/2026-11-16T23:59:59Z",
+        "target_window_utc": "2026-11-23T00:00:00Z/2026-11-23T23:59:59Z",
+        "replay": false,
+        "replay_label": null
+      },
+      "formula": {
+        "version": "growth-threshold-v1",
+        "growth_bps": "floor((target_views - baseline_views) * 10000 / baseline_views)",
+        "threshold_bps": 2300,
+        "up_if": "growth_bps >= threshold_bps",
+        "down_if": "growth_bps < threshold_bps",
+        "integer_only": true,
+        "rounding": "mathematical floor; negative numerators floor below zero"
+      },
+      "minimum_baseline_views": 1000,
+      "invalidation_policy": "refund_on_void",
+      "missing_data_policy": "void",
+      "resolution_eligibility_utc": "2026-11-25T12:00:00Z",
+      "market_timing": {
+        "open_at_ns": "1794452400000000000",
+        "close_at_ns": "1794787140000000000",
+        "resolve_after_ns": "1795608000000000000",
+        "open_at_utc": "2026-11-12T03:00:00Z",
+        "close_at_utc": "2026-11-15T23:59:00Z",
+        "resolve_after_utc": "2026-11-25T12:00:00Z"
+      },
+      "contract": {
+        "network": "testnet",
+        "account": "market.notch-dev.testnet",
+        "collateral_token": "usdc.tidepool-sandbox.testnet"
+      },
+      "candidate": {
+        "candidate_ids": [
+          "cand_9118da9248a28ca00f02"
+        ],
+        "canonical_topic_ids": [
+          "entity:bitcoin"
+        ],
+        "source_proposal_refs": [
+          "prop_a8af34451aa43e7b131f"
+        ],
+        "validation_status": "READY_FOR_OPERATOR_REVIEW_FUTURE",
+        "operator_approval_required": true
+      },
+      "calibration": {
+        "report_digest": "sha256:90a8b59ef76ce8bf6c4c577c3325daf6d03b07f6f7fbadf3fb767475f7690b89",
+        "suggested_threshold_bps": 2300,
+        "policy": "threshold-calibration-v1: nearest-rank p75 of historical 7-day growth, clamped to [0, 10000] and rounded up to 50 bps",
+        "calibration_window": {
+          "start": "2026-09-16",
+          "end": "2026-11-10"
+        },
+        "status": "OK"
+      },
+      "governance": {
+        "status": "READY_FOR_OPERATOR_REVIEW",
+        "operator_approval_required": true,
+        "auto_approved": false
+      }
+    },
+    "rule_available": true,
+    "evidence_available": false,
+    "rule_record": {
+      "rule_hash": "sha256:cd215ff8e2e09166607b04925464acc086b5c20b058de4fab2e8e07c633b789b",
+      "market_id": "s3b-future-btc-20261116-20261123",
+      "mode": "trend_trading",
+      "status": "APPROVED",
+      "created_at": "2026-11-12T02:00:00Z",
+      "approved_by": "notch-dev.testnet",
+      "approved_at": "2026-11-12T09:59:29.136639Z"
+    },
+    "evidence": null,
+    "evidence_digest": null,
+    "verification": {
+      "valid": false,
+      "reasons": [
+        "EVIDENCE_NOT_FOUND"
+      ],
+      "integrity_note": null
+    },
+    "verified": false
+  },
+  "brief_status": 404,
+  "brief_error": {
+    "code": "EVIDENCE_NOT_AVAILABLE",
+    "message": "a rule and evidence receipt are required for a market brief"
+  },
+  "entry_intent_status": 200,
+  "entry_intent": {
+    "network": "testnet",
+    "signer": "notch-dev.testnet",
+    "receiver": "usdc.tidepool-sandbox.testnet",
+    "method": "ft_transfer_call",
+    "args": {
+      "receiver_id": "market.notch-dev.testnet",
+      "amount": "1000000",
+      "msg": "{\"market_id\":\"s3b-future-btc-20261116-20261123\",\"outcome\":0}"
+    },
+    "attached_deposit_yocto": "1",
+    "gas_tgas": 100,
+    "market_id": "s3b-future-btc-20261116-20261123",
+    "outcome": 0,
+    "choice": "UP",
+    "stake": "1000000",
+    "collateral_token": "usdc.tidepool-sandbox.testnet",
+    "min_entry_amount": "1000000",
+    "expected": {
+      "market_id": "s3b-future-btc-20261116-20261123",
+      "outcome": 0,
+      "choice": "UP",
+      "stake": "1000000",
+      "collateral": "usdc.tidepool-sandbox.testnet",
+      "fee_bps": 0
+    },
+    "signed": false,
+    "broadcast": false
+  },
+  "positions_count": 2,
+  "positions": [
+    {
+      "market_id": "s3b-short-trend-nvidia-20261112T040029Z",
+      "mode": "trend_trading",
+      "question": "HISTORICAL REPLAY (not a forecast): Will daily en.wikipedia.org pageviews for Nvidia grow by at least 13.50% on the full UTC day 2026-11-10 versus the full UTC day 2026-11-03? (Wikimedia Pageviews, all-access, user)",
+      "market_status": "resolved",
+      "winning_choice": "UP",
+      "stakes": [
+        "1000000",
+        "0"
+      ],
+      "total_stake": "1000000",
+      "claimed_total": "1000000",
+      "pending_amount": "0",
+      "claimable": "0",
+      "claim_state": "claimed"
+    },
+    {
+      "market_id": "s3b-short-battle-btc-chatgpt-20261112T040029Z",
+      "mode": "trend_battle",
+      "question": "HISTORICAL REPLAY (not a forecast): Which topic had higher normalized Wikimedia pageview growth from the full UTC day 2026-11-03 to the full UTC day 2026-11-10: Bitcoin or ChatGPT? A difference within 930 bps is a tie and voids the market.",
+      "market_status": "resolved",
+      "winning_choice": "Bitcoin",
+      "stakes": [
+        "1000000",
+        "0"
+      ],
+      "total_stake": "1000000",
+      "claimed_total": "1000000",
+      "pending_amount": "0",
+      "claimable": "0",
+      "claim_state": "claimed"
+    }
+  ],
+  "no_deposit": true,
+  "no_trade": true,
+  "no_broadcast": true
+}

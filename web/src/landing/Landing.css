@@ -1,0 +1,71 @@
+.landing { background: #000; min-height: 100%; overflow-x: hidden; }
+
+/* Ref 02 nav: logo · pill links · single white CTA */
+.lnav { position: absolute; z-index: 10; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 24px; padding: 18px 24px; }
+.lnav-logo { display: grid; place-items: center; width: 40px; height: 40px; }
+.lnav-pills { display: flex; gap: 4px; }
+.lnav-pills a { height: 34px; padding: 0 14px; display: inline-flex; align-items: center; border-radius: 99px; font-size: 14px; font-weight: 500; color: var(--text-2); }
+.lnav-pills a:hover { color: var(--text); background: rgba(255, 255, 255, .06); }
+.lnav-cta { margin-left: auto; height: 36px; padding: 0 16px; font-size: 14px; }
+@media (max-width: 560px) { .lnav-pills { display: none; } }
+
+/* Hero */
+.hero { position: relative; height: min(100svh, 980px); min-height: 640px; display: grid; place-items: center; isolation: isolate; }
+.hero-copy { position: relative; z-index: 60; text-align: center; padding: 0 var(--gutter); max-width: 640px; display: flex; flex-direction: column; align-items: center; }
+.hero-copy h1 { font-size: clamp(36px, 6vw, 60px); font-weight: 600; letter-spacing: -.035em; line-height: 1.05; }
+.hero-copy p { margin-top: 16px; color: var(--text-2); font-size: clamp(15px, 1.6vw, 17px); max-width: 420px; }
+.hero-cta { margin-top: 28px; height: 42px; padding: 0 22px; }
+.hero-secondary { margin-top: 18px; font-size: 13.5px; color: var(--text-3); }
+.hero-secondary:hover { color: var(--text-2); }
+
+.orbit { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.orb { position: absolute; left: 50%; top: 50%; width: clamp(64px, 8vw, 104px); aspect-ratio: 1; will-change: transform, filter, opacity; }
+.orb img { position: relative; width: 100%; height: 100%; object-fit: contain; user-select: none; }
+.orb-trail {
+  position: absolute; left: 50%; top: 50%; width: 260%; height: 70%;
+  transform-origin: 0 50%; margin-top: -35%;
+  background: radial-gradient(ellipse at 0% 50%, var(--glow) 0%, transparent 70%);
+  filter: blur(18px); opacity: .45;
+}
+@media (max-width: 700px) { .orb-trail { opacity: .3; } }
+
+/* Featured markets — ref 03 overlapping cards */
+.featured { display: grid; gap: 48px; align-items: center; padding: 40px 24px 120px; max-width: 1180px; margin: 0 auto; }
+@media (min-width: 980px) { .featured { grid-template-columns: 380px 1fr; } }
+.featured-intro h2 { font-size: clamp(40px, 5.5vw, 64px); font-weight: 600; letter-spacing: -.035em; line-height: 1.02; }
+.featured-intro p { color: var(--text-2); margin: 18px 0 26px; max-width: 360px; }
+
+.fstack { position: relative; display: flex; justify-content: center; align-items: center; min-height: 500px; }
+.fcard {
+  position: relative; display: flex; flex-direction: column; gap: 10px;
+  width: min(300px, 74vw); aspect-ratio: 3 / 4.1;
+  padding: 24px 22px; border-radius: 36px; color: #111;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, .55), 0 6px 14px rgba(0, 0, 0, .3);
+  overflow: hidden; transition: transform .35s var(--ease);
+}
+.fcard-0 { transform: rotate(-8deg) translate(28%, 6%); z-index: 1; }
+.fcard-1 { transform: translateY(-4%); z-index: 3; }
+.fcard-2 { transform: rotate(8deg) translate(-28%, 8%); z-index: 2; }
+.fstack .fcard:only-child { transform: none; }
+.fcard:hover { z-index: 4; }
+.fcard-0:hover { transform: rotate(-5deg) translate(28%, 2%); }
+.fcard-1:hover { transform: translateY(-7%); }
+.fcard-2:hover { transform: rotate(5deg) translate(-28%, 4%); }
+.fcard-top { display: flex; justify-content: space-between; align-items: start; gap: 8px; }
+.fcard-title { font-size: 28px; font-weight: 700; letter-spacing: -.03em; line-height: 1.05; }
+.fcard-sub { font-size: 15px; font-weight: 500; opacity: .75; margin-top: 4px; }
+.fcard-status { font-size: 11px; font-weight: 700; padding: 5px 9px; border-radius: 99px; background: rgba(255, 255, 255, .55); white-space: nowrap; }
+.fcard-status.is-open { background: #111; color: var(--sunburst); }
+.fcard-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; font-weight: 500; }
+.fcard-row span { opacity: .7; }
+.fcard-row strong { font-size: 17px; }
+.fcard-art { position: absolute; left: 50%; bottom: -6%; width: 82%; transform: translateX(-50%); pointer-events: none; }
+@media (max-width: 640px) {
+  .fstack { min-height: 440px; }
+  .fcard { width: 62vw; }
+  .fcard-0 { transform: rotate(-8deg) translate(32%, 6%); }
+  .fcard-2 { transform: rotate(8deg) translate(-32%, 8%); }
+}
+
+.lfoot { padding: 24px; text-align: center; color: var(--text-3); font-size: 13px; border-top: 1px solid var(--hairline); }
+@media (prefers-reduced-motion: reduce) { .fcard { transition: none; } }

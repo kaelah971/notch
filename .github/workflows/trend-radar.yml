@@ -1,0 +1,27 @@
+name: trend-radar
+
+on:
+  push:
+    paths:
+      - "services/trend_radar/**"
+      - ".github/workflows/trend-radar.yml"
+  pull_request:
+    paths:
+      - "services/trend_radar/**"
+
+jobs:
+  test:
+    name: Radar unit tests and fixture replay
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        run: python -m unittest discover -s services/trend_radar/tests -t .
+      - name: Fixture replay
+        run: |
+          python -m services.trend_radar \
+            --data-dir /tmp/notch-radar \
+            scan --fixtures services/trend_radar/fixtures --summary

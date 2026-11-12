@@ -1,0 +1,107 @@
+{
+  "schema_version": "notch.s6.future-market-creation/1",
+  "created_at": "2026-11-12T10:01:18.061038Z",
+  "network": "testnet",
+  "contract": "market.notch-dev.testnet",
+  "operator": "notch-dev.testnet",
+  "market_id": "s3b-future-btc-20261116-20261123",
+  "rule_hash": "sha256:cd215ff8e2e09166607b04925464acc086b5c20b058de4fab2e8e07c633b789b",
+  "tx_hash": "ALVPQpRCwngtpLPtG94SrXb9Y4jogaFToTzvGusveXDA",
+  "explorer": "https://testnet.nearblocks.io/txns/ALVPQpRCwngtpLPtG94SrXb9Y4jogaFToTzvGusveXDA",
+  "market_created_at_ns": "1794477609221673198",
+  "market_created_at_utc": "2026-11-12T10:00:09.221673Z",
+  "block_height": 277347715,
+  "block_time": "2026-11-12T10:01:04.507100Z",
+  "onchain_market": {
+    "market_id": "s3b-future-btc-20261116-20261123",
+    "mode": "trend_trading",
+    "question": "FORECAST (not a replay): Will daily en.wikipedia.org pageviews for Bitcoin grow by at least 23.00% on the full UTC day 2026-11-23 versus the full UTC day 2026-11-16? (Wikimedia Pageviews, all-access, user)",
+    "choices": [
+      "UP",
+      "DOWN"
+    ],
+    "source_id": "wikimedia-pageviews-v1",
+    "rule_hash": "sha256:cd215ff8e2e09166607b04925464acc086b5c20b058de4fab2e8e07c633b789b",
+    "open_at": "1794452400000000000",
+    "close_at": "1794787140000000000",
+    "resolve_after": "1795608000000000000",
+    "invalidation_policy": "refund_on_void",
+    "status": "open",
+    "entries_open": true,
+    "entries_paused": false,
+    "totals": [
+      "0",
+      "0"
+    ],
+    "escrow_total": "0",
+    "paid_total": "0",
+    "pending_total": "0",
+    "unclaimed_reserve": "0",
+    "winning_outcome": null,
+    "winning_choice": null,
+    "evidence_hash": null,
+    "void_reason_hash": null,
+    "created_at": "1794477609221673198",
+    "resolved_at": null,
+    "voided_at": null,
+    "fee_bps": 0,
+    "resolution_kind": null,
+    "battle": null
+  },
+  "contract_config": {
+    "owner": "notch-dev.testnet",
+    "operator": "notch-dev.testnet",
+    "resolver": "notch-dev.testnet",
+    "collateral_token": "usdc.tidepool-sandbox.testnet",
+    "min_entry_amount": "1000000",
+    "entries_paused": false,
+    "market_count": 3,
+    "fee_bps": 0
+  },
+  "all_markets": [
+    {
+      "market_id": "s3b-short-trend-nvidia-20261112T040029Z",
+      "status": "resolved",
+      "winning_choice": "UP"
+    },
+    {
+      "market_id": "s3b-short-battle-btc-chatgpt-20261112T040029Z",
+      "status": "resolved",
+      "winning_choice": "Bitcoin"
+    },
+    {
+      "market_id": "s3b-future-btc-20261116-20261123",
+      "status": "open",
+      "winning_choice": null
+    }
+  ],
+  "checks": {
+    "count_3": true,
+    "exists": true,
+    "market_id": true,
+    "mode": true,
+    "question": true,
+    "choices": true,
+    "source": true,
+    "rule_hash": true,
+    "open_at": true,
+    "close_at": true,
+    "resolve_after": true,
+    "invalidation": true,
+    "status_open": true,
+    "entries_open": true,
+    "entries_paused": true,
+    "battle_none": true,
+    "winning_none": true,
+    "totals_zero": true,
+    "config_owner": true,
+    "collateral": true,
+    "close_future": true,
+    "resolve_after_close": true,
+    "future_observation": true,
+    "outcome_unknown": true,
+    "rule_approved": true
+  },
+  "rule_approved": true,
+  "broadcast": true
+}

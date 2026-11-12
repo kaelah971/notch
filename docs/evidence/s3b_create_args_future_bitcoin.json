@@ -1,0 +1,17 @@
+{
+  "args": {
+    "market_id": "s3b-future-btc-20261116-20261123",
+    "mode": "trend_trading",
+    "question": "FORECAST (not a replay): Will daily en.wikipedia.org pageviews for Bitcoin grow by at least 23.00% on the full UTC day 2026-11-23 versus the full UTC day 2026-11-16? (Wikimedia Pageviews, all-access, user)",
+    "choices": [
+      "UP",
+      "DOWN"
+    ],
+    "source_id": "wikimedia-pageviews-v1",
+    "rule_hash": "sha256:cd215ff8e2e09166607b04925464acc086b5c20b058de4fab2e8e07c633b789b",
+    "open_at": "1794452400000000000",
+    "close_at": "1794787140000000000",
+    "resolve_after": "1795608000000000000",
+    "invalidation_policy": "refund_on_void"
+  }
+}

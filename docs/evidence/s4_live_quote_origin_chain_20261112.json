@@ -1,0 +1,201 @@
+{
+  "instructions": {
+    "amount_in": "1000000",
+    "blocker": null,
+    "deadline": "2026-11-12T08:07:06.545Z",
+    "deposit_memo": null,
+    "deposit_type": "ORIGIN_CHAIN",
+    "destination_asset": "nep141:usdc.tidepool-sandbox.testnet",
+    "destination_decimals": 6,
+    "destination_symbol": "USDC",
+    "min_amount_out": "989515",
+    "provider_deposit_address": "ff4dab0d75dfd8529bc6700a327eece121758f0c6d4b686d91f2e1211775911b",
+    "quote_id": "3a4ba860-143a-4a90-b244-83c8f4e339e3",
+    "recipient": "notch-dev.testnet",
+    "refund_to": "notch-dev.testnet",
+    "source_asset": "nep141:usdt.tidepool-sandbox.testnet",
+    "source_chain": "near",
+    "source_decimals": 6,
+    "source_symbol": "USDT",
+    "steps": [
+      {
+        "action": "storage_deposit_for_deposit_account",
+        "args": {
+          "account_id": "ff4dab0d75dfd8529bc6700a327eece121758f0c6d4b686d91f2e1211775911b",
+          "registration_only": true
+        },
+        "attached_deposit_yocto": "1250000000000000000000",
+        "contract": "usdt.tidepool-sandbox.testnet",
+        "gas_tgas": 30,
+        "method": "storage_deposit",
+        "note": "Register the quote's fresh NEAR deposit account on the source token contract. Verify the current storage price before sending.",
+        "step": 1
+      },
+      {
+        "action": "ft_transfer_to_origin_chain_deposit_account",
+        "args": {
+          "amount": "1000000",
+          "receiver_id": "ff4dab0d75dfd8529bc6700a327eece121758f0c6d4b686d91f2e1211775911b"
+        },
+        "attached_deposit_yocto": "1",
+        "contract": "usdt.tidepool-sandbox.testnet",
+        "gas_tgas": 30,
+        "method": "ft_transfer",
+        "note": "Send exactly quote.amountIn to the provider deposit account. Do not add funds beyond the quoted amount.",
+        "step": 2
+      }
+    ],
+    "supported": true,
+    "warnings": [
+      "TESTNET ONLY: Tidepool test tokens have no value. Never send real assets.",
+      "Use the exact provider deposit address and memo; do not substitute another address.",
+      "The backend does not sign or broadcast these steps. User approval is required."
+    ]
+  },
+  "provider_quote": {
+    "correlation_id": "3a4ba860-143a-4a90-b244-83c8f4e339e3",
+    "quote": {
+      "amount_in": "1000000",
+      "amount_in_formatted": "1",
+      "amount_in_usd": "0.9990",
+      "amount_out": "999511",
+      "amount_out_formatted": "0.999511",
+      "amount_out_usd": "0.9989",
+      "chain_deposit_addresses": [],
+      "deadline": "2026-11-12T08:07:06.545Z",
+      "deposit_address": "ff4dab0d75dfd8529bc6700a327eece121758f0c6d4b686d91f2e1211775911b",
+      "deposit_memo": null,
+      "min_amount_in": "1000000",
+      "min_amount_out": "989515",
+      "refund_fee": null,
+      "time_estimate": 10,
+      "time_when_inactive": "2026-11-12T08:07:06.545Z",
+      "withdraw_fee": null
+    },
+    "quote_request": {
+      "amount": "1000000",
+      "deadline": "2026-11-12T08:07:06.545407Z",
+      "depositMode": "SIMPLE",
+      "depositType": "ORIGIN_CHAIN",
+      "destinationAsset": "nep141:usdc.tidepool-sandbox.testnet",
+      "dry": false,
+      "originAsset": "nep141:usdt.tidepool-sandbox.testnet",
+      "recipient": "notch-dev.testnet",
+      "recipientType": "DESTINATION_CHAIN",
+      "refundTo": "notch-dev.testnet",
+      "refundType": "ORIGIN_CHAIN",
+      "slippageTolerance": 100,
+      "swapType": "EXACT_INPUT"
+    },
+    "signature": "ed25519:4fPBx3NG9PVxsJ88G6NK4w2wd7U1jYgCJoxxo5QGK4hvaQVzbj6WFSdWgeRaBoaVqqaQPG2B8pxaB31rmNmeX8hz",
+    "timestamp": "2026-11-12T07:07:11.395Z"
+  },
+  "quote": {
+    "amount_in": "1000000",
+    "amount_out": "999511",
+    "balance_after": null,
+    "balance_before": "100000000",
+    "balance_delta": null,
+    "balance_verified": false,
+    "correlation_id": "3a4ba860-143a-4a90-b244-83c8f4e339e3",
+    "created_at": "2026-11-12T07:07:07.878518Z",
+    "deadline": "2026-11-12T08:07:06.545Z",
+    "deposit_address": "ff4dab0d75dfd8529bc6700a327eece121758f0c6d4b686d91f2e1211775911b",
+    "deposit_memo": null,
+    "deposit_recorded_at": null,
+    "deposit_submitted": false,
+    "deposit_tx_hash": null,
+    "deposit_type": "ORIGIN_CHAIN",
+    "destination_asset": "nep141:usdc.tidepool-sandbox.testnet",
+    "destination_decimals": 6,
+    "destination_symbol": "USDC",
+    "dry": false,
+    "expires_at": "2026-11-12T08:07:06.545000Z",
+    "last_error": null,
+    "min_amount_out": "989515",
+    "poll_count": 0,
+    "provider_status": null,
+    "quote_id": "3a4ba860-143a-4a90-b244-83c8f4e339e3",
+    "quote_timestamp": "2026-11-12T07:07:11.395Z",
+    "raw_quote": {
+      "correlationId": "3a4ba860-143a-4a90-b244-83c8f4e339e3",
+      "quote": {
+        "amountIn": "1000000",
+        "amountInFormatted": "1",
+        "amountInUsd": "0.9990",
+        "amountOut": "999511",
+        "amountOutFormatted": "0.999511",
+        "amountOutUsd": "0.9989",
+        "deadline": "2026-11-12T08:07:06.545Z",
+        "depositAddress": "ff4dab0d75dfd8529bc6700a327eece121758f0c6d4b686d91f2e1211775911b",
+        "minAmountIn": "1000000",
+        "minAmountOut": "989515",
+        "timeEstimate": 10,
+        "timeWhenInactive": "2026-11-12T08:07:06.545Z"
+      },
+      "quoteRequest": {
+        "amount": "1000000",
+        "deadline": "2026-11-12T08:07:06.545407Z",
+        "depositMode": "SIMPLE",
+        "depositType": "ORIGIN_CHAIN",
+        "destinationAsset": "nep141:usdc.tidepool-sandbox.testnet",
+        "dry": false,
+        "originAsset": "nep141:usdt.tidepool-sandbox.testnet",
+        "recipient": "notch-dev.testnet",
+        "recipientType": "DESTINATION_CHAIN",
+        "refundTo": "notch-dev.testnet",
+        "refundType": "ORIGIN_CHAIN",
+        "slippageTolerance": 100,
+        "swapType": "EXACT_INPUT"
+      },
+      "signature": "ed25519:4fPBx3NG9PVxsJ88G6NK4w2wd7U1jYgCJoxxo5QGK4hvaQVzbj6WFSdWgeRaBoaVqqaQPG2B8pxaB31rmNmeX8hz",
+      "timestamp": "2026-11-12T07:07:11.395Z"
+    },
+    "raw_status": {},
+    "recipient": "notch-dev.testnet",
+    "refund_reason": null,
+    "refund_to": "notch-dev.testnet",
+    "refund_tx_hash": null,
+    "refund_type": "ORIGIN_CHAIN",
+    "refunded_amount": null,
+    "schema_version": "notch.intents.funding/1",
+    "signature": "ed25519:4fPBx3NG9PVxsJ88G6NK4w2wd7U1jYgCJoxxo5QGK4hvaQVzbj6WFSdWgeRaBoaVqqaQPG2B8pxaB31rmNmeX8hz",
+    "slippage_bps": 100,
+    "source_asset": "nep141:usdt.tidepool-sandbox.testnet",
+    "source_chain": "near",
+    "source_decimals": 6,
+    "source_symbol": "USDT",
+    "state": "AWAITING_DEPOSIT",
+    "updated_at": "2026-11-12T07:07:07.878518Z"
+  },
+  "validation": {
+    "expires_at": "2026-11-12T08:07:06.545000Z",
+    "implied_fee_usd": "0.0001",
+    "route": {
+      "destination": {
+        "asset_id": "nep141:usdc.tidepool-sandbox.testnet",
+        "blockchain": "near",
+        "coingecko_id": "usd-coin",
+        "contract_address": "usdc.tidepool-sandbox.testnet",
+        "decimals": 6,
+        "price": 0.999414,
+        "price_updated_at": "2026-11-12T07:06:35.116Z",
+        "symbol": "USDC"
+      },
+      "label": "USDT (near) -> USDC",
+      "source": {
+        "asset_id": "nep141:usdt.tidepool-sandbox.testnet",
+        "blockchain": "near",
+        "coingecko_id": "tether",
+        "contract_address": "usdt.tidepool-sandbox.testnet",
+        "decimals": 6,
+        "price": 0.999026,
+        "price_updated_at": "2026-11-12T07:06:35.116Z",
+        "symbol": "USDT"
+      }
+    },
+    "warnings": [
+      "Testnet-only swap; tokens have no value."
+    ]
+  }
+}

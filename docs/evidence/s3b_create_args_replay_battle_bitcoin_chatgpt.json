@@ -1,0 +1,39 @@
+{
+  "args": {
+    "market_id": "s3b-replay-battle-btc-chatgpt-20261103-20261110",
+    "mode": "trend_battle",
+    "question": "HISTORICAL REPLAY (not a forecast): Which topic had higher normalized Wikimedia pageview growth from the full UTC day 2026-11-03 to the full UTC day 2026-11-10: Bitcoin or ChatGPT? A difference within 930 bps is a tie and voids the market.",
+    "choices": [
+      "Bitcoin",
+      "ChatGPT"
+    ],
+    "source_id": "wikimedia-pageviews-v1",
+    "rule_hash": "sha256:64a41270b9b68a7c33a972001adc1122b35c0877d1e04692f2cf2742fad1c19d",
+    "open_at": "1794452400000000000",
+    "close_at": "1794787140000000000",
+    "resolve_after": "1794916800000000000",
+    "invalidation_policy": "refund_on_void",
+    "battle": {
+      "topic_a": {
+        "topic_id": "bitcoin",
+        "source_id": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article_title": "Bitcoin",
+        "metric": "daily_pageviews_growth_comparison"
+      },
+      "topic_b": {
+        "topic_id": "chatgpt",
+        "source_id": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article_title": "ChatGPT",
+        "metric": "daily_pageviews_growth_comparison"
+      },
+      "observation_start": "1793664000000000000",
+      "observation_end": "1794355199000000000",
+      "formula": "growth_comparison_v1",
+      "min_baseline_views": "1000",
+      "tie_tolerance_bps": 930,
+      "tie_policy": "void"
+    }
+  }
+}

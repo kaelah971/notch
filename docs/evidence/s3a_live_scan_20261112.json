@@ -1,0 +1,4811 @@
+{
+  "schema_version": "notch.trend-radar.evidence/1",
+  "label": "S3A live discovery scan (real public APIs)",
+  "note": "Discovery evidence only. No market was created, signed or settled. CoinGecko and Hacker News are discovery sources, not settlement oracles.",
+  "captured_at_utc": "2026-11-12T00:24:09.147792Z",
+  "scan": {
+    "scan_id": "scan_39fb5a36cdaf619d9fce",
+    "scan_kind": "live",
+    "scan_date": "2026-11-12",
+    "started_at": "2026-11-12T00:23:57.382066Z",
+    "completed_at": "2026-11-12T00:24:09.147792Z",
+    "last_successful_update": "2026-11-12T00:24:01.627807Z",
+    "candidate_count": 80,
+    "eligibility_counts": {
+      "ELIGIBLE": 11,
+      "NEEDS_REVIEW": 33,
+      "NOT_MEASURABLE": 36
+    },
+    "proposal_count": 15,
+    "errors": [],
+    "config": {
+      "enable_wikimedia": true,
+      "enable_coingecko": true,
+      "enable_hackernews": true,
+      "wiki_top_limit": 40,
+      "wiki_min_views": 10000,
+      "probe_limit": 12,
+      "coverage_days": 7,
+      "min_baseline_views": 1000,
+      "proposal_limit": 10,
+      "battle_limit": 5,
+      "threshold_bps": 1500,
+      "tie_tolerance_bps": 50,
+      "scan_cooldown_seconds": 600,
+      "running_timeout_seconds": 900,
+      "stale_after_days": 7
+    }
+  },
+  "source_health": [
+    {
+      "source": "wikimedia",
+      "status": "ok",
+      "attempted_at": "2026-11-12T00:23:57.382066Z",
+      "last_success_at": "2026-11-12T00:23:59.054453Z",
+      "error": null,
+      "stale": false,
+      "cache_used": false,
+      "item_count": 40,
+      "latency_ms": 2670,
+      "rate_limited": false,
+      "detail": "Live Wikimedia Pageviews top-articles response."
+    },
+    {
+      "source": "coingecko",
+      "status": "ok",
+      "attempted_at": "2026-11-12T00:23:57.382066Z",
+      "last_success_at": "2026-11-12T00:24:00.748834Z",
+      "error": null,
+      "stale": false,
+      "cache_used": false,
+      "item_count": 15,
+      "latency_ms": 690,
+      "rate_limited": false,
+      "detail": "Live CoinGecko trending response."
+    },
+    {
+      "source": "hackernews",
+      "status": "ok",
+      "attempted_at": "2026-11-12T00:23:57.382066Z",
+      "last_success_at": "2026-11-12T00:24:01.627807Z",
+      "error": null,
+      "stale": false,
+      "cache_used": false,
+      "item_count": 27,
+      "latency_ms": 873,
+      "rate_limited": false,
+      "detail": "Live Hacker News Algolia front-page response."
+    }
+  ],
+  "source_context": {
+    "wikimedia": {
+      "reporting_date": "2026-11-10",
+      "requested_date": "2026-11-10",
+      "top_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+      "top_articles_seen": 1000,
+      "filtered_articles": 40,
+      "access": "all-access",
+      "agent": "user",
+      "project": "en.wikipedia.org",
+      "identity_error": null,
+      "note": "Wikimedia daily top articles for the latest complete reporting day; this is historical daily data, not a live feed."
+    },
+    "coingecko": {
+      "trending_coin_count": 15,
+      "categories": [
+        {
+          "id": 82,
+          "name": "Derivatives",
+          "market_cap_1h_change": 0.42820351883857627,
+          "coins_count": "120"
+        },
+        {
+          "id": 92,
+          "name": "Perpetuals",
+          "market_cap_1h_change": 0.35987925668107396,
+          "coins_count": "120"
+        },
+        {
+          "id": 168,
+          "name": "Liquid Staking Governance Tokens",
+          "market_cap_1h_change": 0.24352941088908975,
+          "coins_count": "39"
+        },
+        {
+          "id": 107,
+          "name": "Launchpad",
+          "market_cap_1h_change": 0.17080476489464014,
+          "coins_count": "374"
+        },
+        {
+          "id": 497,
+          "name": "Liquid Staking",
+          "market_cap_1h_change": 0.05691423043311716,
+          "coins_count": "228"
+        },
+        {
+          "id": 271,
+          "name": "Parallelized EVM",
+          "market_cap_1h_change": 0.031637181975577536,
+          "coins_count": "7"
+        }
+      ],
+      "note": "CoinGecko trending and category data are discovery context. Price or market-cap movement is not social attention and is never used as a settlement metric."
+    },
+    "hackernews": {
+      "front_page_hits": 30,
+      "max_story_age_seconds": 276375,
+      "note": "Algolia front-page index; points and comments are discussion signals and may lag the live HN front page."
+    },
+    "coverage_probes": [
+      {
+        "candidate_id": "cand_b279c92126deeecb4beb",
+        "title": "Nvidia",
+        "article": "Nvidia",
+        "page_id": 39120,
+        "status": "ok",
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 4112,
+        "mean_views": 43298,
+        "min_baseline_views": 1000,
+        "error": null
+      },
+      {
+        "candidate_id": "cand_9118da9248a28ca00f02",
+        "title": "Bitcoin",
+        "article": "Bitcoin",
+        "page_id": 28249265,
+        "status": "ok",
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 2767,
+        "mean_views": 4105,
+        "min_baseline_views": 1000,
+        "error": null
+      },
+      {
+        "candidate_id": "cand_05ed6a1e89bee871414c",
+        "title": "Jensen Huang",
+        "article": "Jensen Huang",
+        "page_id": 2116495,
+        "status": "ok",
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 4768,
+        "mean_views": 206732,
+        "min_baseline_views": 1000,
+        "error": null
+      },
+      {
+        "candidate_id": "cand_16c0a725deb25a9d9766",
+        "title": "Russell Brand",
+        "article": "Russell Brand",
+        "page_id": 1996436,
+        "status": "ok",
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 12055,
+        "mean_views": 435511,
+        "min_baseline_views": 1000,
+        "error": null
+      },
+      {
+        "candidate_id": "cand_258b682b0b5891f02ccd",
+        "title": "SS Edmund Fitzgerald",
+        "article": "SS Edmund Fitzgerald",
+        "page_id": 218075,
+        "status": "ok",
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 10698,
+        "mean_views": 35914,
+        "min_baseline_views": 1000,
+        "error": null
+      },
+      {
+        "candidate_id": "cand_28cba27c64b5456c3a8b",
+        "title": "ChatGPT",
+        "article": "ChatGPT",
+        "page_id": 72417803,
+        "status": "ok",
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 35513,
+        "mean_views": 65386,
+        "min_baseline_views": 1000,
+        "error": null
+      },
+      {
+        "candidate_id": "cand_6bae7b31bb4116013025",
+        "title": "David Walliams",
+        "article": "David Walliams",
+        "page_id": 649748,
+        "status": "ok",
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 18535,
+        "mean_views": 108018,
+        "min_baseline_views": 1000,
+        "error": null
+      },
+      {
+        "candidate_id": "cand_75428f659eb118b255ec",
+        "title": ".xxx",
+        "article": ".xxx",
+        "page_id": 574533,
+        "status": "ok",
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 159311,
+        "mean_views": 208675,
+        "min_baseline_views": 1000,
+        "error": null
+      },
+      {
+        "candidate_id": "cand_7c0077062a10260fbe55",
+        "title": "Zcash",
+        "article": "Zcash",
+        "page_id": 51849458,
+        "status": "insufficient_baseline",
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 99,
+        "mean_views": 123,
+        "min_baseline_views": 1000,
+        "error": "minimum daily views 99 is below the 1000 minimum"
+      },
+      {
+        "candidate_id": "cand_95920737b0dd2b16bba5",
+        "title": "Scene (2026 film)",
+        "article": "Scene (2026 film)",
+        "page_id": 81783243,
+        "status": "ok",
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 17665,
+        "mean_views": 123892,
+        "min_baseline_views": 1000,
+        "error": null
+      },
+      {
+        "candidate_id": "cand_aa39bc855d6a787396d4",
+        "title": "Ramayana: Part 1",
+        "article": "Ramayana: Part 1",
+        "page_id": 78318715,
+        "status": "ok",
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 103372,
+        "mean_views": 658877,
+        "min_baseline_views": 1000,
+        "error": null
+      },
+      {
+        "candidate_id": "cand_c84b4564a0f8cb9c29cb",
+        "title": "2026 United States elections",
+        "article": "2026 United States elections",
+        "page_id": 70357296,
+        "status": "ok",
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 82516,
+        "mean_views": 307910,
+        "min_baseline_views": 1000,
+        "error": null
+      }
+    ],
+    "identity_error": null,
+    "probe_limit": 12,
+    "note": "Discovery data is separate from financial settlement. CoinGecko and Hacker News never become settlement sources."
+  },
+  "all_candidates_summary": [
+    {
+      "candidate_id": "cand_b279c92126deeecb4beb",
+      "canonical_topic_id": "entity:nvidia",
+      "title": "Nvidia",
+      "category": "AI & Technology",
+      "score": 85,
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "sources": [
+        "wikimedia",
+        "hackernews"
+      ],
+      "source_count": 2,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Nvidia",
+        "https://www.wsj.com/business/nvidia-is-preparing-to-oust-nvidia-ceo-jensen-huang-30f421ad",
+        "https://twitter.com/watcherguru/status/2120645607866188008"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": "Nvidia"
+    },
+    {
+      "candidate_id": "cand_9118da9248a28ca00f02",
+      "canonical_topic_id": "entity:bitcoin",
+      "title": "Bitcoin",
+      "category": "Crypto & Web3",
+      "score": 73,
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "sources": [
+        "coingecko"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.coingecko.com/en/coins/bitcoin"
+      ],
+      "observed_at": "2026-11-12T00:24:00.748834Z",
+      "settlement_article": "Bitcoin"
+    },
+    {
+      "candidate_id": "cand_05ed6a1e89bee871414c",
+      "canonical_topic_id": "wiki:en.wikipedia.org:jensen-huang",
+      "title": "Jensen Huang",
+      "category": "Other",
+      "score": 67,
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Jensen_Huang"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Jensen Huang"
+    },
+    {
+      "candidate_id": "cand_16c0a725deb25a9d9766",
+      "canonical_topic_id": "wiki:en.wikipedia.org:russell-brand",
+      "title": "Russell Brand",
+      "category": "Other",
+      "score": 67,
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Russell_Brand"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Russell Brand"
+    },
+    {
+      "candidate_id": "cand_258b682b0b5891f02ccd",
+      "canonical_topic_id": "wiki:en.wikipedia.org:ss-edmund-fitzgerald",
+      "title": "SS Edmund Fitzgerald",
+      "category": "Other",
+      "score": 67,
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/SS_Edmund_Fitzgerald"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "SS Edmund Fitzgerald"
+    },
+    {
+      "candidate_id": "cand_28cba27c64b5456c3a8b",
+      "canonical_topic_id": "entity:chatgpt",
+      "title": "ChatGPT",
+      "category": "AI & Technology",
+      "score": 67,
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/ChatGPT"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "ChatGPT"
+    },
+    {
+      "candidate_id": "cand_6bae7b31bb4116013025",
+      "canonical_topic_id": "wiki:en.wikipedia.org:david-walliams",
+      "title": "David Walliams",
+      "category": "Other",
+      "score": 67,
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/David_Walliams"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "David Walliams"
+    },
+    {
+      "candidate_id": "cand_75428f659eb118b255ec",
+      "canonical_topic_id": "wiki:en.wikipedia.org:xxx",
+      "title": ".xxx",
+      "category": "Other",
+      "score": 67,
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/.xxx"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": ".xxx"
+    },
+    {
+      "candidate_id": "cand_7c0077062a10260fbe55",
+      "canonical_topic_id": "entity:zcash",
+      "title": "Zcash",
+      "category": "Crypto & Web3",
+      "score": 67,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "baseline_below_minimum"
+      ],
+      "sources": [
+        "coingecko"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.coingecko.com/en/coins/zcash"
+      ],
+      "observed_at": "2026-11-12T00:24:00.748834Z",
+      "settlement_article": "Zcash"
+    },
+    {
+      "candidate_id": "cand_95920737b0dd2b16bba5",
+      "canonical_topic_id": "wiki:en.wikipedia.org:scene-2026-film",
+      "title": "Scene (2026 film)",
+      "category": "Gaming & Entertainment",
+      "score": 67,
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Scene_(2026_film)"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Scene (2026 film)"
+    },
+    {
+      "candidate_id": "cand_aa39bc855d6a787396d4",
+      "canonical_topic_id": "wiki:en.wikipedia.org:ramayana-part-1",
+      "title": "Ramayana: Part 1",
+      "category": "Other",
+      "score": 67,
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Ramayana%3A_Part_1"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Ramayana: Part 1"
+    },
+    {
+      "candidate_id": "cand_c84b4564a0f8cb9c29cb",
+      "canonical_topic_id": "wiki:en.wikipedia.org:2026-united-states-elections",
+      "title": "2026 United States elections",
+      "category": "News & Current Events",
+      "score": 67,
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/2026_United_States_elections"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "2026 United States elections"
+    },
+    {
+      "candidate_id": "cand_1df65d84aaa7be8ea0d4",
+      "canonical_topic_id": "hn:topic:my-ai-agents-found-an-unmapped-maya-site",
+      "title": "My AI agents found an unmapped Maya site",
+      "category": "AI & Technology",
+      "score": 55,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://pietromiotti.com/latest/maya-site"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_359ce72d5997f9598232",
+      "canonical_topic_id": "coingecko:coin:zignaly",
+      "title": "ZIG Finance",
+      "category": "Crypto & Web3",
+      "score": 55,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "coingecko"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.coingecko.com/en/coins/zignaly"
+      ],
+      "observed_at": "2026-11-12T00:24:00.748834Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_433c1b76ff4b72aa6744",
+      "canonical_topic_id": "hn:topic:tim-peters-has-died",
+      "title": "Tim Peters has died",
+      "category": "News & Current Events",
+      "score": 55,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://discuss.python.org/t/in-memoriam-tim-peters-1952-2026/110028"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_a650076fc3288c142e4e",
+      "canonical_topic_id": "hn:topic:aws-emulator",
+      "title": "AWS emulator",
+      "category": "AI & Technology",
+      "score": 55,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "ambiguous_topic"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://github.com/aws/aws-emulator"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_ee695ff7f37c6406f910",
+      "canonical_topic_id": "coingecko:coin:pudgy-penguins",
+      "title": "Pudgy Penguins",
+      "category": "Crypto & Web3",
+      "score": 55,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "coingecko"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.coingecko.com/en/coins/pudgy-penguins"
+      ],
+      "observed_at": "2026-11-12T00:24:00.748834Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_d482dd4a7c5de17c1a8f",
+      "canonical_topic_id": "wiki:en.wikipedia.org:clayface-film",
+      "title": "Clayface (film)",
+      "category": "Gaming & Entertainment",
+      "score": 54,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Clayface_(film)"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Clayface (film)"
+    },
+    {
+      "candidate_id": "cand_d6a01cbb7a2a0a2e24da",
+      "canonical_topic_id": "wiki:en.wikipedia.org:thomas-massie",
+      "title": "Thomas Massie",
+      "category": "Other",
+      "score": 54,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Thomas_Massie"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Thomas Massie"
+    },
+    {
+      "candidate_id": "cand_06cc640243efdc7855ef",
+      "canonical_topic_id": "entity:solana",
+      "title": "Solana (blockchain platform)",
+      "category": "Crypto & Web3",
+      "score": 52,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "coingecko"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.coingecko.com/en/coins/solana"
+      ],
+      "observed_at": "2026-11-12T00:24:00.748834Z",
+      "settlement_article": "Solana (blockchain platform)"
+    },
+    {
+      "candidate_id": "cand_444144f193d572b0a04b",
+      "canonical_topic_id": "hn:topic:gemini-decisions-api",
+      "title": "Gemini Decisions API",
+      "category": "AI & Technology",
+      "score": 50,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://blog.google/innovation-and-ai/technology/developers-tools/gemini-decisions-api/"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_86a1ea7f918a03262076",
+      "canonical_topic_id": "hn:topic:can-a-linear-program-do-weight-space-programming",
+      "title": "Can a Linear Program Do Weight-Space Programming?",
+      "category": "AI & Technology",
+      "score": 50,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://nathan.rs/posts/weight-space-lp/"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_910a92eaba315be4ed81",
+      "canonical_topic_id": "hn:topic:hyper-realistic-sand-with-webgl2",
+      "title": "Hyper-Realistic Sand with WebGL2",
+      "category": "AI & Technology",
+      "score": 50,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://av.github.io/safe-sand/"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_99748f7436060f9113b3",
+      "canonical_topic_id": "hn:topic:using-voltage-glitching-to-unleash-the-a100-in-my-mining-card",
+      "title": "Using voltage glitching to unleash the A100 in my mining card",
+      "category": "AI & Technology",
+      "score": 50,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://blog.kate.land/posts/using-voltage-glitching-to-unlock-the-a100/"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_a7894e480b7c131a681c",
+      "canonical_topic_id": "hn:topic:united-airlines-bans-ai-agents-from-booking-flights-on-behalf-of-travelers",
+      "title": "United Airlines bans AI agents from booking flights on behalf of travelers",
+      "category": "AI & Technology",
+      "score": 50,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.cbsnews.com/news/united-airlines-bans-ai-agents-booking-flights/"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_dbc14410b5194aac2718",
+      "canonical_topic_id": "hn:topic:a-false-smoke-alarm-almost-drowned-jane-street-s-only-nyc-datacenter",
+      "title": "A false smoke alarm almost drowned Jane Street's only NYC datacenter",
+      "category": "AI & Technology",
+      "score": 50,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://michael.bacarella.com/2026/11/10/false-smoke-alarm-jane-street-datacenter/"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_06a2743628b63e0ee07a",
+      "canonical_topic_id": "wiki:en.wikipedia.org:xnxx",
+      "title": "XNXX",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/XNXX"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "XNXX"
+    },
+    {
+      "candidate_id": "cand_0e8ee98693e9f492462f",
+      "canonical_topic_id": "wiki:en.wikipedia.org:stephen-miller",
+      "title": "Stephen Miller",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Stephen_Miller"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Stephen Miller"
+    },
+    {
+      "candidate_id": "cand_226b2bfe585cacaef322",
+      "canonical_topic_id": "wiki:en.wikipedia.org:lisa-su",
+      "title": "Lisa Su",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Lisa_Su"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Lisa Su"
+    },
+    {
+      "candidate_id": "cand_3886e5626e45abc2018e",
+      "canonical_topic_id": "wiki:en.wikipedia.org:toukie-smith",
+      "title": "Toukie Smith",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Toukie_Smith"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Toukie Smith"
+    },
+    {
+      "candidate_id": "cand_4444cdf8b3dc637b0808",
+      "canonical_topic_id": "wiki:en.wikipedia.org:kirk-cousins",
+      "title": "Kirk Cousins",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Kirk_Cousins"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Kirk Cousins"
+    },
+    {
+      "candidate_id": "cand_44f7190e807912e29e99",
+      "canonical_topic_id": "wiki:en.wikipedia.org:jim-jordan",
+      "title": "Jim Jordan",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Jim_Jordan"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Jim Jordan"
+    },
+    {
+      "candidate_id": "cand_4f39064b1a5fa512f36b",
+      "canonical_topic_id": "wiki:en.wikipedia.org:survivor-series-wargames-2026",
+      "title": "Survivor Series: WarGames (2026)",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Survivor_Series%3A_WarGames_(2026)"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Survivor Series: WarGames (2026)"
+    },
+    {
+      "candidate_id": "cand_50e6133482fab5f285f3",
+      "canonical_topic_id": "wiki:en.wikipedia.org:lara-stone",
+      "title": "Lara Stone",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Lara_Stone"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Lara Stone"
+    },
+    {
+      "candidate_id": "cand_55ba8cc8278e34f35970",
+      "canonical_topic_id": "wiki:en.wikipedia.org:elizabeth-holmes",
+      "title": "Elizabeth Holmes",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Elizabeth_Holmes"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Elizabeth Holmes"
+    },
+    {
+      "candidate_id": "cand_5824d25e830aa6f0dee4",
+      "canonical_topic_id": "wiki:en.wikipedia.org:2026-krakow-shooting",
+      "title": "2026 Kraków shooting",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/2026_Krak%C3%B3w_shooting"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "2026 Kraków shooting"
+    },
+    {
+      "candidate_id": "cand_6f6398f941413984b0bc",
+      "canonical_topic_id": "wiki:en.wikipedia.org:adrian-peterson",
+      "title": "Adrian Peterson",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Adrian_Peterson"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Adrian Peterson"
+    },
+    {
+      "candidate_id": "cand_7311e54e8179e680d77f",
+      "canonical_topic_id": "wiki:en.wikipedia.org:josh-allen",
+      "title": "Josh Allen",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Josh_Allen"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Josh Allen"
+    },
+    {
+      "candidate_id": "cand_7352f90139899c6c5545",
+      "canonical_topic_id": "wiki:en.wikipedia.org:katy-perry",
+      "title": "Katy Perry",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Katy_Perry"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Katy Perry"
+    },
+    {
+      "candidate_id": "cand_8f5270961599be6114b5",
+      "canonical_topic_id": "wiki:en.wikipedia.org:godzilla-minus-zero",
+      "title": "Godzilla Minus Zero",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Godzilla_Minus_Zero"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Godzilla Minus Zero"
+    },
+    {
+      "candidate_id": "cand_9b052334bdb187d9f955",
+      "canonical_topic_id": "wiki:en.wikipedia.org:ansel-adams",
+      "title": "Ansel Adams",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Ansel_Adams"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Ansel Adams"
+    },
+    {
+      "candidate_id": "cand_9ce108fd1663cca2ca78",
+      "canonical_topic_id": "wiki:en.wikipedia.org:visionquest",
+      "title": "VisionQuest",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/VisionQuest"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "VisionQuest"
+    },
+    {
+      "candidate_id": "cand_a1e58bf4acb4cd64e63f",
+      "canonical_topic_id": "wiki:en.wikipedia.org:the-end-of-everything-harrison-novel",
+      "title": "The End of Everything (Harrison novel)",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/The_End_of_Everything_(Harrison_novel)"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "The End of Everything (Harrison novel)"
+    },
+    {
+      "candidate_id": "cand_ad020f1ce0d43f5d9576",
+      "canonical_topic_id": "wiki:en.wikipedia.org:jemima-goldsmith",
+      "title": "Jemima Goldsmith",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Jemima_Goldsmith"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Jemima Goldsmith"
+    },
+    {
+      "candidate_id": "cand_b69af213720f286eb997",
+      "canonical_topic_id": "wiki:en.wikipedia.org:grand-theft-auto-vi",
+      "title": "Grand Theft Auto VI",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Grand_Theft_Auto_VI"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Grand Theft Auto VI"
+    },
+    {
+      "candidate_id": "cand_b99a444460a8585ce170",
+      "canonical_topic_id": "wiki:en.wikipedia.org:pete-hegseth",
+      "title": "Pete Hegseth",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Pete_Hegseth"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Pete Hegseth"
+    },
+    {
+      "candidate_id": "cand_c339e7bddb5ccc3cc415",
+      "canonical_topic_id": "wiki:en.wikipedia.org:jailer-2",
+      "title": "Jailer 2",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Jailer_2"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Jailer 2"
+    },
+    {
+      "candidate_id": "cand_c7913d3d13c6af3df124",
+      "canonical_topic_id": "wiki:en.wikipedia.org:carson-wentz",
+      "title": "Carson Wentz",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Carson_Wentz"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Carson Wentz"
+    },
+    {
+      "candidate_id": "cand_cd3158535d6a1414b30d",
+      "canonical_topic_id": "wiki:en.wikipedia.org:lauren-boebert",
+      "title": "Lauren Boebert",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Lauren_Boebert"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Lauren Boebert"
+    },
+    {
+      "candidate_id": "cand_dd8d1d43a9b67cd32f6d",
+      "canonical_topic_id": "wiki:en.wikipedia.org:pawan-kalyan",
+      "title": "Pawan Kalyan",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Pawan_Kalyan"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Pawan Kalyan"
+    },
+    {
+      "candidate_id": "cand_e031a468a95b29685232",
+      "canonical_topic_id": "wiki:en.wikipedia.org:mauricio-pochettino",
+      "title": "Mauricio Pochettino",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Mauricio_Pochettino"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Mauricio Pochettino"
+    },
+    {
+      "candidate_id": "cand_e4e9d6140f46f7eec1ac",
+      "canonical_topic_id": "wiki:en.wikipedia.org:black-doves",
+      "title": "Black Doves",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Black_Doves"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Black Doves"
+    },
+    {
+      "candidate_id": "cand_e7b3d552fa6ba26e73b8",
+      "canonical_topic_id": "wiki:en.wikipedia.org:abdul-el-sayed",
+      "title": "Abdul El-Sayed",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Abdul_El-Sayed"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Abdul El-Sayed"
+    },
+    {
+      "candidate_id": "cand_ed62bd90f881ad09ece9",
+      "canonical_topic_id": "wiki:en.wikipedia.org:joran-van-der-sloot",
+      "title": "Joran van der Sloot",
+      "category": "Other",
+      "score": 49,
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "coverage_probe_not_run"
+      ],
+      "sources": [
+        "wikimedia"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Joran_van_der_Sloot"
+      ],
+      "observed_at": "2026-11-10T23:59:59Z",
+      "settlement_article": "Joran van der Sloot"
+    },
+    {
+      "candidate_id": "cand_1401e3262396e010dd90",
+      "canonical_topic_id": "coingecko:coin:the-open-network",
+      "title": "Gram (prev. Toncoin)",
+      "category": "Crypto & Web3",
+      "score": 48,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "coingecko"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.coingecko.com/en/coins/the-open-network"
+      ],
+      "observed_at": "2026-11-12T00:24:00.748834Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_2384ea13ece43bb9e3e8",
+      "canonical_topic_id": "coingecko:coin:pepe",
+      "title": "Pepe",
+      "category": "Crypto & Web3",
+      "score": 48,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "coingecko"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.coingecko.com/en/coins/pepe"
+      ],
+      "observed_at": "2026-11-12T00:24:00.748834Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_3d432655ade7c3bb7ea9",
+      "canonical_topic_id": "coingecko:coin:hyperliquid",
+      "title": "Hyperliquid",
+      "category": "Crypto & Web3",
+      "score": 48,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "coingecko"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.coingecko.com/en/coins/hyperliquid"
+      ],
+      "observed_at": "2026-11-12T00:24:00.748834Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_41076e9fd69849d19fb5",
+      "canonical_topic_id": "coingecko:coin:pons",
+      "title": "Pons",
+      "category": "Crypto & Web3",
+      "score": 48,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "coingecko"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.coingecko.com/en/coins/pons"
+      ],
+      "observed_at": "2026-11-12T00:24:00.748834Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_da4993e919f16441643a",
+      "canonical_topic_id": "coingecko:coin:kinetiq",
+      "title": "Kinetiq",
+      "category": "Crypto & Web3",
+      "score": 48,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "coingecko"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.coingecko.com/en/coins/kinetiq"
+      ],
+      "observed_at": "2026-11-12T00:24:00.748834Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_ea17b2900bfea43ea11f",
+      "canonical_topic_id": "coingecko:coin:bittensor",
+      "title": "Bittensor",
+      "category": "Crypto & Web3",
+      "score": 48,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "coingecko"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.coingecko.com/en/coins/bittensor"
+      ],
+      "observed_at": "2026-11-12T00:24:00.748834Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_2cff07081f8c82614c6c",
+      "canonical_topic_id": "hn:topic:atuin-threads-all-your-agent-sessions-on-every-machine",
+      "title": "Atuin Threads: All your agent sessions on every machine",
+      "category": "AI & Technology",
+      "score": 42,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://blog.atuin.sh/threads-agent-sessions/"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_311606af713167614b61",
+      "canonical_topic_id": "hn:topic:the-apple-support-community-will-permanently-close-on-november-20-2026",
+      "title": "The Apple Support Community will permanently close on November 20, 2026",
+      "category": "AI & Technology",
+      "score": 42,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://discussions.apple.com/welcome"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_4d4eb0a4429e016f9fa0",
+      "canonical_topic_id": "hn:topic:jensen-huang-said-to-have-had-relationship-with-executive-who-reports-to-him",
+      "title": "Jensen Huang said to have had relationship with executive who reports to him",
+      "category": "AI & Technology",
+      "score": 42,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.nytimes.com/2026/11/11/technology/jensen-huang-nvidia-affair.html"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_7c623a9cecc9f9cd95ca",
+      "canonical_topic_id": "hn:topic:emacs-in-the-age-of-magic",
+      "title": "Emacs in the Age of Magic",
+      "category": "AI & Technology",
+      "score": 42,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://commandlinesystems.com/magic.txt"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_90efc930866edfaffcf0",
+      "canonical_topic_id": "hn:topic:faster-retrieval-for-better-more-efficient-rag",
+      "title": "Faster Retrieval for Better, More Efficient RAG",
+      "category": "AI & Technology",
+      "score": 42,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://machinelearning.apple.com/research/faster-retrieval"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_3af80bb65156b653f8f0",
+      "canonical_topic_id": "coingecko:coin:pi-network",
+      "title": "Pi Network",
+      "category": "Crypto & Web3",
+      "score": 40,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "coingecko"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.coingecko.com/en/coins/pi-network"
+      ],
+      "observed_at": "2026-11-12T00:24:00.748834Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_41a4d7ba46ce4fd29567",
+      "canonical_topic_id": "coingecko:coin:monad",
+      "title": "Monad",
+      "category": "Crypto & Web3",
+      "score": 40,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "coingecko"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.coingecko.com/en/coins/monad"
+      ],
+      "observed_at": "2026-11-12T00:24:00.748834Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_ca6603b18964f81b2a13",
+      "canonical_topic_id": "coingecko:coin:uniswap",
+      "title": "Uniswap",
+      "category": "Crypto & Web3",
+      "score": 40,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "coingecko"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.coingecko.com/en/coins/uniswap"
+      ],
+      "observed_at": "2026-11-12T00:24:00.748834Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_f5f718c1dfdc4b506d3c",
+      "canonical_topic_id": "coingecko:coin:tron",
+      "title": "TRON",
+      "category": "Crypto & Web3",
+      "score": 40,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "coingecko"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.coingecko.com/en/coins/tron"
+      ],
+      "observed_at": "2026-11-12T00:24:00.748834Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_03b7020a7ca807d10c40",
+      "canonical_topic_id": "hn:topic:93-of-paint-splatters-are-valid-perl-programs-2019",
+      "title": "93% of Paint Splatters Are Valid Perl Programs (2019)",
+      "category": "AI & Technology",
+      "score": 35,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.mcmillen.dev/sigbovik/"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_1c0ff32e0b9e4b6f5b4b",
+      "canonical_topic_id": "hn:topic:optimizing-reference-deletions-in-git",
+      "title": "Optimizing Reference Deletions in Git",
+      "category": "AI & Technology",
+      "score": 35,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://nayak.im/posts/optimizing-reference-deletion/"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_33b6fe738a451298f51d",
+      "canonical_topic_id": "hn:topic:ibm-quantum-nighthawk-demonstrates-new-levels-of-speed-and-quality",
+      "title": "IBM Quantum Nighthawk Demonstrates New Levels of Speed and Quality",
+      "category": "AI & Technology",
+      "score": 35,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://newsroom.ibm.com/2026-11-11-ibm-quantum-nighthawk-demonstrates-new-levels-of-speed-and-quality,-with-plans-to-scale-beyond-1,000-qubits-in-2027"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_61e2c1a98a6cbf85e078",
+      "canonical_topic_id": "hn:topic:the-utah-teapot",
+      "title": "The Utah Teapot",
+      "category": "AI & Technology",
+      "score": 35,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://graphics.cs.utah.edu/teapot/"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_6efe7f2f04691a48fdbd",
+      "canonical_topic_id": "hn:topic:a-brief-history-of-sierra-online-2017",
+      "title": "A Brief History of Sierra Online (2017)",
+      "category": "AI & Technology",
+      "score": 35,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://retrofreakreviews.com/2017/01/30/sierra-retrospective/"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_73b22d00ff690bab4b2e",
+      "canonical_topic_id": "hn:topic:flying-on-green-why-farmers-are-turning-to-drones-for-cover-crop-seeding",
+      "title": "Flying on Green: Why Farmers Are Turning to Drones for Cover Crop Seeding",
+      "category": "AI & Technology",
+      "score": 35,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.agweb.com/news/machinery/flying-green-why-farmers-are-turning-drones-cover-crop-seeding"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_757e4fc64094440b84ba",
+      "canonical_topic_id": "hn:topic:the-hardest-notes-to-find-on-the-guitar",
+      "title": "The hardest notes to find on the guitar",
+      "category": "AI & Technology",
+      "score": 35,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://www.gitori.com/blog/articles/hardest-notes-on-the-guitar-fretboard"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_907b6ac7e964ba3fb675",
+      "canonical_topic_id": "hn:topic:a-general-purpose-apple-silicon-layer-for-x86-64-pcs",
+      "title": "A general purpose Apple Silicon layer for x86-64 PCs",
+      "category": "AI & Technology",
+      "score": 35,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://github.com/tylertms/Stela"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_ae0967b0ad8dbc1dec97",
+      "canonical_topic_id": "hn:topic:huawei-releases-macaq-its-internal-quantizer-for-local-inference",
+      "title": "Huawei releases MACaQ, its internal quantizer for local inference",
+      "category": "AI & Technology",
+      "score": 35,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://github.com/huawei-csl/MACaQ"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_bb30dfc2cc4e1c2ef6f4",
+      "canonical_topic_id": "hn:topic:modern-web-guidance-1-0-the-web-platform-expertise-your-coding-agent-is-missing",
+      "title": "Modern Web Guidance 1.0: The web platform expertise your coding agent is missing",
+      "category": "AI & Technology",
+      "score": 35,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://developer.chrome.com/blog/modern-web-guidance-v1"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    },
+    {
+      "candidate_id": "cand_c306cbf13119200f9001",
+      "canonical_topic_id": "hn:topic:lock-your-github-actions",
+      "title": "Lock Your GitHub Actions",
+      "category": "AI & Technology",
+      "score": 35,
+      "eligibility_status": "NOT_MEASURABLE",
+      "eligibility_reasons": [
+        "no_settlement_coverage"
+      ],
+      "sources": [
+        "hackernews"
+      ],
+      "source_count": 1,
+      "source_urls": [
+        "https://hugovk.dev/blog/2026/lock-github-actions/"
+      ],
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "settlement_article": null
+    }
+  ],
+  "top_candidates_full_evidence": [
+    {
+      "schema_version": "notch.trend-radar.candidate/1",
+      "candidate_id": "cand_b279c92126deeecb4beb",
+      "canonical_topic_id": "entity:nvidia",
+      "title": "Nvidia",
+      "category": "AI & Technology",
+      "aliases": [
+        "Nvidia",
+        "nvda",
+        "Nvidia is preparing to oust Jensen Huang",
+        "Nvidia prepares to fire CEO Jensen Huang, WSJ reports"
+      ],
+      "source_identities": [
+        {
+          "source": "wikimedia",
+          "project": "en.wikipedia.org",
+          "article_original": "Nvidia",
+          "article_resolved": "Nvidia",
+          "page_id": 39120,
+          "canonical_url": "https://en.wikipedia.org/wiki/Nvidia",
+          "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+          "redirected_from": null,
+          "source_id": "wikimedia:en.wikipedia.org:Nvidia",
+          "title": "Nvidia",
+          "url": "https://en.wikipedia.org/wiki/Nvidia",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "reporting_date": "2026-11-10"
+        },
+        {
+          "source": "hackernews",
+          "story_id": "50459703",
+          "title": "Nvidia is preparing to oust Jensen Huang",
+          "url": "https://www.wsj.com/business/nvidia-is-preparing-to-oust-nvidia-ceo-jensen-huang-30f421ad",
+          "hn_url": "https://news.ycombinator.com/item?id=50459703",
+          "created_at": "2026-11-11T22:31:06Z",
+          "points": 338,
+          "comments": 314,
+          "source_id": "hn:story:50459703",
+          "observed_at": "2026-11-12T00:24:01.627807Z",
+          "reporting_date": null
+        },
+        {
+          "source": "hackernews",
+          "story_id": "50459776",
+          "title": "Nvidia prepares to fire CEO Jensen Huang, WSJ reports",
+          "url": "https://twitter.com/watcherguru/status/2120645607866188008",
+          "hn_url": "https://news.ycombinator.com/item?id=50459776",
+          "created_at": "2026-11-11T22:36:35Z",
+          "points": 160,
+          "comments": 67,
+          "source_id": "hn:story:50459776",
+          "observed_at": "2026-11-12T00:24:01.627807Z",
+          "reporting_date": null
+        }
+      ],
+      "discovery_evidence": [
+        {
+          "source": "wikimedia",
+          "source_id": "wikimedia:en.wikipedia.org:Nvidia",
+          "title": "Nvidia",
+          "url": "https://en.wikipedia.org/wiki/Nvidia",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "metrics": {
+            "views": 123851,
+            "rank": 17,
+            "reporting_date": "2026-11-10",
+            "project": "en.wikipedia.org",
+            "access": "all-access",
+            "agent": "user",
+            "article_original": "Nvidia",
+            "article_resolved": "Nvidia",
+            "page_id": 39120
+          },
+          "source_identity": {
+            "source": "wikimedia",
+            "project": "en.wikipedia.org",
+            "article_original": "Nvidia",
+            "article_resolved": "Nvidia",
+            "page_id": 39120,
+            "canonical_url": "https://en.wikipedia.org/wiki/Nvidia",
+            "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+            "redirected_from": null
+          },
+          "reporting_date": "2026-11-10",
+          "raw_hash": "6dd62760d823d9d70685773f4c164935b2683d3c4f47a0e02cfc0e0d8c9c9ae5",
+          "raw_ref": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10"
+        },
+        {
+          "source": "hackernews",
+          "source_id": "hn:story:50459703",
+          "title": "Nvidia is preparing to oust Jensen Huang",
+          "url": "https://www.wsj.com/business/nvidia-is-preparing-to-oust-nvidia-ceo-jensen-huang-30f421ad",
+          "observed_at": "2026-11-12T00:24:01.627807Z",
+          "metrics": {
+            "points": 338,
+            "comments": 314,
+            "created_at_i": 1794436266,
+            "author": "jbredeche",
+            "hn_url": "https://news.ycombinator.com/item?id=50459703",
+            "story_url": "https://www.wsj.com/business/nvidia-is-preparing-to-oust-nvidia-ceo-jensen-huang-30f421ad"
+          },
+          "source_identity": {
+            "source": "hackernews",
+            "story_id": "50459703",
+            "title": "Nvidia is preparing to oust Jensen Huang",
+            "url": "https://www.wsj.com/business/nvidia-is-preparing-to-oust-nvidia-ceo-jensen-huang-30f421ad",
+            "hn_url": "https://news.ycombinator.com/item?id=50459703",
+            "created_at": "2026-11-11T22:31:06Z",
+            "points": 338,
+            "comments": 314
+          },
+          "reporting_date": null,
+          "raw_hash": "d3c9a5b1eea37e90748623a1a0104853cf4ec9bb25eb89c450d464f75926950a",
+          "raw_ref": "https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=30"
+        },
+        {
+          "source": "hackernews",
+          "source_id": "hn:story:50459776",
+          "title": "Nvidia prepares to fire CEO Jensen Huang, WSJ reports",
+          "url": "https://twitter.com/watcherguru/status/2120645607866188008",
+          "observed_at": "2026-11-12T00:24:01.627807Z",
+          "metrics": {
+            "points": 160,
+            "comments": 67,
+            "created_at_i": 1794436595,
+            "author": "alexmolas",
+            "hn_url": "https://news.ycombinator.com/item?id=50459776",
+            "story_url": "https://twitter.com/watcherguru/status/2120645607866188008"
+          },
+          "source_identity": {
+            "source": "hackernews",
+            "story_id": "50459776",
+            "title": "Nvidia prepares to fire CEO Jensen Huang, WSJ reports",
+            "url": "https://twitter.com/watcherguru/status/2120645607866188008",
+            "hn_url": "https://news.ycombinator.com/item?id=50459776",
+            "created_at": "2026-11-11T22:36:35Z",
+            "points": 160,
+            "comments": 67
+          },
+          "reporting_date": null,
+          "raw_hash": "d3c9a5b1eea37e90748623a1a0104853cf4ec9bb25eb89c450d464f75926950a",
+          "raw_ref": "https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=30"
+        }
+      ],
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Nvidia",
+        "https://www.wsj.com/business/nvidia-is-preparing-to-oust-nvidia-ceo-jensen-huang-30f421ad",
+        "https://twitter.com/watcherguru/status/2120645607866188008"
+      ],
+      "first_seen_at": "2026-11-12T00:23:57.382066Z",
+      "last_seen_at": "2026-11-12T00:23:57.382066Z",
+      "observed_at": "2026-11-12T00:24:01.627807Z",
+      "discovery_signals": {
+        "source_count": 2,
+        "sources": [
+          "wikimedia",
+          "hackernews"
+        ],
+        "settlement_source": "curated_wiki_mapping",
+        "settlement_article": "Nvidia",
+        "settlement_page_id": 39120,
+        "measurement_signature": {
+          "source": "wikimedia-pageviews-v1",
+          "project": "en.wikipedia.org",
+          "access": "all-access",
+          "agent": "user",
+          "metric": "daily_pageviews"
+        },
+        "ambiguous": false,
+        "ranking_version": "radar-score/1",
+        "score": 85,
+        "score_components": {
+          "confirmations": 10,
+          "prominence": 20,
+          "recency": 20,
+          "settlement_coverage": 25,
+          "freshness": 5,
+          "category_relevance": 5
+        },
+        "prominence_detail": {
+          "wikimedia_rank": 17,
+          "wikimedia_points": 20,
+          "hackernews_points": 338,
+          "hackernews_points_score": 20
+        },
+        "recency_age_hours": 0.0,
+        "fresh_sources": true
+      },
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "confidence": 90,
+      "reliability": "high",
+      "proposed_market_modes": [
+        "trend_trading",
+        "trend_battle"
+      ],
+      "settlement_coverage": {
+        "source": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Nvidia",
+        "page_id": 39120,
+        "status": "ok",
+        "daily_views": [
+          {
+            "date": "2026-11-04",
+            "views": 4112,
+            "timestamp": "2026110400"
+          },
+          {
+            "date": "2026-11-05",
+            "views": 4743,
+            "timestamp": "2026110500"
+          },
+          {
+            "date": "2026-11-06",
+            "views": 4626,
+            "timestamp": "2026110600"
+          },
+          {
+            "date": "2026-11-07",
+            "views": 5535,
+            "timestamp": "2026110700"
+          },
+          {
+            "date": "2026-11-08",
+            "views": 17886,
+            "timestamp": "2026110800"
+          },
+          {
+            "date": "2026-11-09",
+            "views": 142333,
+            "timestamp": "2026110900"
+          },
+          {
+            "date": "2026-11-10",
+            "views": 123851,
+            "timestamp": "2026111000"
+          }
+        ],
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 4112,
+        "mean_views": 43298,
+        "min_baseline_views": 1000,
+        "raw_hashes": [
+          "95e0e5f62b22c8c49acebb39c6a73cf637273f59948d96289eecbb3d79ccf16e"
+        ],
+        "error": null,
+        "notes": [
+          "Daily Wikimedia pageviews, all-access/user, UTC full days.",
+          "This is an eligibility probe, not finalized settlement evidence."
+        ]
+      },
+      "notes": [
+        "Merged by curated entity alias 'nvidia'.",
+        "Eligible for PROPOSED market drafts only; the rule and evidence must be frozen by S3B before any onchain creation."
+      ]
+    },
+    {
+      "schema_version": "notch.trend-radar.candidate/1",
+      "candidate_id": "cand_9118da9248a28ca00f02",
+      "canonical_topic_id": "entity:bitcoin",
+      "title": "Bitcoin",
+      "category": "Crypto & Web3",
+      "aliases": [
+        "Bitcoin",
+        "btc"
+      ],
+      "source_identities": [
+        {
+          "source": "coingecko",
+          "coin_id": "bitcoin",
+          "symbol": "BTC",
+          "name": "Bitcoin",
+          "market_cap_rank": 1,
+          "trending_rank": 4,
+          "url": "https://www.coingecko.com/en/coins/bitcoin",
+          "source_id": "coingecko:coin:bitcoin",
+          "title": "Bitcoin",
+          "observed_at": "2026-11-12T00:24:00.748834Z",
+          "reporting_date": null
+        }
+      ],
+      "discovery_evidence": [
+        {
+          "source": "coingecko",
+          "source_id": "coingecko:coin:bitcoin",
+          "title": "Bitcoin",
+          "url": "https://www.coingecko.com/en/coins/bitcoin",
+          "observed_at": "2026-11-12T00:24:00.748834Z",
+          "metrics": {
+            "symbol": "BTC",
+            "market_cap_rank": 1,
+            "trending_rank": 4,
+            "coingecko_score": 3
+          },
+          "source_identity": {
+            "source": "coingecko",
+            "coin_id": "bitcoin",
+            "symbol": "BTC",
+            "name": "Bitcoin",
+            "market_cap_rank": 1,
+            "trending_rank": 4,
+            "url": "https://www.coingecko.com/en/coins/bitcoin"
+          },
+          "reporting_date": null,
+          "raw_hash": "61e0275378df2881273bbc038d1f7e9fc34f735a9ff7a720766e0a4a104cee9f",
+          "raw_ref": "https://api.coingecko.com/api/v3/search/trending"
+        }
+      ],
+      "source_urls": [
+        "https://www.coingecko.com/en/coins/bitcoin"
+      ],
+      "first_seen_at": "2026-11-12T00:23:57.382066Z",
+      "last_seen_at": "2026-11-12T00:23:57.382066Z",
+      "observed_at": "2026-11-12T00:24:00.748834Z",
+      "discovery_signals": {
+        "source_count": 1,
+        "sources": [
+          "coingecko"
+        ],
+        "settlement_source": "curated_wiki_mapping",
+        "settlement_article": "Bitcoin",
+        "settlement_page_id": 28249265,
+        "measurement_signature": {
+          "source": "wikimedia-pageviews-v1",
+          "project": "en.wikipedia.org",
+          "access": "all-access",
+          "agent": "user",
+          "metric": "daily_pageviews"
+        },
+        "ambiguous": false,
+        "ranking_version": "radar-score/1",
+        "score": 73,
+        "score_components": {
+          "confirmations": 0,
+          "prominence": 18,
+          "recency": 20,
+          "settlement_coverage": 25,
+          "freshness": 5,
+          "category_relevance": 5
+        },
+        "prominence_detail": {
+          "coingecko_trending_rank": 4,
+          "coingecko_points": 18
+        },
+        "recency_age_hours": 0.0,
+        "fresh_sources": true
+      },
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "confidence": 80,
+      "reliability": "medium",
+      "proposed_market_modes": [
+        "trend_trading",
+        "trend_battle"
+      ],
+      "settlement_coverage": {
+        "source": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Bitcoin",
+        "page_id": 28249265,
+        "status": "ok",
+        "daily_views": [
+          {
+            "date": "2026-11-04",
+            "views": 7955,
+            "timestamp": "2026110400"
+          },
+          {
+            "date": "2026-11-05",
+            "views": 3180,
+            "timestamp": "2026110500"
+          },
+          {
+            "date": "2026-11-06",
+            "views": 3815,
+            "timestamp": "2026110600"
+          },
+          {
+            "date": "2026-11-07",
+            "views": 3238,
+            "timestamp": "2026110700"
+          },
+          {
+            "date": "2026-11-08",
+            "views": 2767,
+            "timestamp": "2026110800"
+          },
+          {
+            "date": "2026-11-09",
+            "views": 3426,
+            "timestamp": "2026110900"
+          },
+          {
+            "date": "2026-11-10",
+            "views": 4359,
+            "timestamp": "2026111000"
+          }
+        ],
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 2767,
+        "mean_views": 4105,
+        "min_baseline_views": 1000,
+        "raw_hashes": [
+          "83d267f3db791577c3b0715d632b2267dc71e7f4184fd01fdf2186a99c9c400f"
+        ],
+        "error": null,
+        "notes": [
+          "Daily Wikimedia pageviews, all-access/user, UTC full days.",
+          "This is an eligibility probe, not finalized settlement evidence."
+        ]
+      },
+      "notes": [
+        "Merged by curated entity alias 'bitcoin'.",
+        "Eligible for PROPOSED market drafts only; the rule and evidence must be frozen by S3B before any onchain creation."
+      ]
+    },
+    {
+      "schema_version": "notch.trend-radar.candidate/1",
+      "candidate_id": "cand_05ed6a1e89bee871414c",
+      "canonical_topic_id": "wiki:en.wikipedia.org:jensen-huang",
+      "title": "Jensen Huang",
+      "category": "Other",
+      "aliases": [
+        "Jensen Huang"
+      ],
+      "source_identities": [
+        {
+          "source": "wikimedia",
+          "project": "en.wikipedia.org",
+          "article_original": "Jensen Huang",
+          "article_resolved": "Jensen Huang",
+          "page_id": 2116495,
+          "canonical_url": "https://en.wikipedia.org/wiki/Jensen_Huang",
+          "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+          "redirected_from": null,
+          "source_id": "wikimedia:en.wikipedia.org:Jensen Huang",
+          "title": "Jensen Huang",
+          "url": "https://en.wikipedia.org/wiki/Jensen_Huang",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "reporting_date": "2026-11-10"
+        }
+      ],
+      "discovery_evidence": [
+        {
+          "source": "wikimedia",
+          "source_id": "wikimedia:en.wikipedia.org:Jensen Huang",
+          "title": "Jensen Huang",
+          "url": "https://en.wikipedia.org/wiki/Jensen_Huang",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "metrics": {
+            "views": 542553,
+            "rank": 6,
+            "reporting_date": "2026-11-10",
+            "project": "en.wikipedia.org",
+            "access": "all-access",
+            "agent": "user",
+            "article_original": "Jensen Huang",
+            "article_resolved": "Jensen Huang",
+            "page_id": 2116495
+          },
+          "source_identity": {
+            "source": "wikimedia",
+            "project": "en.wikipedia.org",
+            "article_original": "Jensen Huang",
+            "article_resolved": "Jensen Huang",
+            "page_id": 2116495,
+            "canonical_url": "https://en.wikipedia.org/wiki/Jensen_Huang",
+            "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+            "redirected_from": null
+          },
+          "reporting_date": "2026-11-10",
+          "raw_hash": "6dd62760d823d9d70685773f4c164935b2683d3c4f47a0e02cfc0e0d8c9c9ae5",
+          "raw_ref": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10"
+        }
+      ],
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Jensen_Huang"
+      ],
+      "first_seen_at": "2026-11-12T00:23:57.382066Z",
+      "last_seen_at": "2026-11-12T00:23:57.382066Z",
+      "observed_at": "2026-11-10T23:59:59Z",
+      "discovery_signals": {
+        "source_count": 1,
+        "sources": [
+          "wikimedia"
+        ],
+        "settlement_source": "observed_wiki_article",
+        "settlement_article": "Jensen Huang",
+        "settlement_page_id": 2116495,
+        "measurement_signature": {
+          "source": "wikimedia-pageviews-v1",
+          "project": "en.wikipedia.org",
+          "access": "all-access",
+          "agent": "user",
+          "metric": "daily_pageviews"
+        },
+        "ambiguous": false,
+        "ranking_version": "radar-score/1",
+        "score": 67,
+        "score_components": {
+          "confirmations": 0,
+          "prominence": 25,
+          "recency": 12,
+          "settlement_coverage": 25,
+          "freshness": 5,
+          "category_relevance": 0
+        },
+        "prominence_detail": {
+          "wikimedia_rank": 6,
+          "wikimedia_points": 25
+        },
+        "recency_age_hours": 24.4,
+        "fresh_sources": true
+      },
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "confidence": 80,
+      "reliability": "medium",
+      "proposed_market_modes": [
+        "trend_trading",
+        "trend_battle"
+      ],
+      "settlement_coverage": {
+        "source": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Jensen Huang",
+        "page_id": 2116495,
+        "status": "ok",
+        "daily_views": [
+          {
+            "date": "2026-11-04",
+            "views": 4768,
+            "timestamp": "2026110400"
+          },
+          {
+            "date": "2026-11-05",
+            "views": 4819,
+            "timestamp": "2026110500"
+          },
+          {
+            "date": "2026-11-06",
+            "views": 6023,
+            "timestamp": "2026110600"
+          },
+          {
+            "date": "2026-11-07",
+            "views": 33238,
+            "timestamp": "2026110700"
+          },
+          {
+            "date": "2026-11-08",
+            "views": 122360,
+            "timestamp": "2026110800"
+          },
+          {
+            "date": "2026-11-09",
+            "views": 733363,
+            "timestamp": "2026110900"
+          },
+          {
+            "date": "2026-11-10",
+            "views": 542553,
+            "timestamp": "2026111000"
+          }
+        ],
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 4768,
+        "mean_views": 206732,
+        "min_baseline_views": 1000,
+        "raw_hashes": [
+          "18aeb6eab3460863841f791272e1c86ada773f578a0da0fc2060cc0d4295d0c6"
+        ],
+        "error": null,
+        "notes": [
+          "Daily Wikimedia pageviews, all-access/user, UTC full days.",
+          "This is an eligibility probe, not finalized settlement evidence."
+        ]
+      },
+      "notes": [
+        "Eligible for PROPOSED market drafts only; the rule and evidence must be frozen by S3B before any onchain creation."
+      ]
+    },
+    {
+      "schema_version": "notch.trend-radar.candidate/1",
+      "candidate_id": "cand_16c0a725deb25a9d9766",
+      "canonical_topic_id": "wiki:en.wikipedia.org:russell-brand",
+      "title": "Russell Brand",
+      "category": "Other",
+      "aliases": [
+        "Russell Brand"
+      ],
+      "source_identities": [
+        {
+          "source": "wikimedia",
+          "project": "en.wikipedia.org",
+          "article_original": "Russell Brand",
+          "article_resolved": "Russell Brand",
+          "page_id": 1996436,
+          "canonical_url": "https://en.wikipedia.org/wiki/Russell_Brand",
+          "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+          "redirected_from": null,
+          "source_id": "wikimedia:en.wikipedia.org:Russell Brand",
+          "title": "Russell Brand",
+          "url": "https://en.wikipedia.org/wiki/Russell_Brand",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "reporting_date": "2026-11-10"
+        }
+      ],
+      "discovery_evidence": [
+        {
+          "source": "wikimedia",
+          "source_id": "wikimedia:en.wikipedia.org:Russell Brand",
+          "title": "Russell Brand",
+          "url": "https://en.wikipedia.org/wiki/Russell_Brand",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "metrics": {
+            "views": 545717,
+            "rank": 5,
+            "reporting_date": "2026-11-10",
+            "project": "en.wikipedia.org",
+            "access": "all-access",
+            "agent": "user",
+            "article_original": "Russell Brand",
+            "article_resolved": "Russell Brand",
+            "page_id": 1996436
+          },
+          "source_identity": {
+            "source": "wikimedia",
+            "project": "en.wikipedia.org",
+            "article_original": "Russell Brand",
+            "article_resolved": "Russell Brand",
+            "page_id": 1996436,
+            "canonical_url": "https://en.wikipedia.org/wiki/Russell_Brand",
+            "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+            "redirected_from": null
+          },
+          "reporting_date": "2026-11-10",
+          "raw_hash": "6dd62760d823d9d70685773f4c164935b2683d3c4f47a0e02cfc0e0d8c9c9ae5",
+          "raw_ref": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10"
+        }
+      ],
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Russell_Brand"
+      ],
+      "first_seen_at": "2026-11-12T00:23:57.382066Z",
+      "last_seen_at": "2026-11-12T00:23:57.382066Z",
+      "observed_at": "2026-11-10T23:59:59Z",
+      "discovery_signals": {
+        "source_count": 1,
+        "sources": [
+          "wikimedia"
+        ],
+        "settlement_source": "observed_wiki_article",
+        "settlement_article": "Russell Brand",
+        "settlement_page_id": 1996436,
+        "measurement_signature": {
+          "source": "wikimedia-pageviews-v1",
+          "project": "en.wikipedia.org",
+          "access": "all-access",
+          "agent": "user",
+          "metric": "daily_pageviews"
+        },
+        "ambiguous": false,
+        "ranking_version": "radar-score/1",
+        "score": 67,
+        "score_components": {
+          "confirmations": 0,
+          "prominence": 25,
+          "recency": 12,
+          "settlement_coverage": 25,
+          "freshness": 5,
+          "category_relevance": 0
+        },
+        "prominence_detail": {
+          "wikimedia_rank": 5,
+          "wikimedia_points": 25
+        },
+        "recency_age_hours": 24.4,
+        "fresh_sources": true
+      },
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "confidence": 80,
+      "reliability": "medium",
+      "proposed_market_modes": [
+        "trend_trading",
+        "trend_battle"
+      ],
+      "settlement_coverage": {
+        "source": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Russell Brand",
+        "page_id": 1996436,
+        "status": "ok",
+        "daily_views": [
+          {
+            "date": "2026-11-04",
+            "views": 12055,
+            "timestamp": "2026110400"
+          },
+          {
+            "date": "2026-11-05",
+            "views": 571124,
+            "timestamp": "2026110500"
+          },
+          {
+            "date": "2026-11-06",
+            "views": 507816,
+            "timestamp": "2026110600"
+          },
+          {
+            "date": "2026-11-07",
+            "views": 239476,
+            "timestamp": "2026110700"
+          },
+          {
+            "date": "2026-11-08",
+            "views": 162342,
+            "timestamp": "2026110800"
+          },
+          {
+            "date": "2026-11-09",
+            "views": 1010049,
+            "timestamp": "2026110900"
+          },
+          {
+            "date": "2026-11-10",
+            "views": 545717,
+            "timestamp": "2026111000"
+          }
+        ],
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 12055,
+        "mean_views": 435511,
+        "min_baseline_views": 1000,
+        "raw_hashes": [
+          "44beffa8460a7c393d0a3aa2376d1b86970422f200b76aed992df35282d5f5f1"
+        ],
+        "error": null,
+        "notes": [
+          "Daily Wikimedia pageviews, all-access/user, UTC full days.",
+          "This is an eligibility probe, not finalized settlement evidence."
+        ]
+      },
+      "notes": [
+        "Eligible for PROPOSED market drafts only; the rule and evidence must be frozen by S3B before any onchain creation."
+      ]
+    },
+    {
+      "schema_version": "notch.trend-radar.candidate/1",
+      "candidate_id": "cand_258b682b0b5891f02ccd",
+      "canonical_topic_id": "wiki:en.wikipedia.org:ss-edmund-fitzgerald",
+      "title": "SS Edmund Fitzgerald",
+      "category": "Other",
+      "aliases": [
+        "SS Edmund Fitzgerald"
+      ],
+      "source_identities": [
+        {
+          "source": "wikimedia",
+          "project": "en.wikipedia.org",
+          "article_original": "SS Edmund Fitzgerald",
+          "article_resolved": "SS Edmund Fitzgerald",
+          "page_id": 218075,
+          "canonical_url": "https://en.wikipedia.org/wiki/SS_Edmund_Fitzgerald",
+          "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+          "redirected_from": null,
+          "source_id": "wikimedia:en.wikipedia.org:SS Edmund Fitzgerald",
+          "title": "SS Edmund Fitzgerald",
+          "url": "https://en.wikipedia.org/wiki/SS_Edmund_Fitzgerald",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "reporting_date": "2026-11-10"
+        }
+      ],
+      "discovery_evidence": [
+        {
+          "source": "wikimedia",
+          "source_id": "wikimedia:en.wikipedia.org:SS Edmund Fitzgerald",
+          "title": "SS Edmund Fitzgerald",
+          "url": "https://en.wikipedia.org/wiki/SS_Edmund_Fitzgerald",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "metrics": {
+            "views": 163598,
+            "rank": 10,
+            "reporting_date": "2026-11-10",
+            "project": "en.wikipedia.org",
+            "access": "all-access",
+            "agent": "user",
+            "article_original": "SS Edmund Fitzgerald",
+            "article_resolved": "SS Edmund Fitzgerald",
+            "page_id": 218075
+          },
+          "source_identity": {
+            "source": "wikimedia",
+            "project": "en.wikipedia.org",
+            "article_original": "SS Edmund Fitzgerald",
+            "article_resolved": "SS Edmund Fitzgerald",
+            "page_id": 218075,
+            "canonical_url": "https://en.wikipedia.org/wiki/SS_Edmund_Fitzgerald",
+            "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+            "redirected_from": null
+          },
+          "reporting_date": "2026-11-10",
+          "raw_hash": "6dd62760d823d9d70685773f4c164935b2683d3c4f47a0e02cfc0e0d8c9c9ae5",
+          "raw_ref": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10"
+        }
+      ],
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/SS_Edmund_Fitzgerald"
+      ],
+      "first_seen_at": "2026-11-12T00:23:57.382066Z",
+      "last_seen_at": "2026-11-12T00:23:57.382066Z",
+      "observed_at": "2026-11-10T23:59:59Z",
+      "discovery_signals": {
+        "source_count": 1,
+        "sources": [
+          "wikimedia"
+        ],
+        "settlement_source": "observed_wiki_article",
+        "settlement_article": "SS Edmund Fitzgerald",
+        "settlement_page_id": 218075,
+        "measurement_signature": {
+          "source": "wikimedia-pageviews-v1",
+          "project": "en.wikipedia.org",
+          "access": "all-access",
+          "agent": "user",
+          "metric": "daily_pageviews"
+        },
+        "ambiguous": false,
+        "ranking_version": "radar-score/1",
+        "score": 67,
+        "score_components": {
+          "confirmations": 0,
+          "prominence": 25,
+          "recency": 12,
+          "settlement_coverage": 25,
+          "freshness": 5,
+          "category_relevance": 0
+        },
+        "prominence_detail": {
+          "wikimedia_rank": 10,
+          "wikimedia_points": 25
+        },
+        "recency_age_hours": 24.4,
+        "fresh_sources": true
+      },
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "confidence": 80,
+      "reliability": "medium",
+      "proposed_market_modes": [
+        "trend_trading",
+        "trend_battle"
+      ],
+      "settlement_coverage": {
+        "source": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "SS Edmund Fitzgerald",
+        "page_id": 218075,
+        "status": "ok",
+        "daily_views": [
+          {
+            "date": "2026-11-04",
+            "views": 10698,
+            "timestamp": "2026110400"
+          },
+          {
+            "date": "2026-11-05",
+            "views": 12203,
+            "timestamp": "2026110500"
+          },
+          {
+            "date": "2026-11-06",
+            "views": 13251,
+            "timestamp": "2026110600"
+          },
+          {
+            "date": "2026-11-07",
+            "views": 13485,
+            "timestamp": "2026110700"
+          },
+          {
+            "date": "2026-11-08",
+            "views": 13632,
+            "timestamp": "2026110800"
+          },
+          {
+            "date": "2026-11-09",
+            "views": 24535,
+            "timestamp": "2026110900"
+          },
+          {
+            "date": "2026-11-10",
+            "views": 163598,
+            "timestamp": "2026111000"
+          }
+        ],
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 10698,
+        "mean_views": 35914,
+        "min_baseline_views": 1000,
+        "raw_hashes": [
+          "7a649f72f8cfd20463c1b952944212ebb8de00ee4b2f4832e0ca6a737e2706ec"
+        ],
+        "error": null,
+        "notes": [
+          "Daily Wikimedia pageviews, all-access/user, UTC full days.",
+          "This is an eligibility probe, not finalized settlement evidence."
+        ]
+      },
+      "notes": [
+        "Eligible for PROPOSED market drafts only; the rule and evidence must be frozen by S3B before any onchain creation."
+      ]
+    },
+    {
+      "schema_version": "notch.trend-radar.candidate/1",
+      "candidate_id": "cand_28cba27c64b5456c3a8b",
+      "canonical_topic_id": "entity:chatgpt",
+      "title": "ChatGPT",
+      "category": "AI & Technology",
+      "aliases": [
+        "ChatGPT",
+        "chat gpt"
+      ],
+      "source_identities": [
+        {
+          "source": "wikimedia",
+          "project": "en.wikipedia.org",
+          "article_original": "ChatGPT",
+          "article_resolved": "ChatGPT",
+          "page_id": 72417803,
+          "canonical_url": "https://en.wikipedia.org/wiki/ChatGPT",
+          "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+          "redirected_from": null,
+          "source_id": "wikimedia:en.wikipedia.org:ChatGPT",
+          "title": "ChatGPT",
+          "url": "https://en.wikipedia.org/wiki/ChatGPT",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "reporting_date": "2026-11-10"
+        }
+      ],
+      "discovery_evidence": [
+        {
+          "source": "wikimedia",
+          "source_id": "wikimedia:en.wikipedia.org:ChatGPT",
+          "title": "ChatGPT",
+          "url": "https://en.wikipedia.org/wiki/ChatGPT",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "metrics": {
+            "views": 59377,
+            "rank": 44,
+            "reporting_date": "2026-11-10",
+            "project": "en.wikipedia.org",
+            "access": "all-access",
+            "agent": "user",
+            "article_original": "ChatGPT",
+            "article_resolved": "ChatGPT",
+            "page_id": 72417803
+          },
+          "source_identity": {
+            "source": "wikimedia",
+            "project": "en.wikipedia.org",
+            "article_original": "ChatGPT",
+            "article_resolved": "ChatGPT",
+            "page_id": 72417803,
+            "canonical_url": "https://en.wikipedia.org/wiki/ChatGPT",
+            "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+            "redirected_from": null
+          },
+          "reporting_date": "2026-11-10",
+          "raw_hash": "6dd62760d823d9d70685773f4c164935b2683d3c4f47a0e02cfc0e0d8c9c9ae5",
+          "raw_ref": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10"
+        }
+      ],
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/ChatGPT"
+      ],
+      "first_seen_at": "2026-11-12T00:23:57.382066Z",
+      "last_seen_at": "2026-11-12T00:23:57.382066Z",
+      "observed_at": "2026-11-10T23:59:59Z",
+      "discovery_signals": {
+        "source_count": 1,
+        "sources": [
+          "wikimedia"
+        ],
+        "settlement_source": "curated_wiki_mapping",
+        "settlement_article": "ChatGPT",
+        "settlement_page_id": 72417803,
+        "measurement_signature": {
+          "source": "wikimedia-pageviews-v1",
+          "project": "en.wikipedia.org",
+          "access": "all-access",
+          "agent": "user",
+          "metric": "daily_pageviews"
+        },
+        "ambiguous": false,
+        "ranking_version": "radar-score/1",
+        "score": 67,
+        "score_components": {
+          "confirmations": 0,
+          "prominence": 20,
+          "recency": 12,
+          "settlement_coverage": 25,
+          "freshness": 5,
+          "category_relevance": 5
+        },
+        "prominence_detail": {
+          "wikimedia_rank": 44,
+          "wikimedia_points": 20
+        },
+        "recency_age_hours": 24.4,
+        "fresh_sources": true
+      },
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "confidence": 80,
+      "reliability": "medium",
+      "proposed_market_modes": [
+        "trend_trading",
+        "trend_battle"
+      ],
+      "settlement_coverage": {
+        "source": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "ChatGPT",
+        "page_id": 72417803,
+        "status": "ok",
+        "daily_views": [
+          {
+            "date": "2026-11-04",
+            "views": 117395,
+            "timestamp": "2026110400"
+          },
+          {
+            "date": "2026-11-05",
+            "views": 95134,
+            "timestamp": "2026110500"
+          },
+          {
+            "date": "2026-11-06",
+            "views": 56601,
+            "timestamp": "2026110600"
+          },
+          {
+            "date": "2026-11-07",
+            "views": 36063,
+            "timestamp": "2026110700"
+          },
+          {
+            "date": "2026-11-08",
+            "views": 35513,
+            "timestamp": "2026110800"
+          },
+          {
+            "date": "2026-11-09",
+            "views": 57624,
+            "timestamp": "2026110900"
+          },
+          {
+            "date": "2026-11-10",
+            "views": 59377,
+            "timestamp": "2026111000"
+          }
+        ],
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 35513,
+        "mean_views": 65386,
+        "min_baseline_views": 1000,
+        "raw_hashes": [
+          "f9489a85f2cb54c9ba7a20990e088f8833901dc8803e78c43202b8372474aad7"
+        ],
+        "error": null,
+        "notes": [
+          "Daily Wikimedia pageviews, all-access/user, UTC full days.",
+          "This is an eligibility probe, not finalized settlement evidence."
+        ]
+      },
+      "notes": [
+        "Merged by curated entity alias 'chatgpt'.",
+        "Eligible for PROPOSED market drafts only; the rule and evidence must be frozen by S3B before any onchain creation."
+      ]
+    },
+    {
+      "schema_version": "notch.trend-radar.candidate/1",
+      "candidate_id": "cand_6bae7b31bb4116013025",
+      "canonical_topic_id": "wiki:en.wikipedia.org:david-walliams",
+      "title": "David Walliams",
+      "category": "Other",
+      "aliases": [
+        "David Walliams"
+      ],
+      "source_identities": [
+        {
+          "source": "wikimedia",
+          "project": "en.wikipedia.org",
+          "article_original": "David Walliams",
+          "article_resolved": "David Walliams",
+          "page_id": 649748,
+          "canonical_url": "https://en.wikipedia.org/wiki/David_Walliams",
+          "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+          "redirected_from": null,
+          "source_id": "wikimedia:en.wikipedia.org:David Walliams",
+          "title": "David Walliams",
+          "url": "https://en.wikipedia.org/wiki/David_Walliams",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "reporting_date": "2026-11-10"
+        }
+      ],
+      "discovery_evidence": [
+        {
+          "source": "wikimedia",
+          "source_id": "wikimedia:en.wikipedia.org:David Walliams",
+          "title": "David Walliams",
+          "url": "https://en.wikipedia.org/wiki/David_Walliams",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "metrics": {
+            "views": 512804,
+            "rank": 7,
+            "reporting_date": "2026-11-10",
+            "project": "en.wikipedia.org",
+            "access": "all-access",
+            "agent": "user",
+            "article_original": "David Walliams",
+            "article_resolved": "David Walliams",
+            "page_id": 649748
+          },
+          "source_identity": {
+            "source": "wikimedia",
+            "project": "en.wikipedia.org",
+            "article_original": "David Walliams",
+            "article_resolved": "David Walliams",
+            "page_id": 649748,
+            "canonical_url": "https://en.wikipedia.org/wiki/David_Walliams",
+            "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+            "redirected_from": null
+          },
+          "reporting_date": "2026-11-10",
+          "raw_hash": "6dd62760d823d9d70685773f4c164935b2683d3c4f47a0e02cfc0e0d8c9c9ae5",
+          "raw_ref": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10"
+        }
+      ],
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/David_Walliams"
+      ],
+      "first_seen_at": "2026-11-12T00:23:57.382066Z",
+      "last_seen_at": "2026-11-12T00:23:57.382066Z",
+      "observed_at": "2026-11-10T23:59:59Z",
+      "discovery_signals": {
+        "source_count": 1,
+        "sources": [
+          "wikimedia"
+        ],
+        "settlement_source": "observed_wiki_article",
+        "settlement_article": "David Walliams",
+        "settlement_page_id": 649748,
+        "measurement_signature": {
+          "source": "wikimedia-pageviews-v1",
+          "project": "en.wikipedia.org",
+          "access": "all-access",
+          "agent": "user",
+          "metric": "daily_pageviews"
+        },
+        "ambiguous": false,
+        "ranking_version": "radar-score/1",
+        "score": 67,
+        "score_components": {
+          "confirmations": 0,
+          "prominence": 25,
+          "recency": 12,
+          "settlement_coverage": 25,
+          "freshness": 5,
+          "category_relevance": 0
+        },
+        "prominence_detail": {
+          "wikimedia_rank": 7,
+          "wikimedia_points": 25
+        },
+        "recency_age_hours": 24.4,
+        "fresh_sources": true
+      },
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "confidence": 80,
+      "reliability": "medium",
+      "proposed_market_modes": [
+        "trend_trading"
+      ],
+      "settlement_coverage": {
+        "source": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "David Walliams",
+        "page_id": 649748,
+        "status": "ok",
+        "daily_views": [
+          {
+            "date": "2026-11-04",
+            "views": 74140,
+            "timestamp": "2026110400"
+          },
+          {
+            "date": "2026-11-05",
+            "views": 53727,
+            "timestamp": "2026110500"
+          },
+          {
+            "date": "2026-11-06",
+            "views": 39045,
+            "timestamp": "2026110600"
+          },
+          {
+            "date": "2026-11-07",
+            "views": 25116,
+            "timestamp": "2026110700"
+          },
+          {
+            "date": "2026-11-08",
+            "views": 18535,
+            "timestamp": "2026110800"
+          },
+          {
+            "date": "2026-11-09",
+            "views": 32765,
+            "timestamp": "2026110900"
+          },
+          {
+            "date": "2026-11-10",
+            "views": 512804,
+            "timestamp": "2026111000"
+          }
+        ],
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 18535,
+        "mean_views": 108018,
+        "min_baseline_views": 1000,
+        "raw_hashes": [
+          "4e1cbafef31d303d084f833ebea996a32cecc8e01d18b412ee25ded03feadded"
+        ],
+        "error": null,
+        "notes": [
+          "Daily Wikimedia pageviews, all-access/user, UTC full days.",
+          "This is an eligibility probe, not finalized settlement evidence."
+        ]
+      },
+      "notes": [
+        "Eligible for PROPOSED market drafts only; the rule and evidence must be frozen by S3B before any onchain creation."
+      ]
+    },
+    {
+      "schema_version": "notch.trend-radar.candidate/1",
+      "candidate_id": "cand_75428f659eb118b255ec",
+      "canonical_topic_id": "wiki:en.wikipedia.org:xxx",
+      "title": ".xxx",
+      "category": "Other",
+      "aliases": [
+        ".xxx"
+      ],
+      "source_identities": [
+        {
+          "source": "wikimedia",
+          "project": "en.wikipedia.org",
+          "article_original": ".xxx",
+          "article_resolved": ".xxx",
+          "page_id": 574533,
+          "canonical_url": "https://en.wikipedia.org/wiki/.xxx",
+          "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+          "redirected_from": null,
+          "source_id": "wikimedia:en.wikipedia.org:.xxx",
+          "title": ".xxx",
+          "url": "https://en.wikipedia.org/wiki/.xxx",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "reporting_date": "2026-11-10"
+        }
+      ],
+      "discovery_evidence": [
+        {
+          "source": "wikimedia",
+          "source_id": "wikimedia:en.wikipedia.org:.xxx",
+          "title": ".xxx",
+          "url": "https://en.wikipedia.org/wiki/.xxx",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "metrics": {
+            "views": 213618,
+            "rank": 8,
+            "reporting_date": "2026-11-10",
+            "project": "en.wikipedia.org",
+            "access": "all-access",
+            "agent": "user",
+            "article_original": ".xxx",
+            "article_resolved": ".xxx",
+            "page_id": 574533
+          },
+          "source_identity": {
+            "source": "wikimedia",
+            "project": "en.wikipedia.org",
+            "article_original": ".xxx",
+            "article_resolved": ".xxx",
+            "page_id": 574533,
+            "canonical_url": "https://en.wikipedia.org/wiki/.xxx",
+            "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+            "redirected_from": null
+          },
+          "reporting_date": "2026-11-10",
+          "raw_hash": "6dd62760d823d9d70685773f4c164935b2683d3c4f47a0e02cfc0e0d8c9c9ae5",
+          "raw_ref": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10"
+        }
+      ],
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/.xxx"
+      ],
+      "first_seen_at": "2026-11-12T00:23:57.382066Z",
+      "last_seen_at": "2026-11-12T00:23:57.382066Z",
+      "observed_at": "2026-11-10T23:59:59Z",
+      "discovery_signals": {
+        "source_count": 1,
+        "sources": [
+          "wikimedia"
+        ],
+        "settlement_source": "observed_wiki_article",
+        "settlement_article": ".xxx",
+        "settlement_page_id": 574533,
+        "measurement_signature": {
+          "source": "wikimedia-pageviews-v1",
+          "project": "en.wikipedia.org",
+          "access": "all-access",
+          "agent": "user",
+          "metric": "daily_pageviews"
+        },
+        "ambiguous": false,
+        "ranking_version": "radar-score/1",
+        "score": 67,
+        "score_components": {
+          "confirmations": 0,
+          "prominence": 25,
+          "recency": 12,
+          "settlement_coverage": 25,
+          "freshness": 5,
+          "category_relevance": 0
+        },
+        "prominence_detail": {
+          "wikimedia_rank": 8,
+          "wikimedia_points": 25
+        },
+        "recency_age_hours": 24.4,
+        "fresh_sources": true
+      },
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "confidence": 80,
+      "reliability": "medium",
+      "proposed_market_modes": [
+        "trend_trading"
+      ],
+      "settlement_coverage": {
+        "source": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": ".xxx",
+        "page_id": 574533,
+        "status": "ok",
+        "daily_views": [
+          {
+            "date": "2026-11-04",
+            "views": 174839,
+            "timestamp": "2026110400"
+          },
+          {
+            "date": "2026-11-05",
+            "views": 159311,
+            "timestamp": "2026110500"
+          },
+          {
+            "date": "2026-11-06",
+            "views": 199678,
+            "timestamp": "2026110600"
+          },
+          {
+            "date": "2026-11-07",
+            "views": 215862,
+            "timestamp": "2026110700"
+          },
+          {
+            "date": "2026-11-08",
+            "views": 242769,
+            "timestamp": "2026110800"
+          },
+          {
+            "date": "2026-11-09",
+            "views": 254653,
+            "timestamp": "2026110900"
+          },
+          {
+            "date": "2026-11-10",
+            "views": 213618,
+            "timestamp": "2026111000"
+          }
+        ],
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 159311,
+        "mean_views": 208675,
+        "min_baseline_views": 1000,
+        "raw_hashes": [
+          "8d293304a235c8ddda399b9de8168086fc0f28472021a5ef25b8f9b935db3189"
+        ],
+        "error": null,
+        "notes": [
+          "Daily Wikimedia pageviews, all-access/user, UTC full days.",
+          "This is an eligibility probe, not finalized settlement evidence."
+        ]
+      },
+      "notes": [
+        "Eligible for PROPOSED market drafts only; the rule and evidence must be frozen by S3B before any onchain creation."
+      ]
+    },
+    {
+      "schema_version": "notch.trend-radar.candidate/1",
+      "candidate_id": "cand_7c0077062a10260fbe55",
+      "canonical_topic_id": "entity:zcash",
+      "title": "Zcash",
+      "category": "Crypto & Web3",
+      "aliases": [
+        "Zcash",
+        "zec"
+      ],
+      "source_identities": [
+        {
+          "source": "coingecko",
+          "coin_id": "zcash",
+          "symbol": "ZEC",
+          "name": "Zcash",
+          "market_cap_rank": 11,
+          "trending_rank": 3,
+          "url": "https://www.coingecko.com/en/coins/zcash",
+          "source_id": "coingecko:coin:zcash",
+          "title": "Zcash",
+          "observed_at": "2026-11-12T00:24:00.748834Z",
+          "reporting_date": null
+        }
+      ],
+      "discovery_evidence": [
+        {
+          "source": "coingecko",
+          "source_id": "coingecko:coin:zcash",
+          "title": "Zcash",
+          "url": "https://www.coingecko.com/en/coins/zcash",
+          "observed_at": "2026-11-12T00:24:00.748834Z",
+          "metrics": {
+            "symbol": "ZEC",
+            "market_cap_rank": 11,
+            "trending_rank": 3,
+            "coingecko_score": 2
+          },
+          "source_identity": {
+            "source": "coingecko",
+            "coin_id": "zcash",
+            "symbol": "ZEC",
+            "name": "Zcash",
+            "market_cap_rank": 11,
+            "trending_rank": 3,
+            "url": "https://www.coingecko.com/en/coins/zcash"
+          },
+          "reporting_date": null,
+          "raw_hash": "61e0275378df2881273bbc038d1f7e9fc34f735a9ff7a720766e0a4a104cee9f",
+          "raw_ref": "https://api.coingecko.com/api/v3/search/trending"
+        }
+      ],
+      "source_urls": [
+        "https://www.coingecko.com/en/coins/zcash"
+      ],
+      "first_seen_at": "2026-11-12T00:23:57.382066Z",
+      "last_seen_at": "2026-11-12T00:23:57.382066Z",
+      "observed_at": "2026-11-12T00:24:00.748834Z",
+      "discovery_signals": {
+        "source_count": 1,
+        "sources": [
+          "coingecko"
+        ],
+        "settlement_source": "curated_wiki_mapping",
+        "settlement_article": "Zcash",
+        "settlement_page_id": 51849458,
+        "measurement_signature": {
+          "source": "wikimedia-pageviews-v1",
+          "project": "en.wikipedia.org",
+          "access": "all-access",
+          "agent": "user",
+          "metric": "daily_pageviews"
+        },
+        "ambiguous": false,
+        "ranking_version": "radar-score/1",
+        "score": 67,
+        "score_components": {
+          "confirmations": 0,
+          "prominence": 25,
+          "recency": 20,
+          "settlement_coverage": 12,
+          "freshness": 5,
+          "category_relevance": 5
+        },
+        "prominence_detail": {
+          "coingecko_trending_rank": 3,
+          "coingecko_points": 25
+        },
+        "recency_age_hours": 0.0,
+        "fresh_sources": true
+      },
+      "eligibility_status": "NEEDS_REVIEW",
+      "eligibility_reasons": [
+        "baseline_below_minimum"
+      ],
+      "confidence": 20,
+      "reliability": "low",
+      "proposed_market_modes": [],
+      "settlement_coverage": {
+        "source": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Zcash",
+        "page_id": 51849458,
+        "status": "insufficient_baseline",
+        "daily_views": [
+          {
+            "date": "2026-11-04",
+            "views": 113,
+            "timestamp": "2026110400"
+          },
+          {
+            "date": "2026-11-05",
+            "views": 132,
+            "timestamp": "2026110500"
+          },
+          {
+            "date": "2026-11-06",
+            "views": 139,
+            "timestamp": "2026110600"
+          },
+          {
+            "date": "2026-11-07",
+            "views": 117,
+            "timestamp": "2026110700"
+          },
+          {
+            "date": "2026-11-08",
+            "views": 114,
+            "timestamp": "2026110800"
+          },
+          {
+            "date": "2026-11-09",
+            "views": 99,
+            "timestamp": "2026110900"
+          },
+          {
+            "date": "2026-11-10",
+            "views": 150,
+            "timestamp": "2026111000"
+          }
+        ],
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 99,
+        "mean_views": 123,
+        "min_baseline_views": 1000,
+        "raw_hashes": [
+          "5fc64b88714bca2a45e9e41baba6e1ff4d49ad6595610fc80d54e8441f9a447a"
+        ],
+        "error": "minimum daily views 99 is below the 1000 minimum",
+        "notes": [
+          "Daily Wikimedia pageviews, all-access/user, UTC full days.",
+          "This is an eligibility probe, not finalized settlement evidence."
+        ]
+      },
+      "notes": [
+        "Merged by curated entity alias 'zcash'."
+      ]
+    },
+    {
+      "schema_version": "notch.trend-radar.candidate/1",
+      "candidate_id": "cand_95920737b0dd2b16bba5",
+      "canonical_topic_id": "wiki:en.wikipedia.org:scene-2026-film",
+      "title": "Scene (2026 film)",
+      "category": "Gaming & Entertainment",
+      "aliases": [
+        "Scene (2026 film)"
+      ],
+      "source_identities": [
+        {
+          "source": "wikimedia",
+          "project": "en.wikipedia.org",
+          "article_original": "Scene (2026 film)",
+          "article_resolved": "Scene (2026 film)",
+          "page_id": 81783243,
+          "canonical_url": "https://en.wikipedia.org/wiki/Scene_(2026_film)",
+          "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+          "redirected_from": null,
+          "source_id": "wikimedia:en.wikipedia.org:Scene (2026 film)",
+          "title": "Scene (2026 film)",
+          "url": "https://en.wikipedia.org/wiki/Scene_(2026_film)",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "reporting_date": "2026-11-10"
+        }
+      ],
+      "discovery_evidence": [
+        {
+          "source": "wikimedia",
+          "source_id": "wikimedia:en.wikipedia.org:Scene (2026 film)",
+          "title": "Scene (2026 film)",
+          "url": "https://en.wikipedia.org/wiki/Scene_(2026_film)",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "metrics": {
+            "views": 143180,
+            "rank": 12,
+            "reporting_date": "2026-11-10",
+            "project": "en.wikipedia.org",
+            "access": "all-access",
+            "agent": "user",
+            "article_original": "Scene (2026 film)",
+            "article_resolved": "Scene (2026 film)",
+            "page_id": 81783243
+          },
+          "source_identity": {
+            "source": "wikimedia",
+            "project": "en.wikipedia.org",
+            "article_original": "Scene (2026 film)",
+            "article_resolved": "Scene (2026 film)",
+            "page_id": 81783243,
+            "canonical_url": "https://en.wikipedia.org/wiki/Scene_(2026_film)",
+            "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+            "redirected_from": null
+          },
+          "reporting_date": "2026-11-10",
+          "raw_hash": "6dd62760d823d9d70685773f4c164935b2683d3c4f47a0e02cfc0e0d8c9c9ae5",
+          "raw_ref": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10"
+        }
+      ],
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Scene_(2026_film)"
+      ],
+      "first_seen_at": "2026-11-12T00:23:57.382066Z",
+      "last_seen_at": "2026-11-12T00:23:57.382066Z",
+      "observed_at": "2026-11-10T23:59:59Z",
+      "discovery_signals": {
+        "source_count": 1,
+        "sources": [
+          "wikimedia"
+        ],
+        "settlement_source": "observed_wiki_article",
+        "settlement_article": "Scene (2026 film)",
+        "settlement_page_id": 81783243,
+        "measurement_signature": {
+          "source": "wikimedia-pageviews-v1",
+          "project": "en.wikipedia.org",
+          "access": "all-access",
+          "agent": "user",
+          "metric": "daily_pageviews"
+        },
+        "ambiguous": false,
+        "ranking_version": "radar-score/1",
+        "score": 67,
+        "score_components": {
+          "confirmations": 0,
+          "prominence": 20,
+          "recency": 12,
+          "settlement_coverage": 25,
+          "freshness": 5,
+          "category_relevance": 5
+        },
+        "prominence_detail": {
+          "wikimedia_rank": 12,
+          "wikimedia_points": 20
+        },
+        "recency_age_hours": 24.4,
+        "fresh_sources": true
+      },
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "confidence": 80,
+      "reliability": "medium",
+      "proposed_market_modes": [
+        "trend_trading"
+      ],
+      "settlement_coverage": {
+        "source": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Scene (2026 film)",
+        "page_id": 81783243,
+        "status": "ok",
+        "daily_views": [
+          {
+            "date": "2026-11-04",
+            "views": 17665,
+            "timestamp": "2026110400"
+          },
+          {
+            "date": "2026-11-05",
+            "views": 25986,
+            "timestamp": "2026110500"
+          },
+          {
+            "date": "2026-11-06",
+            "views": 159862,
+            "timestamp": "2026110600"
+          },
+          {
+            "date": "2026-11-07",
+            "views": 175681,
+            "timestamp": "2026110700"
+          },
+          {
+            "date": "2026-11-08",
+            "views": 168880,
+            "timestamp": "2026110800"
+          },
+          {
+            "date": "2026-11-09",
+            "views": 175996,
+            "timestamp": "2026110900"
+          },
+          {
+            "date": "2026-11-10",
+            "views": 143180,
+            "timestamp": "2026111000"
+          }
+        ],
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 17665,
+        "mean_views": 123892,
+        "min_baseline_views": 1000,
+        "raw_hashes": [
+          "f24dc0f2501d80766437425006c8b3d00963e5b16a05bf8ae475959d233d9781"
+        ],
+        "error": null,
+        "notes": [
+          "Daily Wikimedia pageviews, all-access/user, UTC full days.",
+          "This is an eligibility probe, not finalized settlement evidence."
+        ]
+      },
+      "notes": [
+        "Eligible for PROPOSED market drafts only; the rule and evidence must be frozen by S3B before any onchain creation."
+      ]
+    },
+    {
+      "schema_version": "notch.trend-radar.candidate/1",
+      "candidate_id": "cand_aa39bc855d6a787396d4",
+      "canonical_topic_id": "wiki:en.wikipedia.org:ramayana-part-1",
+      "title": "Ramayana: Part 1",
+      "category": "Other",
+      "aliases": [
+        "Ramayana: Part 1"
+      ],
+      "source_identities": [
+        {
+          "source": "wikimedia",
+          "project": "en.wikipedia.org",
+          "article_original": "Ramayana: Part 1",
+          "article_resolved": "Ramayana: Part 1",
+          "page_id": 78318715,
+          "canonical_url": "https://en.wikipedia.org/wiki/Ramayana%3A_Part_1",
+          "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+          "redirected_from": null,
+          "source_id": "wikimedia:en.wikipedia.org:Ramayana: Part 1",
+          "title": "Ramayana: Part 1",
+          "url": "https://en.wikipedia.org/wiki/Ramayana%3A_Part_1",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "reporting_date": "2026-11-10"
+        }
+      ],
+      "discovery_evidence": [
+        {
+          "source": "wikimedia",
+          "source_id": "wikimedia:en.wikipedia.org:Ramayana: Part 1",
+          "title": "Ramayana: Part 1",
+          "url": "https://en.wikipedia.org/wiki/Ramayana%3A_Part_1",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "metrics": {
+            "views": 840888,
+            "rank": 2,
+            "reporting_date": "2026-11-10",
+            "project": "en.wikipedia.org",
+            "access": "all-access",
+            "agent": "user",
+            "article_original": "Ramayana: Part 1",
+            "article_resolved": "Ramayana: Part 1",
+            "page_id": 78318715
+          },
+          "source_identity": {
+            "source": "wikimedia",
+            "project": "en.wikipedia.org",
+            "article_original": "Ramayana: Part 1",
+            "article_resolved": "Ramayana: Part 1",
+            "page_id": 78318715,
+            "canonical_url": "https://en.wikipedia.org/wiki/Ramayana%3A_Part_1",
+            "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+            "redirected_from": null
+          },
+          "reporting_date": "2026-11-10",
+          "raw_hash": "6dd62760d823d9d70685773f4c164935b2683d3c4f47a0e02cfc0e0d8c9c9ae5",
+          "raw_ref": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10"
+        }
+      ],
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/Ramayana%3A_Part_1"
+      ],
+      "first_seen_at": "2026-11-12T00:23:57.382066Z",
+      "last_seen_at": "2026-11-12T00:23:57.382066Z",
+      "observed_at": "2026-11-10T23:59:59Z",
+      "discovery_signals": {
+        "source_count": 1,
+        "sources": [
+          "wikimedia"
+        ],
+        "settlement_source": "observed_wiki_article",
+        "settlement_article": "Ramayana: Part 1",
+        "settlement_page_id": 78318715,
+        "measurement_signature": {
+          "source": "wikimedia-pageviews-v1",
+          "project": "en.wikipedia.org",
+          "access": "all-access",
+          "agent": "user",
+          "metric": "daily_pageviews"
+        },
+        "ambiguous": false,
+        "ranking_version": "radar-score/1",
+        "score": 67,
+        "score_components": {
+          "confirmations": 0,
+          "prominence": 25,
+          "recency": 12,
+          "settlement_coverage": 25,
+          "freshness": 5,
+          "category_relevance": 0
+        },
+        "prominence_detail": {
+          "wikimedia_rank": 2,
+          "wikimedia_points": 25
+        },
+        "recency_age_hours": 24.4,
+        "fresh_sources": true
+      },
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "confidence": 80,
+      "reliability": "medium",
+      "proposed_market_modes": [
+        "trend_trading"
+      ],
+      "settlement_coverage": {
+        "source": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Ramayana: Part 1",
+        "page_id": 78318715,
+        "status": "ok",
+        "daily_views": [
+          {
+            "date": "2026-11-04",
+            "views": 103372,
+            "timestamp": "2026110400"
+          },
+          {
+            "date": "2026-11-05",
+            "views": 609307,
+            "timestamp": "2026110500"
+          },
+          {
+            "date": "2026-11-06",
+            "views": 785245,
+            "timestamp": "2026110600"
+          },
+          {
+            "date": "2026-11-07",
+            "views": 726004,
+            "timestamp": "2026110700"
+          },
+          {
+            "date": "2026-11-08",
+            "views": 716434,
+            "timestamp": "2026110800"
+          },
+          {
+            "date": "2026-11-09",
+            "views": 830892,
+            "timestamp": "2026110900"
+          },
+          {
+            "date": "2026-11-10",
+            "views": 840888,
+            "timestamp": "2026111000"
+          }
+        ],
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 103372,
+        "mean_views": 658877,
+        "min_baseline_views": 1000,
+        "raw_hashes": [
+          "19e1350ddd961904e0dff03f3faa13b1e6d118a9f41de6767d74150557213ff9"
+        ],
+        "error": null,
+        "notes": [
+          "Daily Wikimedia pageviews, all-access/user, UTC full days.",
+          "This is an eligibility probe, not finalized settlement evidence."
+        ]
+      },
+      "notes": [
+        "Eligible for PROPOSED market drafts only; the rule and evidence must be frozen by S3B before any onchain creation."
+      ]
+    },
+    {
+      "schema_version": "notch.trend-radar.candidate/1",
+      "candidate_id": "cand_c84b4564a0f8cb9c29cb",
+      "canonical_topic_id": "wiki:en.wikipedia.org:2026-united-states-elections",
+      "title": "2026 United States elections",
+      "category": "News & Current Events",
+      "aliases": [
+        "2026 United States elections"
+      ],
+      "source_identities": [
+        {
+          "source": "wikimedia",
+          "project": "en.wikipedia.org",
+          "article_original": "2026 United States elections",
+          "article_resolved": "2026 United States elections",
+          "page_id": 70357296,
+          "canonical_url": "https://en.wikipedia.org/wiki/2026_United_States_elections",
+          "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+          "redirected_from": null,
+          "source_id": "wikimedia:en.wikipedia.org:2026 United States elections",
+          "title": "2026 United States elections",
+          "url": "https://en.wikipedia.org/wiki/2026_United_States_elections",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "reporting_date": "2026-11-10"
+        }
+      ],
+      "discovery_evidence": [
+        {
+          "source": "wikimedia",
+          "source_id": "wikimedia:en.wikipedia.org:2026 United States elections",
+          "title": "2026 United States elections",
+          "url": "https://en.wikipedia.org/wiki/2026_United_States_elections",
+          "observed_at": "2026-11-10T23:59:59Z",
+          "metrics": {
+            "views": 82516,
+            "rank": 23,
+            "reporting_date": "2026-11-10",
+            "project": "en.wikipedia.org",
+            "access": "all-access",
+            "agent": "user",
+            "article_original": "2026 United States elections",
+            "article_resolved": "2026 United States elections",
+            "page_id": 70357296
+          },
+          "source_identity": {
+            "source": "wikimedia",
+            "project": "en.wikipedia.org",
+            "article_original": "2026 United States elections",
+            "article_resolved": "2026 United States elections",
+            "page_id": 70357296,
+            "canonical_url": "https://en.wikipedia.org/wiki/2026_United_States_elections",
+            "api_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10",
+            "redirected_from": null
+          },
+          "reporting_date": "2026-11-10",
+          "raw_hash": "6dd62760d823d9d70685773f4c164935b2683d3c4f47a0e02cfc0e0d8c9c9ae5",
+          "raw_ref": "https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/2026/11/10"
+        }
+      ],
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/2026_United_States_elections"
+      ],
+      "first_seen_at": "2026-11-12T00:23:57.382066Z",
+      "last_seen_at": "2026-11-12T00:23:57.382066Z",
+      "observed_at": "2026-11-10T23:59:59Z",
+      "discovery_signals": {
+        "source_count": 1,
+        "sources": [
+          "wikimedia"
+        ],
+        "settlement_source": "observed_wiki_article",
+        "settlement_article": "2026 United States elections",
+        "settlement_page_id": 70357296,
+        "measurement_signature": {
+          "source": "wikimedia-pageviews-v1",
+          "project": "en.wikipedia.org",
+          "access": "all-access",
+          "agent": "user",
+          "metric": "daily_pageviews"
+        },
+        "ambiguous": false,
+        "ranking_version": "radar-score/1",
+        "score": 67,
+        "score_components": {
+          "confirmations": 0,
+          "prominence": 20,
+          "recency": 12,
+          "settlement_coverage": 25,
+          "freshness": 5,
+          "category_relevance": 5
+        },
+        "prominence_detail": {
+          "wikimedia_rank": 23,
+          "wikimedia_points": 20
+        },
+        "recency_age_hours": 24.4,
+        "fresh_sources": true
+      },
+      "eligibility_status": "ELIGIBLE",
+      "eligibility_reasons": [
+        "eligible_settlement_coverage"
+      ],
+      "confidence": 80,
+      "reliability": "medium",
+      "proposed_market_modes": [
+        "trend_trading"
+      ],
+      "settlement_coverage": {
+        "source": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "2026 United States elections",
+        "page_id": 70357296,
+        "status": "ok",
+        "daily_views": [
+          {
+            "date": "2026-11-04",
+            "views": 1153444,
+            "timestamp": "2026110400"
+          },
+          {
+            "date": "2026-11-05",
+            "views": 356470,
+            "timestamp": "2026110500"
+          },
+          {
+            "date": "2026-11-06",
+            "views": 219097,
+            "timestamp": "2026110600"
+          },
+          {
+            "date": "2026-11-07",
+            "views": 138507,
+            "timestamp": "2026110700"
+          },
+          {
+            "date": "2026-11-08",
+            "views": 106598,
+            "timestamp": "2026110800"
+          },
+          {
+            "date": "2026-11-09",
+            "views": 98741,
+            "timestamp": "2026110900"
+          },
+          {
+            "date": "2026-11-10",
+            "views": 82516,
+            "timestamp": "2026111000"
+          }
+        ],
+        "window_start": "2026-11-04",
+        "window_end": "2026-11-10",
+        "min_views": 82516,
+        "mean_views": 307910,
+        "min_baseline_views": 1000,
+        "raw_hashes": [
+          "d6342f6ae11b5cfc297f658069a5710e8dbbb5cece4e6e9ba3af352bea7f86db"
+        ],
+        "error": null,
+        "notes": [
+          "Daily Wikimedia pageviews, all-access/user, UTC full days.",
+          "This is an eligibility probe, not finalized settlement evidence."
+        ]
+      },
+      "notes": [
+        "Eligible for PROPOSED market drafts only; the rule and evidence must be frozen by S3B before any onchain creation."
+      ]
+    }
+  ],
+  "proposals": [
+    {
+      "schema_version": "notch.trend-radar.proposal/1",
+      "proposal_id": "prop_3f9faab70cebeba7d87c",
+      "candidate_ids": [
+        "cand_b279c92126deeecb4beb"
+      ],
+      "mode": "trend_trading",
+      "status": "PROPOSED",
+      "topic": "Nvidia",
+      "question": "PROPOSED: Will daily en.wikipedia.org pageviews for Nvidia grow by at least 15.00% on the full UTC day 2026-11-22 versus the full UTC day 2026-11-15? (Wikimedia Pageviews, all-access, user)",
+      "source": {
+        "id": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Nvidia",
+        "access": "all-access",
+        "agent": "user",
+        "metric": "daily_pageviews",
+        "granularity": "daily",
+        "timezone": "UTC"
+      },
+      "observation_window": {
+        "baseline_date": "2026-11-15",
+        "target_date": "2026-11-22",
+        "baseline_window_utc": "2026-11-15T00:00:00Z/2026-11-15T23:59:59Z",
+        "target_window_utc": "2026-11-22T00:00:00Z/2026-11-22T23:59:59Z",
+        "resolve_after_utc": "2026-11-24T12:00:00Z",
+        "status": "PROPOSED_SUGGESTION"
+      },
+      "threshold_bps": 1500,
+      "tie_tolerance_bps": null,
+      "tie_policy": null,
+      "formula": "growth-threshold-v1",
+      "measurement_limitations": [
+        "Wikimedia daily pageviews are historical data and can lag publication.",
+        "Pageviews are a proxy for attention, not proof of organic interest.",
+        "Spikes, bots, redirects and article-title changes can affect observations.",
+        "The observation window, threshold, rule hash and tie handling are proposals only.",
+        "S3B must freeze and independently reproduce the rule and evidence before market creation."
+      ],
+      "finalization_required": "S3B deterministic rule freeze, canonical evidence digest and operator-approved onchain configuration.",
+      "rule_hash": null,
+      "created_at": "2026-11-12T00:23:57.382066Z",
+      "topics": [],
+      "threshold_status": "UNVALIDATED_PROPOSAL",
+      "decision_reason": null,
+      "decided_by": null,
+      "decided_at": null
+    },
+    {
+      "schema_version": "notch.trend-radar.proposal/1",
+      "proposal_id": "prop_a8af34451aa43e7b131f",
+      "candidate_ids": [
+        "cand_9118da9248a28ca00f02"
+      ],
+      "mode": "trend_trading",
+      "status": "PROPOSED",
+      "topic": "Bitcoin",
+      "question": "PROPOSED: Will daily en.wikipedia.org pageviews for Bitcoin grow by at least 15.00% on the full UTC day 2026-11-22 versus the full UTC day 2026-11-15? (Wikimedia Pageviews, all-access, user)",
+      "source": {
+        "id": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Bitcoin",
+        "access": "all-access",
+        "agent": "user",
+        "metric": "daily_pageviews",
+        "granularity": "daily",
+        "timezone": "UTC"
+      },
+      "observation_window": {
+        "baseline_date": "2026-11-15",
+        "target_date": "2026-11-22",
+        "baseline_window_utc": "2026-11-15T00:00:00Z/2026-11-15T23:59:59Z",
+        "target_window_utc": "2026-11-22T00:00:00Z/2026-11-22T23:59:59Z",
+        "resolve_after_utc": "2026-11-24T12:00:00Z",
+        "status": "PROPOSED_SUGGESTION"
+      },
+      "threshold_bps": 1500,
+      "tie_tolerance_bps": null,
+      "tie_policy": null,
+      "formula": "growth-threshold-v1",
+      "measurement_limitations": [
+        "Wikimedia daily pageviews are historical data and can lag publication.",
+        "Pageviews are a proxy for attention, not proof of organic interest.",
+        "Spikes, bots, redirects and article-title changes can affect observations.",
+        "The observation window, threshold, rule hash and tie handling are proposals only.",
+        "S3B must freeze and independently reproduce the rule and evidence before market creation."
+      ],
+      "finalization_required": "S3B deterministic rule freeze, canonical evidence digest and operator-approved onchain configuration.",
+      "rule_hash": null,
+      "created_at": "2026-11-12T00:23:57.382066Z",
+      "topics": [],
+      "threshold_status": "UNVALIDATED_PROPOSAL",
+      "decision_reason": null,
+      "decided_by": null,
+      "decided_at": null
+    },
+    {
+      "schema_version": "notch.trend-radar.proposal/1",
+      "proposal_id": "prop_6bba22226d69e74944bc",
+      "candidate_ids": [
+        "cand_05ed6a1e89bee871414c"
+      ],
+      "mode": "trend_trading",
+      "status": "PROPOSED",
+      "topic": "Jensen Huang",
+      "question": "PROPOSED: Will daily en.wikipedia.org pageviews for Jensen Huang grow by at least 15.00% on the full UTC day 2026-11-22 versus the full UTC day 2026-11-15? (Wikimedia Pageviews, all-access, user)",
+      "source": {
+        "id": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Jensen Huang",
+        "access": "all-access",
+        "agent": "user",
+        "metric": "daily_pageviews",
+        "granularity": "daily",
+        "timezone": "UTC"
+      },
+      "observation_window": {
+        "baseline_date": "2026-11-15",
+        "target_date": "2026-11-22",
+        "baseline_window_utc": "2026-11-15T00:00:00Z/2026-11-15T23:59:59Z",
+        "target_window_utc": "2026-11-22T00:00:00Z/2026-11-22T23:59:59Z",
+        "resolve_after_utc": "2026-11-24T12:00:00Z",
+        "status": "PROPOSED_SUGGESTION"
+      },
+      "threshold_bps": 1500,
+      "tie_tolerance_bps": null,
+      "tie_policy": null,
+      "formula": "growth-threshold-v1",
+      "measurement_limitations": [
+        "Wikimedia daily pageviews are historical data and can lag publication.",
+        "Pageviews are a proxy for attention, not proof of organic interest.",
+        "Spikes, bots, redirects and article-title changes can affect observations.",
+        "The observation window, threshold, rule hash and tie handling are proposals only.",
+        "S3B must freeze and independently reproduce the rule and evidence before market creation."
+      ],
+      "finalization_required": "S3B deterministic rule freeze, canonical evidence digest and operator-approved onchain configuration.",
+      "rule_hash": null,
+      "created_at": "2026-11-12T00:23:57.382066Z",
+      "topics": [],
+      "threshold_status": "UNVALIDATED_PROPOSAL",
+      "decision_reason": null,
+      "decided_by": null,
+      "decided_at": null
+    },
+    {
+      "schema_version": "notch.trend-radar.proposal/1",
+      "proposal_id": "prop_e361f03f61965ca894fb",
+      "candidate_ids": [
+        "cand_16c0a725deb25a9d9766"
+      ],
+      "mode": "trend_trading",
+      "status": "PROPOSED",
+      "topic": "Russell Brand",
+      "question": "PROPOSED: Will daily en.wikipedia.org pageviews for Russell Brand grow by at least 15.00% on the full UTC day 2026-11-22 versus the full UTC day 2026-11-15? (Wikimedia Pageviews, all-access, user)",
+      "source": {
+        "id": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Russell Brand",
+        "access": "all-access",
+        "agent": "user",
+        "metric": "daily_pageviews",
+        "granularity": "daily",
+        "timezone": "UTC"
+      },
+      "observation_window": {
+        "baseline_date": "2026-11-15",
+        "target_date": "2026-11-22",
+        "baseline_window_utc": "2026-11-15T00:00:00Z/2026-11-15T23:59:59Z",
+        "target_window_utc": "2026-11-22T00:00:00Z/2026-11-22T23:59:59Z",
+        "resolve_after_utc": "2026-11-24T12:00:00Z",
+        "status": "PROPOSED_SUGGESTION"
+      },
+      "threshold_bps": 1500,
+      "tie_tolerance_bps": null,
+      "tie_policy": null,
+      "formula": "growth-threshold-v1",
+      "measurement_limitations": [
+        "Wikimedia daily pageviews are historical data and can lag publication.",
+        "Pageviews are a proxy for attention, not proof of organic interest.",
+        "Spikes, bots, redirects and article-title changes can affect observations.",
+        "The observation window, threshold, rule hash and tie handling are proposals only.",
+        "S3B must freeze and independently reproduce the rule and evidence before market creation."
+      ],
+      "finalization_required": "S3B deterministic rule freeze, canonical evidence digest and operator-approved onchain configuration.",
+      "rule_hash": null,
+      "created_at": "2026-11-12T00:23:57.382066Z",
+      "topics": [],
+      "threshold_status": "UNVALIDATED_PROPOSAL",
+      "decision_reason": null,
+      "decided_by": null,
+      "decided_at": null
+    },
+    {
+      "schema_version": "notch.trend-radar.proposal/1",
+      "proposal_id": "prop_9c22449af2e880c3d7ff",
+      "candidate_ids": [
+        "cand_258b682b0b5891f02ccd"
+      ],
+      "mode": "trend_trading",
+      "status": "PROPOSED",
+      "topic": "SS Edmund Fitzgerald",
+      "question": "PROPOSED: Will daily en.wikipedia.org pageviews for SS Edmund Fitzgerald grow by at least 15.00% on the full UTC day 2026-11-22 versus the full UTC day 2026-11-15? (Wikimedia Pageviews, all-access, user)",
+      "source": {
+        "id": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "SS Edmund Fitzgerald",
+        "access": "all-access",
+        "agent": "user",
+        "metric": "daily_pageviews",
+        "granularity": "daily",
+        "timezone": "UTC"
+      },
+      "observation_window": {
+        "baseline_date": "2026-11-15",
+        "target_date": "2026-11-22",
+        "baseline_window_utc": "2026-11-15T00:00:00Z/2026-11-15T23:59:59Z",
+        "target_window_utc": "2026-11-22T00:00:00Z/2026-11-22T23:59:59Z",
+        "resolve_after_utc": "2026-11-24T12:00:00Z",
+        "status": "PROPOSED_SUGGESTION"
+      },
+      "threshold_bps": 1500,
+      "tie_tolerance_bps": null,
+      "tie_policy": null,
+      "formula": "growth-threshold-v1",
+      "measurement_limitations": [
+        "Wikimedia daily pageviews are historical data and can lag publication.",
+        "Pageviews are a proxy for attention, not proof of organic interest.",
+        "Spikes, bots, redirects and article-title changes can affect observations.",
+        "The observation window, threshold, rule hash and tie handling are proposals only.",
+        "S3B must freeze and independently reproduce the rule and evidence before market creation."
+      ],
+      "finalization_required": "S3B deterministic rule freeze, canonical evidence digest and operator-approved onchain configuration.",
+      "rule_hash": null,
+      "created_at": "2026-11-12T00:23:57.382066Z",
+      "topics": [],
+      "threshold_status": "UNVALIDATED_PROPOSAL",
+      "decision_reason": null,
+      "decided_by": null,
+      "decided_at": null
+    },
+    {
+      "schema_version": "notch.trend-radar.proposal/1",
+      "proposal_id": "prop_fae884f9843643b8a16e",
+      "candidate_ids": [
+        "cand_28cba27c64b5456c3a8b"
+      ],
+      "mode": "trend_trading",
+      "status": "PROPOSED",
+      "topic": "ChatGPT",
+      "question": "PROPOSED: Will daily en.wikipedia.org pageviews for ChatGPT grow by at least 15.00% on the full UTC day 2026-11-22 versus the full UTC day 2026-11-15? (Wikimedia Pageviews, all-access, user)",
+      "source": {
+        "id": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "ChatGPT",
+        "access": "all-access",
+        "agent": "user",
+        "metric": "daily_pageviews",
+        "granularity": "daily",
+        "timezone": "UTC"
+      },
+      "observation_window": {
+        "baseline_date": "2026-11-15",
+        "target_date": "2026-11-22",
+        "baseline_window_utc": "2026-11-15T00:00:00Z/2026-11-15T23:59:59Z",
+        "target_window_utc": "2026-11-22T00:00:00Z/2026-11-22T23:59:59Z",
+        "resolve_after_utc": "2026-11-24T12:00:00Z",
+        "status": "PROPOSED_SUGGESTION"
+      },
+      "threshold_bps": 1500,
+      "tie_tolerance_bps": null,
+      "tie_policy": null,
+      "formula": "growth-threshold-v1",
+      "measurement_limitations": [
+        "Wikimedia daily pageviews are historical data and can lag publication.",
+        "Pageviews are a proxy for attention, not proof of organic interest.",
+        "Spikes, bots, redirects and article-title changes can affect observations.",
+        "The observation window, threshold, rule hash and tie handling are proposals only.",
+        "S3B must freeze and independently reproduce the rule and evidence before market creation."
+      ],
+      "finalization_required": "S3B deterministic rule freeze, canonical evidence digest and operator-approved onchain configuration.",
+      "rule_hash": null,
+      "created_at": "2026-11-12T00:23:57.382066Z",
+      "topics": [],
+      "threshold_status": "UNVALIDATED_PROPOSAL",
+      "decision_reason": null,
+      "decided_by": null,
+      "decided_at": null
+    },
+    {
+      "schema_version": "notch.trend-radar.proposal/1",
+      "proposal_id": "prop_fea8b6ba140e3d24e458",
+      "candidate_ids": [
+        "cand_6bae7b31bb4116013025"
+      ],
+      "mode": "trend_trading",
+      "status": "PROPOSED",
+      "topic": "David Walliams",
+      "question": "PROPOSED: Will daily en.wikipedia.org pageviews for David Walliams grow by at least 15.00% on the full UTC day 2026-11-22 versus the full UTC day 2026-11-15? (Wikimedia Pageviews, all-access, user)",
+      "source": {
+        "id": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "David Walliams",
+        "access": "all-access",
+        "agent": "user",
+        "metric": "daily_pageviews",
+        "granularity": "daily",
+        "timezone": "UTC"
+      },
+      "observation_window": {
+        "baseline_date": "2026-11-15",
+        "target_date": "2026-11-22",
+        "baseline_window_utc": "2026-11-15T00:00:00Z/2026-11-15T23:59:59Z",
+        "target_window_utc": "2026-11-22T00:00:00Z/2026-11-22T23:59:59Z",
+        "resolve_after_utc": "2026-11-24T12:00:00Z",
+        "status": "PROPOSED_SUGGESTION"
+      },
+      "threshold_bps": 1500,
+      "tie_tolerance_bps": null,
+      "tie_policy": null,
+      "formula": "growth-threshold-v1",
+      "measurement_limitations": [
+        "Wikimedia daily pageviews are historical data and can lag publication.",
+        "Pageviews are a proxy for attention, not proof of organic interest.",
+        "Spikes, bots, redirects and article-title changes can affect observations.",
+        "The observation window, threshold, rule hash and tie handling are proposals only.",
+        "S3B must freeze and independently reproduce the rule and evidence before market creation."
+      ],
+      "finalization_required": "S3B deterministic rule freeze, canonical evidence digest and operator-approved onchain configuration.",
+      "rule_hash": null,
+      "created_at": "2026-11-12T00:23:57.382066Z",
+      "topics": [],
+      "threshold_status": "UNVALIDATED_PROPOSAL",
+      "decision_reason": null,
+      "decided_by": null,
+      "decided_at": null
+    },
+    {
+      "schema_version": "notch.trend-radar.proposal/1",
+      "proposal_id": "prop_6a6b51b29889ff1a6bf6",
+      "candidate_ids": [
+        "cand_75428f659eb118b255ec"
+      ],
+      "mode": "trend_trading",
+      "status": "PROPOSED",
+      "topic": ".xxx",
+      "question": "PROPOSED: Will daily en.wikipedia.org pageviews for .xxx grow by at least 15.00% on the full UTC day 2026-11-22 versus the full UTC day 2026-11-15? (Wikimedia Pageviews, all-access, user)",
+      "source": {
+        "id": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": ".xxx",
+        "access": "all-access",
+        "agent": "user",
+        "metric": "daily_pageviews",
+        "granularity": "daily",
+        "timezone": "UTC"
+      },
+      "observation_window": {
+        "baseline_date": "2026-11-15",
+        "target_date": "2026-11-22",
+        "baseline_window_utc": "2026-11-15T00:00:00Z/2026-11-15T23:59:59Z",
+        "target_window_utc": "2026-11-22T00:00:00Z/2026-11-22T23:59:59Z",
+        "resolve_after_utc": "2026-11-24T12:00:00Z",
+        "status": "PROPOSED_SUGGESTION"
+      },
+      "threshold_bps": 1500,
+      "tie_tolerance_bps": null,
+      "tie_policy": null,
+      "formula": "growth-threshold-v1",
+      "measurement_limitations": [
+        "Wikimedia daily pageviews are historical data and can lag publication.",
+        "Pageviews are a proxy for attention, not proof of organic interest.",
+        "Spikes, bots, redirects and article-title changes can affect observations.",
+        "The observation window, threshold, rule hash and tie handling are proposals only.",
+        "S3B must freeze and independently reproduce the rule and evidence before market creation."
+      ],
+      "finalization_required": "S3B deterministic rule freeze, canonical evidence digest and operator-approved onchain configuration.",
+      "rule_hash": null,
+      "created_at": "2026-11-12T00:23:57.382066Z",
+      "topics": [],
+      "threshold_status": "UNVALIDATED_PROPOSAL",
+      "decision_reason": null,
+      "decided_by": null,
+      "decided_at": null
+    },
+    {
+      "schema_version": "notch.trend-radar.proposal/1",
+      "proposal_id": "prop_aefb1461a75483f569de",
+      "candidate_ids": [
+        "cand_95920737b0dd2b16bba5"
+      ],
+      "mode": "trend_trading",
+      "status": "PROPOSED",
+      "topic": "Scene (2026 film)",
+      "question": "PROPOSED: Will daily en.wikipedia.org pageviews for Scene (2026 film) grow by at least 15.00% on the full UTC day 2026-11-22 versus the full UTC day 2026-11-15? (Wikimedia Pageviews, all-access, user)",
+      "source": {
+        "id": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Scene (2026 film)",
+        "access": "all-access",
+        "agent": "user",
+        "metric": "daily_pageviews",
+        "granularity": "daily",
+        "timezone": "UTC"
+      },
+      "observation_window": {
+        "baseline_date": "2026-11-15",
+        "target_date": "2026-11-22",
+        "baseline_window_utc": "2026-11-15T00:00:00Z/2026-11-15T23:59:59Z",
+        "target_window_utc": "2026-11-22T00:00:00Z/2026-11-22T23:59:59Z",
+        "resolve_after_utc": "2026-11-24T12:00:00Z",
+        "status": "PROPOSED_SUGGESTION"
+      },
+      "threshold_bps": 1500,
+      "tie_tolerance_bps": null,
+      "tie_policy": null,
+      "formula": "growth-threshold-v1",
+      "measurement_limitations": [
+        "Wikimedia daily pageviews are historical data and can lag publication.",
+        "Pageviews are a proxy for attention, not proof of organic interest.",
+        "Spikes, bots, redirects and article-title changes can affect observations.",
+        "The observation window, threshold, rule hash and tie handling are proposals only.",
+        "S3B must freeze and independently reproduce the rule and evidence before market creation."
+      ],
+      "finalization_required": "S3B deterministic rule freeze, canonical evidence digest and operator-approved onchain configuration.",
+      "rule_hash": null,
+      "created_at": "2026-11-12T00:23:57.382066Z",
+      "topics": [],
+      "threshold_status": "UNVALIDATED_PROPOSAL",
+      "decision_reason": null,
+      "decided_by": null,
+      "decided_at": null
+    },
+    {
+      "schema_version": "notch.trend-radar.proposal/1",
+      "proposal_id": "prop_07e37c23e4e9f43fca26",
+      "candidate_ids": [
+        "cand_aa39bc855d6a787396d4"
+      ],
+      "mode": "trend_trading",
+      "status": "PROPOSED",
+      "topic": "Ramayana: Part 1",
+      "question": "PROPOSED: Will daily en.wikipedia.org pageviews for Ramayana: Part 1 grow by at least 15.00% on the full UTC day 2026-11-22 versus the full UTC day 2026-11-15? (Wikimedia Pageviews, all-access, user)",
+      "source": {
+        "id": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Ramayana: Part 1",
+        "access": "all-access",
+        "agent": "user",
+        "metric": "daily_pageviews",
+        "granularity": "daily",
+        "timezone": "UTC"
+      },
+      "observation_window": {
+        "baseline_date": "2026-11-15",
+        "target_date": "2026-11-22",
+        "baseline_window_utc": "2026-11-15T00:00:00Z/2026-11-15T23:59:59Z",
+        "target_window_utc": "2026-11-22T00:00:00Z/2026-11-22T23:59:59Z",
+        "resolve_after_utc": "2026-11-24T12:00:00Z",
+        "status": "PROPOSED_SUGGESTION"
+      },
+      "threshold_bps": 1500,
+      "tie_tolerance_bps": null,
+      "tie_policy": null,
+      "formula": "growth-threshold-v1",
+      "measurement_limitations": [
+        "Wikimedia daily pageviews are historical data and can lag publication.",
+        "Pageviews are a proxy for attention, not proof of organic interest.",
+        "Spikes, bots, redirects and article-title changes can affect observations.",
+        "The observation window, threshold, rule hash and tie handling are proposals only.",
+        "S3B must freeze and independently reproduce the rule and evidence before market creation."
+      ],
+      "finalization_required": "S3B deterministic rule freeze, canonical evidence digest and operator-approved onchain configuration.",
+      "rule_hash": null,
+      "created_at": "2026-11-12T00:23:57.382066Z",
+      "topics": [],
+      "threshold_status": "UNVALIDATED_PROPOSAL",
+      "decision_reason": null,
+      "decided_by": null,
+      "decided_at": null
+    },
+    {
+      "schema_version": "notch.trend-radar.proposal/1",
+      "proposal_id": "prop_b14fbe6a7e90c00afde3",
+      "candidate_ids": [
+        "cand_9118da9248a28ca00f02",
+        "cand_b279c92126deeecb4beb"
+      ],
+      "mode": "trend_battle",
+      "status": "PROPOSED",
+      "topic": "Nvidia vs Bitcoin",
+      "question": "PROPOSED: Which topic will have higher normalized Wikimedia pageview growth from the full UTC day 2026-11-15 to the full UTC day 2026-11-22: Nvidia or Bitcoin? A growth difference within 50 bps is a tie and voids the market.",
+      "source": {
+        "id": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Nvidia",
+        "access": "all-access",
+        "agent": "user",
+        "metric": "daily_pageviews_growth_comparison",
+        "granularity": "daily",
+        "timezone": "UTC"
+      },
+      "observation_window": {
+        "baseline_date": "2026-11-15",
+        "target_date": "2026-11-22",
+        "baseline_window_utc": "2026-11-15T00:00:00Z/2026-11-15T23:59:59Z",
+        "target_window_utc": "2026-11-22T00:00:00Z/2026-11-22T23:59:59Z",
+        "resolve_after_utc": "2026-11-24T12:00:00Z",
+        "status": "PROPOSED_SUGGESTION"
+      },
+      "threshold_bps": null,
+      "tie_tolerance_bps": 50,
+      "tie_policy": "void",
+      "formula": "growth_comparison_v1",
+      "measurement_limitations": [
+        "Wikimedia daily pageviews are historical data and can lag publication.",
+        "Pageviews are a proxy for attention, not proof of organic interest.",
+        "Spikes, bots, redirects and article-title changes can affect observations.",
+        "The observation window, threshold, rule hash and tie handling are proposals only.",
+        "S3B must freeze and independently reproduce the rule and evidence before market creation.",
+        "Both topics must use the same project, access, agent, metric and observation window.",
+        "Tie handling is precommitted as VOID; no winner is invented."
+      ],
+      "finalization_required": "S3B must freeze the shared battle rule, canonical evidence digest and tie boundary before market creation.",
+      "rule_hash": null,
+      "created_at": "2026-11-12T00:23:57.382066Z",
+      "topics": [
+        {
+          "candidate_id": "cand_b279c92126deeecb4beb",
+          "title": "Nvidia",
+          "article": "Nvidia",
+          "url": "https://en.wikipedia.org/wiki/Nvidia"
+        },
+        {
+          "candidate_id": "cand_9118da9248a28ca00f02",
+          "title": "Bitcoin",
+          "article": "Bitcoin",
+          "url": "https://en.wikipedia.org/wiki/Bitcoin"
+        }
+      ],
+      "threshold_status": "UNVALIDATED_PROPOSAL",
+      "decision_reason": null,
+      "decided_by": null,
+      "decided_at": null
+    },
+    {
+      "schema_version": "notch.trend-radar.proposal/1",
+      "proposal_id": "prop_e3c7c11438b3ec2284be",
+      "candidate_ids": [
+        "cand_05ed6a1e89bee871414c",
+        "cand_b279c92126deeecb4beb"
+      ],
+      "mode": "trend_battle",
+      "status": "PROPOSED",
+      "topic": "Nvidia vs Jensen Huang",
+      "question": "PROPOSED: Which topic will have higher normalized Wikimedia pageview growth from the full UTC day 2026-11-15 to the full UTC day 2026-11-22: Nvidia or Jensen Huang? A growth difference within 50 bps is a tie and voids the market.",
+      "source": {
+        "id": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Nvidia",
+        "access": "all-access",
+        "agent": "user",
+        "metric": "daily_pageviews_growth_comparison",
+        "granularity": "daily",
+        "timezone": "UTC"
+      },
+      "observation_window": {
+        "baseline_date": "2026-11-15",
+        "target_date": "2026-11-22",
+        "baseline_window_utc": "2026-11-15T00:00:00Z/2026-11-15T23:59:59Z",
+        "target_window_utc": "2026-11-22T00:00:00Z/2026-11-22T23:59:59Z",
+        "resolve_after_utc": "2026-11-24T12:00:00Z",
+        "status": "PROPOSED_SUGGESTION"
+      },
+      "threshold_bps": null,
+      "tie_tolerance_bps": 50,
+      "tie_policy": "void",
+      "formula": "growth_comparison_v1",
+      "measurement_limitations": [
+        "Wikimedia daily pageviews are historical data and can lag publication.",
+        "Pageviews are a proxy for attention, not proof of organic interest.",
+        "Spikes, bots, redirects and article-title changes can affect observations.",
+        "The observation window, threshold, rule hash and tie handling are proposals only.",
+        "S3B must freeze and independently reproduce the rule and evidence before market creation.",
+        "Both topics must use the same project, access, agent, metric and observation window.",
+        "Tie handling is precommitted as VOID; no winner is invented."
+      ],
+      "finalization_required": "S3B must freeze the shared battle rule, canonical evidence digest and tie boundary before market creation.",
+      "rule_hash": null,
+      "created_at": "2026-11-12T00:23:57.382066Z",
+      "topics": [
+        {
+          "candidate_id": "cand_b279c92126deeecb4beb",
+          "title": "Nvidia",
+          "article": "Nvidia",
+          "url": "https://en.wikipedia.org/wiki/Nvidia"
+        },
+        {
+          "candidate_id": "cand_05ed6a1e89bee871414c",
+          "title": "Jensen Huang",
+          "article": "Jensen Huang",
+          "url": "https://en.wikipedia.org/wiki/Jensen_Huang"
+        }
+      ],
+      "threshold_status": "UNVALIDATED_PROPOSAL",
+      "decision_reason": null,
+      "decided_by": null,
+      "decided_at": null
+    },
+    {
+      "schema_version": "notch.trend-radar.proposal/1",
+      "proposal_id": "prop_7808def790fec44ae0ec",
+      "candidate_ids": [
+        "cand_16c0a725deb25a9d9766",
+        "cand_b279c92126deeecb4beb"
+      ],
+      "mode": "trend_battle",
+      "status": "PROPOSED",
+      "topic": "Nvidia vs Russell Brand",
+      "question": "PROPOSED: Which topic will have higher normalized Wikimedia pageview growth from the full UTC day 2026-11-15 to the full UTC day 2026-11-22: Nvidia or Russell Brand? A growth difference within 50 bps is a tie and voids the market.",
+      "source": {
+        "id": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Nvidia",
+        "access": "all-access",
+        "agent": "user",
+        "metric": "daily_pageviews_growth_comparison",
+        "granularity": "daily",
+        "timezone": "UTC"
+      },
+      "observation_window": {
+        "baseline_date": "2026-11-15",
+        "target_date": "2026-11-22",
+        "baseline_window_utc": "2026-11-15T00:00:00Z/2026-11-15T23:59:59Z",
+        "target_window_utc": "2026-11-22T00:00:00Z/2026-11-22T23:59:59Z",
+        "resolve_after_utc": "2026-11-24T12:00:00Z",
+        "status": "PROPOSED_SUGGESTION"
+      },
+      "threshold_bps": null,
+      "tie_tolerance_bps": 50,
+      "tie_policy": "void",
+      "formula": "growth_comparison_v1",
+      "measurement_limitations": [
+        "Wikimedia daily pageviews are historical data and can lag publication.",
+        "Pageviews are a proxy for attention, not proof of organic interest.",
+        "Spikes, bots, redirects and article-title changes can affect observations.",
+        "The observation window, threshold, rule hash and tie handling are proposals only.",
+        "S3B must freeze and independently reproduce the rule and evidence before market creation.",
+        "Both topics must use the same project, access, agent, metric and observation window.",
+        "Tie handling is precommitted as VOID; no winner is invented."
+      ],
+      "finalization_required": "S3B must freeze the shared battle rule, canonical evidence digest and tie boundary before market creation.",
+      "rule_hash": null,
+      "created_at": "2026-11-12T00:23:57.382066Z",
+      "topics": [
+        {
+          "candidate_id": "cand_b279c92126deeecb4beb",
+          "title": "Nvidia",
+          "article": "Nvidia",
+          "url": "https://en.wikipedia.org/wiki/Nvidia"
+        },
+        {
+          "candidate_id": "cand_16c0a725deb25a9d9766",
+          "title": "Russell Brand",
+          "article": "Russell Brand",
+          "url": "https://en.wikipedia.org/wiki/Russell_Brand"
+        }
+      ],
+      "threshold_status": "UNVALIDATED_PROPOSAL",
+      "decision_reason": null,
+      "decided_by": null,
+      "decided_at": null
+    },
+    {
+      "schema_version": "notch.trend-radar.proposal/1",
+      "proposal_id": "prop_b75df4c8891c034a20b2",
+      "candidate_ids": [
+        "cand_258b682b0b5891f02ccd",
+        "cand_b279c92126deeecb4beb"
+      ],
+      "mode": "trend_battle",
+      "status": "PROPOSED",
+      "topic": "Nvidia vs SS Edmund Fitzgerald",
+      "question": "PROPOSED: Which topic will have higher normalized Wikimedia pageview growth from the full UTC day 2026-11-15 to the full UTC day 2026-11-22: Nvidia or SS Edmund Fitzgerald? A growth difference within 50 bps is a tie and voids the market.",
+      "source": {
+        "id": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Nvidia",
+        "access": "all-access",
+        "agent": "user",
+        "metric": "daily_pageviews_growth_comparison",
+        "granularity": "daily",
+        "timezone": "UTC"
+      },
+      "observation_window": {
+        "baseline_date": "2026-11-15",
+        "target_date": "2026-11-22",
+        "baseline_window_utc": "2026-11-15T00:00:00Z/2026-11-15T23:59:59Z",
+        "target_window_utc": "2026-11-22T00:00:00Z/2026-11-22T23:59:59Z",
+        "resolve_after_utc": "2026-11-24T12:00:00Z",
+        "status": "PROPOSED_SUGGESTION"
+      },
+      "threshold_bps": null,
+      "tie_tolerance_bps": 50,
+      "tie_policy": "void",
+      "formula": "growth_comparison_v1",
+      "measurement_limitations": [
+        "Wikimedia daily pageviews are historical data and can lag publication.",
+        "Pageviews are a proxy for attention, not proof of organic interest.",
+        "Spikes, bots, redirects and article-title changes can affect observations.",
+        "The observation window, threshold, rule hash and tie handling are proposals only.",
+        "S3B must freeze and independently reproduce the rule and evidence before market creation.",
+        "Both topics must use the same project, access, agent, metric and observation window.",
+        "Tie handling is precommitted as VOID; no winner is invented."
+      ],
+      "finalization_required": "S3B must freeze the shared battle rule, canonical evidence digest and tie boundary before market creation.",
+      "rule_hash": null,
+      "created_at": "2026-11-12T00:23:57.382066Z",
+      "topics": [
+        {
+          "candidate_id": "cand_b279c92126deeecb4beb",
+          "title": "Nvidia",
+          "article": "Nvidia",
+          "url": "https://en.wikipedia.org/wiki/Nvidia"
+        },
+        {
+          "candidate_id": "cand_258b682b0b5891f02ccd",
+          "title": "SS Edmund Fitzgerald",
+          "article": "SS Edmund Fitzgerald",
+          "url": "https://en.wikipedia.org/wiki/SS_Edmund_Fitzgerald"
+        }
+      ],
+      "threshold_status": "UNVALIDATED_PROPOSAL",
+      "decision_reason": null,
+      "decided_by": null,
+      "decided_at": null
+    },
+    {
+      "schema_version": "notch.trend-radar.proposal/1",
+      "proposal_id": "prop_05bb8eb0e45441d15546",
+      "candidate_ids": [
+        "cand_28cba27c64b5456c3a8b",
+        "cand_b279c92126deeecb4beb"
+      ],
+      "mode": "trend_battle",
+      "status": "PROPOSED",
+      "topic": "Nvidia vs ChatGPT",
+      "question": "PROPOSED: Which topic will have higher normalized Wikimedia pageview growth from the full UTC day 2026-11-15 to the full UTC day 2026-11-22: Nvidia or ChatGPT? A growth difference within 50 bps is a tie and voids the market.",
+      "source": {
+        "id": "wikimedia-pageviews-v1",
+        "project": "en.wikipedia.org",
+        "article": "Nvidia",
+        "access": "all-access",
+        "agent": "user",
+        "metric": "daily_pageviews_growth_comparison",
+        "granularity": "daily",
+        "timezone": "UTC"
+      },
+      "observation_window": {
+        "baseline_date": "2026-11-15",
+        "target_date": "2026-11-22",
+        "baseline_window_utc": "2026-11-15T00:00:00Z/2026-11-15T23:59:59Z",
+        "target_window_utc": "2026-11-22T00:00:00Z/2026-11-22T23:59:59Z",
+        "resolve_after_utc": "2026-11-24T12:00:00Z",
+        "status": "PROPOSED_SUGGESTION"
+      },
+      "threshold_bps": null,
+      "tie_tolerance_bps": 50,
+      "tie_policy": "void",
+      "formula": "growth_comparison_v1",
+      "measurement_limitations": [
+        "Wikimedia daily pageviews are historical data and can lag publication.",
+        "Pageviews are a proxy for attention, not proof of organic interest.",
+        "Spikes, bots, redirects and article-title changes can affect observations.",
+        "The observation window, threshold, rule hash and tie handling are proposals only.",
+        "S3B must freeze and independently reproduce the rule and evidence before market creation.",
+        "Both topics must use the same project, access, agent, metric and observation window.",
+        "Tie handling is precommitted as VOID; no winner is invented."
+      ],
+      "finalization_required": "S3B must freeze the shared battle rule, canonical evidence digest and tie boundary before market creation.",
+      "rule_hash": null,
+      "created_at": "2026-11-12T00:23:57.382066Z",
+      "topics": [
+        {
+          "candidate_id": "cand_b279c92126deeecb4beb",
+          "title": "Nvidia",
+          "article": "Nvidia",
+          "url": "https://en.wikipedia.org/wiki/Nvidia"
+        },
+        {
+          "candidate_id": "cand_28cba27c64b5456c3a8b",
+          "title": "ChatGPT",
+          "article": "ChatGPT",
+          "url": "https://en.wikipedia.org/wiki/ChatGPT"
+        }
+      ],
+      "threshold_status": "UNVALIDATED_PROPOSAL",
+      "decision_reason": null,
+      "decided_by": null,
+      "decided_at": null
+    }
+  ]
+}

@@ -1,0 +1,1721 @@
+{
+  "schema_version": "notch.oracle.demo/1",
+  "generated_at": "2026-11-12T02:00:00Z",
+  "onchain_actions": "none",
+  "calibration_end": "2026-11-10",
+  "replay_observation": {
+    "baseline_date": "2026-11-03",
+    "target_date": "2026-11-10"
+  },
+  "future_observation": {
+    "baseline_date": "2026-11-16",
+    "target_date": "2026-11-23"
+  },
+  "calibrations": [
+    {
+      "name": "future_bitcoin",
+      "report_digest": "sha256:90a8b59ef76ce8bf6c4c577c3325daf6d03b07f6f7fbadf3fb767475f7690b89",
+      "article": "Bitcoin",
+      "topic_b_article": null,
+      "mode": "trend_trading",
+      "status": "OK",
+      "observation_status": "PENDING_OBSERVATION",
+      "calibration_start": "2026-09-16",
+      "calibration_end": "2026-11-10",
+      "suggested_threshold_bps": 2300,
+      "suggested_tie_tolerance_bps": null,
+      "path": "var\\oracle_live_final\\calibrations\\90a8b59ef76ce8bf6c4c577c3325daf6d03b07f6f7fbadf3fb767475f7690b89.json"
+    },
+    {
+      "name": "replay_trend_bitcoin",
+      "report_digest": "sha256:e132d75a06f07a7415cc85e35f824fe0aa6d295ce01a561fcb8a4ea8bae2dbfb",
+      "article": "Bitcoin",
+      "topic_b_article": null,
+      "mode": "trend_trading",
+      "status": "OK",
+      "observation_status": "AVAILABLE",
+      "calibration_start": "2026-09-08",
+      "calibration_end": "2026-11-02",
+      "suggested_threshold_bps": 2350,
+      "suggested_tie_tolerance_bps": null,
+      "path": "var\\oracle_live_final\\calibrations\\e132d75a06f07a7415cc85e35f824fe0aa6d295ce01a561fcb8a4ea8bae2dbfb.json"
+    },
+    {
+      "name": "replay_trend_nvidia",
+      "report_digest": "sha256:5924d37f2f54e571f80d4c788441b126a98ddf10ce3899a7fc5565fb1a1b153e",
+      "article": "Nvidia",
+      "topic_b_article": null,
+      "mode": "trend_trading",
+      "status": "OK",
+      "observation_status": "AVAILABLE",
+      "calibration_start": "2026-09-08",
+      "calibration_end": "2026-11-02",
+      "suggested_threshold_bps": 1350,
+      "suggested_tie_tolerance_bps": null,
+      "path": "var\\oracle_live_final\\calibrations\\5924d37f2f54e571f80d4c788441b126a98ddf10ce3899a7fc5565fb1a1b153e.json"
+    },
+    {
+      "name": "replay_trend_chatgpt",
+      "report_digest": "sha256:53c920372d23adbbb517bcca048134265579fb79f4689ef080a9d60f631c6c57",
+      "article": "ChatGPT",
+      "topic_b_article": null,
+      "mode": "trend_trading",
+      "status": "OK",
+      "observation_status": "AVAILABLE",
+      "calibration_start": "2026-09-08",
+      "calibration_end": "2026-11-02",
+      "suggested_threshold_bps": 5900,
+      "suggested_tie_tolerance_bps": null,
+      "path": "var\\oracle_live_final\\calibrations\\53c920372d23adbbb517bcca048134265579fb79f4689ef080a9d60f631c6c57.json"
+    },
+    {
+      "name": "replay_battle_bitcoin_chatgpt",
+      "report_digest": "sha256:94c7c624d9e79b074ee0edb5b2ba5d273531fbe04cb7418a73effb0d4afb0dd4",
+      "article": "Bitcoin",
+      "topic_b_article": "ChatGPT",
+      "mode": "trend_battle",
+      "status": "OK",
+      "observation_status": "AVAILABLE",
+      "calibration_start": "2026-09-08",
+      "calibration_end": "2026-11-02",
+      "suggested_threshold_bps": null,
+      "suggested_tie_tolerance_bps": 930,
+      "path": "var\\oracle_live_final\\calibrations\\94c7c624d9e79b074ee0edb5b2ba5d273531fbe04cb7418a73effb0d4afb0dd4.json"
+    }
+  ],
+  "source_ranges": {
+    "Bitcoin": {
+      "start": "2026-09-01",
+      "end": "2026-11-10",
+      "observations": 71,
+      "missing_dates": [],
+      "retrieved_at": "2026-11-12T01:07:33.333129Z",
+      "raw_response_hash": "a5f812634989d338a959859e293c4bf51e02bb579a59a39a739a0829ea4226c7",
+      "source_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Bitcoin/daily/20260901/20261110"
+    },
+    "ChatGPT": {
+      "start": "2026-09-01",
+      "end": "2026-11-10",
+      "observations": 71,
+      "missing_dates": [],
+      "retrieved_at": "2026-11-12T01:07:33.998301Z",
+      "raw_response_hash": "f3992626c971b8eafc4b661f88a3edbdb712727ec96de97b80b3902463c663e7",
+      "source_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/ChatGPT/daily/20260901/20261110"
+    },
+    "Nvidia": {
+      "start": "2026-09-01",
+      "end": "2026-11-10",
+      "observations": 71,
+      "missing_dates": [],
+      "retrieved_at": "2026-11-12T01:07:34.707435Z",
+      "raw_response_hash": "f372687814e75ca213ef31e014a2a9a8dc204340f249a44922ae9e1401e436f2",
+      "source_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Nvidia/daily/20260901/20261110"
+    }
+  },
+  "reviews": [
+    {
+      "schema_version": "notch.oracle.review/1",
+      "candidate_ids": [
+        "cand_9118da9248a28ca00f02"
+      ],
+      "title": "Bitcoin",
+      "canonical_topic_ids": [
+        "entity:bitcoin"
+      ],
+      "category": "Crypto & Web3",
+      "measurement_valid": true,
+      "measurement_status": "VALID",
+      "market_interest": "low_but_measurable",
+      "market_interest_reasons": [
+        "baseline_or_top_views=3751",
+        "source_count=1"
+      ],
+      "recognizable_topic": true,
+      "recognizable_reasons": [],
+      "sensitivity_flags": [],
+      "relationship_flags": [],
+      "ambiguous_mapping": false,
+      "ambiguity_reasons": [],
+      "operator_approval_required": true,
+      "recommendation": "READY_FOR_OPERATOR_REVIEW",
+      "reasons": [],
+      "sources": [
+        {
+          "source": "coingecko",
+          "source_id": "coingecko:coin:bitcoin",
+          "url": "https://www.coingecko.com/en/coins/bitcoin"
+        }
+      ]
+    },
+    {
+      "schema_version": "notch.oracle.review/1",
+      "candidate_ids": [
+        "cand_28cba27c64b5456c3a8b"
+      ],
+      "title": "ChatGPT",
+      "canonical_topic_ids": [
+        "entity:chatgpt"
+      ],
+      "category": "AI & Technology",
+      "measurement_valid": true,
+      "measurement_status": "VALID",
+      "market_interest": "high",
+      "market_interest_reasons": [
+        "baseline_or_top_views=117118",
+        "source_count=1"
+      ],
+      "recognizable_topic": true,
+      "recognizable_reasons": [],
+      "sensitivity_flags": [],
+      "relationship_flags": [],
+      "ambiguous_mapping": false,
+      "ambiguity_reasons": [],
+      "operator_approval_required": true,
+      "recommendation": "READY_FOR_OPERATOR_REVIEW",
+      "reasons": [],
+      "sources": [
+        {
+          "source": "wikimedia",
+          "source_id": "wikimedia:en.wikipedia.org:ChatGPT",
+          "url": "https://en.wikipedia.org/wiki/ChatGPT"
+        }
+      ]
+    },
+    {
+      "schema_version": "notch.oracle.review/1",
+      "candidate_ids": [
+        "cand_b279c92126deeecb4beb"
+      ],
+      "title": "Nvidia",
+      "canonical_topic_ids": [
+        "entity:nvidia"
+      ],
+      "category": "AI & Technology",
+      "measurement_valid": true,
+      "measurement_status": "VALID",
+      "market_interest": "low_but_measurable",
+      "market_interest_reasons": [
+        "baseline_or_top_views=4743",
+        "source_count=2",
+        "multiple_sources"
+      ],
+      "recognizable_topic": true,
+      "recognizable_reasons": [],
+      "sensitivity_flags": [],
+      "relationship_flags": [],
+      "ambiguous_mapping": false,
+      "ambiguity_reasons": [],
+      "operator_approval_required": true,
+      "recommendation": "READY_FOR_OPERATOR_REVIEW",
+      "reasons": [],
+      "sources": [
+        {
+          "source": "wikimedia",
+          "source_id": "wikimedia:en.wikipedia.org:Nvidia",
+          "url": "https://en.wikipedia.org/wiki/Nvidia"
+        },
+        {
+          "source": "hackernews",
+          "source_id": "hn:story:50459703",
+          "url": "https://www.wsj.com/business/nvidia-is-preparing-to-oust-nvidia-ceo-jensen-huang-30f421ad"
+        },
+        {
+          "source": "hackernews",
+          "source_id": "hn:story:50459776",
+          "url": "https://twitter.com/watcherguru/status/2120645607866188008"
+        }
+      ]
+    },
+    {
+      "schema_version": "notch.oracle.review/1",
+      "candidate_ids": [
+        "cand_9118da9248a28ca00f02"
+      ],
+      "title": "Bitcoin",
+      "canonical_topic_ids": [
+        "entity:bitcoin"
+      ],
+      "category": "Crypto & Web3",
+      "measurement_valid": true,
+      "measurement_status": "PENDING_OBSERVATION",
+      "market_interest": "unknown",
+      "market_interest_reasons": [
+        "baseline_or_top_views=None",
+        "source_count=1"
+      ],
+      "recognizable_topic": true,
+      "recognizable_reasons": [],
+      "sensitivity_flags": [],
+      "relationship_flags": [],
+      "ambiguous_mapping": false,
+      "ambiguity_reasons": [],
+      "operator_approval_required": true,
+      "recommendation": "READY_FOR_OPERATOR_REVIEW_FUTURE",
+      "reasons": [],
+      "sources": [
+        {
+          "source": "coingecko",
+          "source_id": "coingecko:coin:bitcoin",
+          "url": "https://www.coingecko.com/en/coins/bitcoin"
+        }
+      ]
+    },
+    {
+      "schema_version": "notch.oracle.review/1",
+      "candidate_ids": [
+        "cand_9118da9248a28ca00f02",
+        "cand_28cba27c64b5456c3a8b"
+      ],
+      "title": "Bitcoin vs ChatGPT",
+      "canonical_topic_ids": [
+        "entity:bitcoin",
+        "entity:chatgpt"
+      ],
+      "category": null,
+      "measurement_valid": true,
+      "measurement_status": "VALID",
+      "market_interest": "low_but_measurable",
+      "market_interest_reasons": [
+        "baseline_or_top_views=3751",
+        "source_count=1",
+        "baseline_or_top_views=3751",
+        "source_count=1"
+      ],
+      "recognizable_topic": true,
+      "recognizable_reasons": [],
+      "sensitivity_flags": [],
+      "relationship_flags": [],
+      "ambiguous_mapping": false,
+      "ambiguity_reasons": [],
+      "operator_approval_required": true,
+      "recommendation": "READY_FOR_OPERATOR_REVIEW",
+      "reasons": [],
+      "sources": [
+        {
+          "source": "coingecko",
+          "source_id": "coingecko:coin:bitcoin",
+          "url": "https://www.coingecko.com/en/coins/bitcoin"
+        },
+        {
+          "source": "wikimedia",
+          "source_id": "wikimedia:en.wikipedia.org:ChatGPT",
+          "url": "https://en.wikipedia.org/wiki/ChatGPT"
+        }
+      ]
+    }
+  ],
+  "correlation_example": {
+    "schema_version": "notch.oracle.review/1",
+    "candidate_ids": [
+      "cand_b279c92126deeecb4beb",
+      "cand_05ed6a1e89bee871414c"
+    ],
+    "title": "Nvidia vs Jensen Huang",
+    "canonical_topic_ids": [
+      "entity:nvidia",
+      "wiki:en.wikipedia.org:jensen-huang"
+    ],
+    "category": null,
+    "measurement_valid": true,
+    "measurement_status": "VALID",
+    "market_interest": "low_but_measurable",
+    "market_interest_reasons": [
+      "baseline_or_top_views=4743",
+      "source_count=2",
+      "multiple_sources",
+      "baseline_or_top_views=4743",
+      "source_count=1"
+    ],
+    "recognizable_topic": true,
+    "recognizable_reasons": [],
+    "sensitivity_flags": [
+      {
+        "type": "person_or_public_individual",
+        "severity": "review",
+        "reason": "Title looks like a person's name; operator must assess sensitivity and public-figure status."
+      }
+    ],
+    "relationship_flags": [
+      {
+        "type": "company_ceo",
+        "severity": "high",
+        "reason": "Jensen Huang is Nvidia's CEO; the topics are not independent measurements.",
+        "topics": [
+          "jensen huang",
+          "nvidia"
+        ]
+      }
+    ],
+    "ambiguous_mapping": false,
+    "ambiguity_reasons": [],
+    "operator_approval_required": true,
+    "recommendation": "REJECT_CORRELATED_TOPICS",
+    "reasons": [
+      "correlated_or_same_entity_topics"
+    ],
+    "sources": [
+      {
+        "source": "wikimedia",
+        "source_id": "wikimedia:en.wikipedia.org:Nvidia",
+        "url": "https://en.wikipedia.org/wiki/Nvidia"
+      },
+      {
+        "source": "hackernews",
+        "source_id": "hn:story:50459703",
+        "url": "https://www.wsj.com/business/nvidia-is-preparing-to-oust-nvidia-ceo-jensen-huang-30f421ad"
+      },
+      {
+        "source": "hackernews",
+        "source_id": "hn:story:50459776",
+        "url": "https://twitter.com/watcherguru/status/2120645607866188008"
+      },
+      {
+        "source": "wikimedia",
+        "source_id": "wikimedia:en.wikipedia.org:Jensen Huang",
+        "url": "https://en.wikipedia.org/wiki/Jensen_Huang"
+      }
+    ]
+  },
+  "rules": [
+    {
+      "name": "future_bitcoin",
+      "rule_hash": "sha256:cd215ff8e2e09166607b04925464acc086b5c20b058de4fab2e8e07c633b789b",
+      "status": "DRAFT",
+      "rule": {
+        "schema_version": "notch.market-rule/2",
+        "rule_version": "s3b-oracle/1",
+        "market_id": "s3b-future-btc-20261116-20261123",
+        "mode": "trend_trading",
+        "question": "FORECAST (not a replay): Will daily en.wikipedia.org pageviews for Bitcoin grow by at least 23.00% on the full UTC day 2026-11-23 versus the full UTC day 2026-11-16? (Wikimedia Pageviews, all-access, user)",
+        "choices": [
+          "UP",
+          "DOWN"
+        ],
+        "source": {
+          "id": "wikimedia-pageviews-v1",
+          "provider": "Wikimedia Analytics API",
+          "project": "en.wikipedia.org",
+          "access": "all-access",
+          "agent": "user",
+          "metric": "daily_pageviews",
+          "granularity": "daily",
+          "timezone": "UTC",
+          "article": "Bitcoin",
+          "documentation": "https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/documentation/getting-started.html"
+        },
+        "topics": [
+          {
+            "topic_id": "bitcoin",
+            "article_title": "Bitcoin",
+            "page_id": 28249265,
+            "source_url": "https://en.wikipedia.org/wiki/Bitcoin"
+          }
+        ],
+        "observation": {
+          "baseline_date": "2026-11-16",
+          "target_date": "2026-11-23",
+          "baseline_window_utc": "2026-11-16T00:00:00Z/2026-11-16T23:59:59Z",
+          "target_window_utc": "2026-11-23T00:00:00Z/2026-11-23T23:59:59Z",
+          "replay": false,
+          "replay_label": null
+        },
+        "formula": {
+          "version": "growth-threshold-v1",
+          "growth_bps": "floor((target_views - baseline_views) * 10000 / baseline_views)",
+          "threshold_bps": 2300,
+          "up_if": "growth_bps >= threshold_bps",
+          "down_if": "growth_bps < threshold_bps",
+          "integer_only": true,
+          "rounding": "mathematical floor; negative numerators floor below zero"
+        },
+        "minimum_baseline_views": 1000,
+        "invalidation_policy": "refund_on_void",
+        "missing_data_policy": "void",
+        "resolution_eligibility_utc": "2026-11-25T12:00:00Z",
+        "market_timing": {
+          "open_at_ns": "1794452400000000000",
+          "close_at_ns": "1794787140000000000",
+          "resolve_after_ns": "1795608000000000000",
+          "open_at_utc": "2026-11-12T03:00:00Z",
+          "close_at_utc": "2026-11-15T23:59:00Z",
+          "resolve_after_utc": "2026-11-25T12:00:00Z"
+        },
+        "contract": {
+          "network": "testnet",
+          "account": "market.notch-dev.testnet",
+          "collateral_token": "usdc.tidepool-sandbox.testnet"
+        },
+        "candidate": {
+          "candidate_ids": [
+            "cand_9118da9248a28ca00f02"
+          ],
+          "canonical_topic_ids": [
+            "entity:bitcoin"
+          ],
+          "source_proposal_refs": [
+            "prop_a8af34451aa43e7b131f"
+          ],
+          "validation_status": "READY_FOR_OPERATOR_REVIEW_FUTURE",
+          "operator_approval_required": true
+        },
+        "calibration": {
+          "report_digest": "sha256:90a8b59ef76ce8bf6c4c577c3325daf6d03b07f6f7fbadf3fb767475f7690b89",
+          "suggested_threshold_bps": 2300,
+          "policy": "threshold-calibration-v1: nearest-rank p75 of historical 7-day growth, clamped to [0, 10000] and rounded up to 50 bps",
+          "calibration_window": {
+            "start": "2026-09-16",
+            "end": "2026-11-10"
+          },
+          "status": "OK"
+        },
+        "governance": {
+          "status": "READY_FOR_OPERATOR_REVIEW",
+          "operator_approval_required": true,
+          "auto_approved": false
+        }
+      },
+      "contract_args": {
+        "args": {
+          "market_id": "s3b-future-btc-20261116-20261123",
+          "mode": "trend_trading",
+          "question": "FORECAST (not a replay): Will daily en.wikipedia.org pageviews for Bitcoin grow by at least 23.00% on the full UTC day 2026-11-23 versus the full UTC day 2026-11-16? (Wikimedia Pageviews, all-access, user)",
+          "choices": [
+            "UP",
+            "DOWN"
+          ],
+          "source_id": "wikimedia-pageviews-v1",
+          "rule_hash": "sha256:cd215ff8e2e09166607b04925464acc086b5c20b058de4fab2e8e07c633b789b",
+          "open_at": "1794452400000000000",
+          "close_at": "1794787140000000000",
+          "resolve_after": "1795608000000000000",
+          "invalidation_policy": "refund_on_void"
+        }
+      },
+      "evidence": null,
+      "evidence_pending": true,
+      "resolution_plan_preview": null
+    },
+    {
+      "name": "replay_trend_nvidia",
+      "rule_hash": "sha256:1c42a2d04a29c5ba2a0bde3cb8e8a65d06292c965180143022cb07e979c6a47b",
+      "status": "DRAFT",
+      "rule": {
+        "schema_version": "notch.market-rule/2",
+        "rule_version": "s3b-oracle/1",
+        "market_id": "s3b-replay-trend-nvidia-20261103-20261110",
+        "mode": "trend_trading",
+        "question": "HISTORICAL REPLAY (not a forecast): Will daily en.wikipedia.org pageviews for Nvidia grow by at least 13.50% on the full UTC day 2026-11-10 versus the full UTC day 2026-11-03? (Wikimedia Pageviews, all-access, user)",
+        "choices": [
+          "UP",
+          "DOWN"
+        ],
+        "source": {
+          "id": "wikimedia-pageviews-v1",
+          "provider": "Wikimedia Analytics API",
+          "project": "en.wikipedia.org",
+          "access": "all-access",
+          "agent": "user",
+          "metric": "daily_pageviews",
+          "granularity": "daily",
+          "timezone": "UTC",
+          "article": "Nvidia",
+          "documentation": "https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/documentation/getting-started.html"
+        },
+        "topics": [
+          {
+            "topic_id": "nvidia",
+            "article_title": "Nvidia",
+            "page_id": 39120,
+            "source_url": "https://en.wikipedia.org/wiki/Nvidia"
+          }
+        ],
+        "observation": {
+          "baseline_date": "2026-11-03",
+          "target_date": "2026-11-10",
+          "baseline_window_utc": "2026-11-03T00:00:00Z/2026-11-03T23:59:59Z",
+          "target_window_utc": "2026-11-10T00:00:00Z/2026-11-10T23:59:59Z",
+          "replay": true,
+          "replay_label": "HISTORICAL_REPLAY"
+        },
+        "formula": {
+          "version": "growth-threshold-v1",
+          "growth_bps": "floor((target_views - baseline_views) * 10000 / baseline_views)",
+          "threshold_bps": 1350,
+          "up_if": "growth_bps >= threshold_bps",
+          "down_if": "growth_bps < threshold_bps",
+          "integer_only": true,
+          "rounding": "mathematical floor; negative numerators floor below zero"
+        },
+        "minimum_baseline_views": 1000,
+        "invalidation_policy": "refund_on_void",
+        "missing_data_policy": "void",
+        "resolution_eligibility_utc": "2026-11-17T12:00:00Z",
+        "market_timing": {
+          "open_at_ns": "1794452400000000000",
+          "close_at_ns": "1794787140000000000",
+          "resolve_after_ns": "1794916800000000000",
+          "open_at_utc": "2026-11-12T03:00:00Z",
+          "close_at_utc": "2026-11-15T23:59:00Z",
+          "resolve_after_utc": "2026-11-17T12:00:00Z"
+        },
+        "contract": {
+          "network": "testnet",
+          "account": "market.notch-dev.testnet",
+          "collateral_token": "usdc.tidepool-sandbox.testnet"
+        },
+        "candidate": {
+          "candidate_ids": [
+            "cand_b279c92126deeecb4beb"
+          ],
+          "canonical_topic_ids": [
+            "entity:nvidia"
+          ],
+          "source_proposal_refs": [
+            "prop_3f9faab70cebeba7d87c"
+          ],
+          "validation_status": "READY_FOR_OPERATOR_REVIEW",
+          "operator_approval_required": true
+        },
+        "calibration": {
+          "report_digest": "sha256:5924d37f2f54e571f80d4c788441b126a98ddf10ce3899a7fc5565fb1a1b153e",
+          "suggested_threshold_bps": 1350,
+          "policy": "threshold-calibration-v1: nearest-rank p75 of historical 7-day growth, clamped to [0, 10000] and rounded up to 50 bps",
+          "calibration_window": {
+            "start": "2026-09-08",
+            "end": "2026-11-02"
+          },
+          "status": "OK"
+        },
+        "governance": {
+          "status": "READY_FOR_OPERATOR_REVIEW",
+          "operator_approval_required": true,
+          "auto_approved": false
+        }
+      },
+      "contract_args": {
+        "args": {
+          "market_id": "s3b-replay-trend-nvidia-20261103-20261110",
+          "mode": "trend_trading",
+          "question": "HISTORICAL REPLAY (not a forecast): Will daily en.wikipedia.org pageviews for Nvidia grow by at least 13.50% on the full UTC day 2026-11-10 versus the full UTC day 2026-11-03? (Wikimedia Pageviews, all-access, user)",
+          "choices": [
+            "UP",
+            "DOWN"
+          ],
+          "source_id": "wikimedia-pageviews-v1",
+          "rule_hash": "sha256:1c42a2d04a29c5ba2a0bde3cb8e8a65d06292c965180143022cb07e979c6a47b",
+          "open_at": "1794452400000000000",
+          "close_at": "1794787140000000000",
+          "resolve_after": "1794916800000000000",
+          "invalidation_policy": "refund_on_void"
+        }
+      },
+      "evidence": {
+        "evidence": {
+          "schema_version": "notch.oracle.evidence/1",
+          "market_id": "s3b-replay-trend-nvidia-20261103-20261110",
+          "rule_hash": "sha256:1c42a2d04a29c5ba2a0bde3cb8e8a65d06292c965180143022cb07e979c6a47b",
+          "mode": "trend_trading",
+          "resolver_version": "notch-s3b/0.1.0",
+          "source": {
+            "id": "wikimedia-pageviews-v1",
+            "provider": "Wikimedia Analytics API",
+            "project": "en.wikipedia.org",
+            "access": "all-access",
+            "agent": "user",
+            "metric": "daily_pageviews",
+            "granularity": "daily",
+            "timezone": "UTC",
+            "article": "Nvidia",
+            "documentation": "https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/documentation/getting-started.html"
+          },
+          "topics": [
+            {
+              "topic_id": "nvidia",
+              "article_title": "Nvidia",
+              "page_id": 39120,
+              "source_url": "https://en.wikipedia.org/wiki/Nvidia"
+            }
+          ],
+          "observation": {
+            "baseline_date": "2026-11-03",
+            "target_date": "2026-11-10",
+            "baseline_window_utc": "2026-11-03T00:00:00Z/2026-11-03T23:59:59Z",
+            "target_window_utc": "2026-11-10T00:00:00Z/2026-11-10T23:59:59Z",
+            "replay": true,
+            "replay_label": "HISTORICAL_REPLAY"
+          },
+          "observations": {
+            "nvidia": {
+              "article": "Nvidia",
+              "page_id": 39120,
+              "baseline": {
+                "date": "2026-11-03",
+                "views": 4743,
+                "source_timestamp": "2026110300",
+                "project": "en.wikipedia.org",
+                "article": "Nvidia",
+                "access": "all-access",
+                "agent": "user",
+                "retrieved_at": "2026-11-12T01:07:34.707435Z",
+                "source_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Nvidia/daily/20260901/20261110",
+                "source_query": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Nvidia/daily/20260901/20261110",
+                "raw_response_hash": "f372687814e75ca213ef31e014a2a9a8dc204340f249a44922ae9e1401e436f2",
+                "observation_hash": "217ee3e46633d0288498df196a564de21d9dab606e4510c178ace8a3cf778f86"
+              },
+              "target": {
+                "date": "2026-11-10",
+                "views": 123851,
+                "source_timestamp": "2026111000",
+                "project": "en.wikipedia.org",
+                "article": "Nvidia",
+                "access": "all-access",
+                "agent": "user",
+                "retrieved_at": "2026-11-12T01:07:34.707435Z",
+                "source_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Nvidia/daily/20260901/20261110",
+                "source_query": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Nvidia/daily/20260901/20261110",
+                "raw_response_hash": "f372687814e75ca213ef31e014a2a9a8dc204340f249a44922ae9e1401e436f2",
+                "observation_hash": "bdd8fa3a418cf5eb870db9afed44a5be239a4aa1b54e3b69434befe417dfc07a"
+              },
+              "range": {
+                "source_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Nvidia/daily/20260901/20261110",
+                "start_date": "2026-09-01",
+                "end_date": "2026-11-10",
+                "raw_response_hash": "f372687814e75ca213ef31e014a2a9a8dc204340f249a44922ae9e1401e436f2",
+                "retrieved_at": "2026-11-12T01:07:34.707435Z"
+              }
+            }
+          },
+          "calculation": {
+            "outcome": "UP",
+            "invalidity_reason": null,
+            "baseline_views": 4743,
+            "target_views": 123851,
+            "growth_bps": 251123,
+            "threshold_bps": 1350,
+            "minimum_baseline_views": 1000
+          },
+          "outcome": "UP",
+          "invalidity_reason": null,
+          "retrieved_at": "2026-11-12T01:07:34.707435Z",
+          "raw_source_hashes": [
+            "f372687814e75ca213ef31e014a2a9a8dc204340f249a44922ae9e1401e436f2"
+          ],
+          "integrity_note": "The evidence digest proves the integrity of the recorded source payload hashes and calculation inputs. It does not prove that Wikimedia pageviews are organic, complete or free of manipulation.",
+          "evidence_digest": "sha256:0c5ede6be9542b2d161601d6e5e6205c725dc8bf7ad9a488a63911c5f22ddbb2"
+        },
+        "verification": {
+          "valid": true,
+          "reasons": [],
+          "evidence_digest": "sha256:0c5ede6be9542b2d161601d6e5e6205c725dc8bf7ad9a488a63911c5f22ddbb2",
+          "outcome": "UP",
+          "rule_hash": "sha256:1c42a2d04a29c5ba2a0bde3cb8e8a65d06292c965180143022cb07e979c6a47b",
+          "integrity_note": "The evidence digest proves the integrity of the recorded source payload hashes and calculation inputs. It does not prove that Wikimedia pageviews are organic, complete or free of manipulation."
+        },
+        "path": "var\\oracle_live_final\\evidence\\s3b-replay-trend-nvidia-20261103-20261110.0c5ede6be9542b2d161601d6e5e6205c725dc8bf7ad9a488a63911c5f22ddbb2.json"
+      },
+      "evidence_pending": false,
+      "resolution_plan_preview": {
+        "schema_version": "notch.oracle.resolution-plan/1",
+        "job_id": "job_da3d620f9a9a28d499b2",
+        "market_id": "s3b-replay-trend-nvidia-20261103-20261110",
+        "rule_hash": "sha256:1c42a2d04a29c5ba2a0bde3cb8e8a65d06292c965180143022cb07e979c6a47b",
+        "mode": "trend_trading",
+        "evidence_digest": "sha256:0c5ede6be9542b2d161601d6e5e6205c725dc8bf7ad9a488a63911c5f22ddbb2",
+        "outcome": "UP",
+        "action": "resolve_market",
+        "status": "BLOCKED",
+        "contract_call": {
+          "contract_id": "market.notch-dev.testnet",
+          "method": "resolve_market",
+          "args": {
+            "market_id": "s3b-replay-trend-nvidia-20261103-20261110",
+            "winning_outcome": 0,
+            "evidence_hash": "sha256:0c5ede6be9542b2d161601d6e5e6205c725dc8bf7ad9a488a63911c5f22ddbb2"
+          },
+          "gas_tgas": 100,
+          "deposit_yocto": 0
+        },
+        "near_cli_command_template": "near contract call-function as-transaction market.notch-dev.testnet resolve_market json-args '{\"market_id\":\"s3b-replay-trend-nvidia-20261103-20261110\",\"winning_outcome\":0,\"evidence_hash\":\"sha256:0c5ede6be9542b2d161601d6e5e6205c725dc8bf7ad9a488a63911c5f22ddbb2\"}' prepaid-gas '100 Tgas' attached-deposit '0 NEAR' sign-as <resolver-account> network-config testnet sign-with-keychain send",
+        "blockers": [
+          "ONCHAIN_MARKET_NOT_PROVIDED",
+          "RULE_NOT_APPROVED"
+        ],
+        "warnings": [],
+        "onchain_market": null,
+        "prepared_at": "2026-11-12T02:00:00Z",
+        "idempotent": false
+      }
+    },
+    {
+      "name": "replay_battle_bitcoin_chatgpt",
+      "rule_hash": "sha256:64a41270b9b68a7c33a972001adc1122b35c0877d1e04692f2cf2742fad1c19d",
+      "status": "DRAFT",
+      "rule": {
+        "schema_version": "notch.market-rule/2",
+        "rule_version": "s3b-oracle/1",
+        "market_id": "s3b-replay-battle-btc-chatgpt-20261103-20261110",
+        "mode": "trend_battle",
+        "question": "HISTORICAL REPLAY (not a forecast): Which topic had higher normalized Wikimedia pageview growth from the full UTC day 2026-11-03 to the full UTC day 2026-11-10: Bitcoin or ChatGPT? A difference within 930 bps is a tie and voids the market.",
+        "choices": [
+          "Bitcoin",
+          "ChatGPT"
+        ],
+        "source": {
+          "id": "wikimedia-pageviews-v1",
+          "provider": "Wikimedia Analytics API",
+          "project": "en.wikipedia.org",
+          "access": "all-access",
+          "agent": "user",
+          "metric": "daily_pageviews_growth_comparison",
+          "granularity": "daily",
+          "timezone": "UTC",
+          "article": "Bitcoin",
+          "documentation": "https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/documentation/getting-started.html"
+        },
+        "topics": [
+          {
+            "topic_id": "bitcoin",
+            "article_title": "Bitcoin",
+            "page_id": 28249265,
+            "source_url": "https://en.wikipedia.org/wiki/Bitcoin"
+          },
+          {
+            "topic_id": "chatgpt",
+            "article_title": "ChatGPT",
+            "page_id": 72417803,
+            "source_url": "https://en.wikipedia.org/wiki/ChatGPT"
+          }
+        ],
+        "observation": {
+          "baseline_date": "2026-11-03",
+          "target_date": "2026-11-10",
+          "baseline_window_utc": "2026-11-03T00:00:00Z/2026-11-03T23:59:59Z",
+          "target_window_utc": "2026-11-10T00:00:00Z/2026-11-10T23:59:59Z",
+          "replay": true,
+          "replay_label": "HISTORICAL_REPLAY"
+        },
+        "formula": {
+          "version": "growth_comparison_v1",
+          "growth_bps": "floor((target_views - baseline_views) * 10000 / baseline_views)",
+          "comparison": "difference_bps = growth_a_bps - growth_b_bps",
+          "tie_tolerance_bps": 930,
+          "tie_policy": "void",
+          "tie_if": "abs(difference_bps) <= tie_tolerance_bps",
+          "winner_if": "abs(difference_bps) > tie_tolerance_bps",
+          "integer_only": true
+        },
+        "minimum_baseline_views": 1000,
+        "invalidation_policy": "refund_on_void",
+        "missing_data_policy": "void",
+        "resolution_eligibility_utc": "2026-11-17T12:00:00Z",
+        "market_timing": {
+          "open_at_ns": "1794452400000000000",
+          "close_at_ns": "1794787140000000000",
+          "resolve_after_ns": "1794916800000000000",
+          "open_at_utc": "2026-11-12T03:00:00Z",
+          "close_at_utc": "2026-11-15T23:59:00Z",
+          "resolve_after_utc": "2026-11-17T12:00:00Z"
+        },
+        "contract": {
+          "network": "testnet",
+          "account": "market.notch-dev.testnet",
+          "collateral_token": "usdc.tidepool-sandbox.testnet"
+        },
+        "candidate": {
+          "candidate_ids": [
+            "cand_9118da9248a28ca00f02",
+            "cand_28cba27c64b5456c3a8b"
+          ],
+          "canonical_topic_ids": [
+            "entity:bitcoin",
+            "entity:chatgpt"
+          ],
+          "source_proposal_refs": [
+            "prop_b14fbe6a7e90c00afde3",
+            "prop_05bb8eb0e45441d15546"
+          ],
+          "validation_status": "READY_FOR_OPERATOR_REVIEW",
+          "operator_approval_required": true
+        },
+        "calibration": {
+          "report_digest": "sha256:94c7c624d9e79b074ee0edb5b2ba5d273531fbe04cb7418a73effb0d4afb0dd4",
+          "suggested_tie_tolerance_bps": 930,
+          "policy": "void",
+          "calibration_window": {
+            "start": "2026-09-08",
+            "end": "2026-11-02"
+          },
+          "status": "OK"
+        },
+        "governance": {
+          "status": "READY_FOR_OPERATOR_REVIEW",
+          "operator_approval_required": true,
+          "auto_approved": false
+        }
+      },
+      "contract_args": {
+        "args": {
+          "market_id": "s3b-replay-battle-btc-chatgpt-20261103-20261110",
+          "mode": "trend_battle",
+          "question": "HISTORICAL REPLAY (not a forecast): Which topic had higher normalized Wikimedia pageview growth from the full UTC day 2026-11-03 to the full UTC day 2026-11-10: Bitcoin or ChatGPT? A difference within 930 bps is a tie and voids the market.",
+          "choices": [
+            "Bitcoin",
+            "ChatGPT"
+          ],
+          "source_id": "wikimedia-pageviews-v1",
+          "rule_hash": "sha256:64a41270b9b68a7c33a972001adc1122b35c0877d1e04692f2cf2742fad1c19d",
+          "open_at": "1794452400000000000",
+          "close_at": "1794787140000000000",
+          "resolve_after": "1794916800000000000",
+          "invalidation_policy": "refund_on_void",
+          "battle": {
+            "topic_a": {
+              "topic_id": "bitcoin",
+              "source_id": "wikimedia-pageviews-v1",
+              "project": "en.wikipedia.org",
+              "article_title": "Bitcoin",
+              "metric": "daily_pageviews_growth_comparison"
+            },
+            "topic_b": {
+              "topic_id": "chatgpt",
+              "source_id": "wikimedia-pageviews-v1",
+              "project": "en.wikipedia.org",
+              "article_title": "ChatGPT",
+              "metric": "daily_pageviews_growth_comparison"
+            },
+            "observation_start": "1793664000000000000",
+            "observation_end": "1794355199000000000",
+            "formula": "growth_comparison_v1",
+            "min_baseline_views": "1000",
+            "tie_tolerance_bps": 930,
+            "tie_policy": "void"
+          }
+        }
+      },
+      "evidence": {
+        "evidence": {
+          "schema_version": "notch.oracle.evidence/1",
+          "market_id": "s3b-replay-battle-btc-chatgpt-20261103-20261110",
+          "rule_hash": "sha256:64a41270b9b68a7c33a972001adc1122b35c0877d1e04692f2cf2742fad1c19d",
+          "mode": "trend_battle",
+          "resolver_version": "notch-s3b/0.1.0",
+          "source": {
+            "id": "wikimedia-pageviews-v1",
+            "provider": "Wikimedia Analytics API",
+            "project": "en.wikipedia.org",
+            "access": "all-access",
+            "agent": "user",
+            "metric": "daily_pageviews_growth_comparison",
+            "granularity": "daily",
+            "timezone": "UTC",
+            "article": "Bitcoin",
+            "documentation": "https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/documentation/getting-started.html"
+          },
+          "topics": [
+            {
+              "topic_id": "bitcoin",
+              "article_title": "Bitcoin",
+              "page_id": 28249265,
+              "source_url": "https://en.wikipedia.org/wiki/Bitcoin"
+            },
+            {
+              "topic_id": "chatgpt",
+              "article_title": "ChatGPT",
+              "page_id": 72417803,
+              "source_url": "https://en.wikipedia.org/wiki/ChatGPT"
+            }
+          ],
+          "observation": {
+            "baseline_date": "2026-11-03",
+            "target_date": "2026-11-10",
+            "baseline_window_utc": "2026-11-03T00:00:00Z/2026-11-03T23:59:59Z",
+            "target_window_utc": "2026-11-10T00:00:00Z/2026-11-10T23:59:59Z",
+            "replay": true,
+            "replay_label": "HISTORICAL_REPLAY"
+          },
+          "observations": {
+            "bitcoin": {
+              "article": "Bitcoin",
+              "page_id": 28249265,
+              "baseline": {
+                "date": "2026-11-03",
+                "views": 3751,
+                "source_timestamp": "2026110300",
+                "project": "en.wikipedia.org",
+                "article": "Bitcoin",
+                "access": "all-access",
+                "agent": "user",
+                "retrieved_at": "2026-11-12T01:07:33.333129Z",
+                "source_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Bitcoin/daily/20260901/20261110",
+                "source_query": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Bitcoin/daily/20260901/20261110",
+                "raw_response_hash": "a5f812634989d338a959859e293c4bf51e02bb579a59a39a739a0829ea4226c7",
+                "observation_hash": "7e022ee22b66c289b713335baf2e0fac036ff4d46dfcbb529b00743629d0dcbe"
+              },
+              "target": {
+                "date": "2026-11-10",
+                "views": 4359,
+                "source_timestamp": "2026111000",
+                "project": "en.wikipedia.org",
+                "article": "Bitcoin",
+                "access": "all-access",
+                "agent": "user",
+                "retrieved_at": "2026-11-12T01:07:33.333129Z",
+                "source_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Bitcoin/daily/20260901/20261110",
+                "source_query": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Bitcoin/daily/20260901/20261110",
+                "raw_response_hash": "a5f812634989d338a959859e293c4bf51e02bb579a59a39a739a0829ea4226c7",
+                "observation_hash": "327df4f709a4178aa4474c3195112507f364c4efa704bbe15cdae545378b4b3b"
+              },
+              "range": {
+                "source_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Bitcoin/daily/20260901/20261110",
+                "start_date": "2026-09-01",
+                "end_date": "2026-11-10",
+                "raw_response_hash": "a5f812634989d338a959859e293c4bf51e02bb579a59a39a739a0829ea4226c7",
+                "retrieved_at": "2026-11-12T01:07:33.333129Z"
+              }
+            },
+            "chatgpt": {
+              "article": "ChatGPT",
+              "page_id": 72417803,
+              "baseline": {
+                "date": "2026-11-03",
+                "views": 117118,
+                "source_timestamp": "2026110300",
+                "project": "en.wikipedia.org",
+                "article": "ChatGPT",
+                "access": "all-access",
+                "agent": "user",
+                "retrieved_at": "2026-11-12T01:07:33.998301Z",
+                "source_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/ChatGPT/daily/20260901/20261110",
+                "source_query": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/ChatGPT/daily/20260901/20261110",
+                "raw_response_hash": "f3992626c971b8eafc4b661f88a3edbdb712727ec96de97b80b3902463c663e7",
+                "observation_hash": "56ddf1562cf2deb591dae830f00ca4aecf78763a9d78d31e7ebca24feb0bd5c5"
+              },
+              "target": {
+                "date": "2026-11-10",
+                "views": 59377,
+                "source_timestamp": "2026111000",
+                "project": "en.wikipedia.org",
+                "article": "ChatGPT",
+                "access": "all-access",
+                "agent": "user",
+                "retrieved_at": "2026-11-12T01:07:33.998301Z",
+                "source_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/ChatGPT/daily/20260901/20261110",
+                "source_query": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/ChatGPT/daily/20260901/20261110",
+                "raw_response_hash": "f3992626c971b8eafc4b661f88a3edbdb712727ec96de97b80b3902463c663e7",
+                "observation_hash": "932379a8cfa498526b78a40993b961fe10d6cfc9c82b303571b846892bc72e44"
+              },
+              "range": {
+                "source_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/ChatGPT/daily/20260901/20261110",
+                "start_date": "2026-09-01",
+                "end_date": "2026-11-10",
+                "raw_response_hash": "f3992626c971b8eafc4b661f88a3edbdb712727ec96de97b80b3902463c663e7",
+                "retrieved_at": "2026-11-12T01:07:33.998301Z"
+              }
+            }
+          },
+          "calculation": {
+            "outcome": "TOPIC_A",
+            "invalidity_reason": null,
+            "baseline_a": 3751,
+            "target_a": 4359,
+            "baseline_b": 117118,
+            "target_b": 59377,
+            "growth_a_bps": 1620,
+            "growth_b_bps": -4931,
+            "difference_bps": 6551,
+            "tie_tolerance_bps": 930,
+            "minimum_baseline_views": 1000
+          },
+          "outcome": "TOPIC_A",
+          "invalidity_reason": null,
+          "retrieved_at": "2026-11-12T01:07:33.998301Z",
+          "raw_source_hashes": [
+            "a5f812634989d338a959859e293c4bf51e02bb579a59a39a739a0829ea4226c7",
+            "f3992626c971b8eafc4b661f88a3edbdb712727ec96de97b80b3902463c663e7"
+          ],
+          "integrity_note": "The evidence digest proves the integrity of the recorded source payload hashes and calculation inputs. It does not prove that Wikimedia pageviews are organic, complete or free of manipulation.",
+          "evidence_digest": "sha256:cef387d5905985f5bf2644d2cb4daad735dfd8b076fc429a598d199927a60e12"
+        },
+        "verification": {
+          "valid": true,
+          "reasons": [],
+          "evidence_digest": "sha256:cef387d5905985f5bf2644d2cb4daad735dfd8b076fc429a598d199927a60e12",
+          "outcome": "TOPIC_A",
+          "rule_hash": "sha256:64a41270b9b68a7c33a972001adc1122b35c0877d1e04692f2cf2742fad1c19d",
+          "integrity_note": "The evidence digest proves the integrity of the recorded source payload hashes and calculation inputs. It does not prove that Wikimedia pageviews are organic, complete or free of manipulation."
+        },
+        "path": "var\\oracle_live_final\\evidence\\s3b-replay-battle-btc-chatgpt-20261103-20261110.cef387d5905985f5bf2644d2cb4daad735dfd8b076fc429a598d199927a60e12.json"
+      },
+      "evidence_pending": false,
+      "resolution_plan_preview": {
+        "schema_version": "notch.oracle.resolution-plan/1",
+        "job_id": "job_43fd45eb2922f8c29a46",
+        "market_id": "s3b-replay-battle-btc-chatgpt-20261103-20261110",
+        "rule_hash": "sha256:64a41270b9b68a7c33a972001adc1122b35c0877d1e04692f2cf2742fad1c19d",
+        "mode": "trend_battle",
+        "evidence_digest": "sha256:cef387d5905985f5bf2644d2cb4daad735dfd8b076fc429a598d199927a60e12",
+        "outcome": "TOPIC_A",
+        "action": "resolve_market",
+        "status": "BLOCKED",
+        "contract_call": {
+          "contract_id": "market.notch-dev.testnet",
+          "method": "resolve_market",
+          "args": {
+            "market_id": "s3b-replay-battle-btc-chatgpt-20261103-20261110",
+            "winning_outcome": 0,
+            "evidence_hash": "sha256:cef387d5905985f5bf2644d2cb4daad735dfd8b076fc429a598d199927a60e12"
+          },
+          "gas_tgas": 100,
+          "deposit_yocto": 0
+        },
+        "near_cli_command_template": "near contract call-function as-transaction market.notch-dev.testnet resolve_market json-args '{\"market_id\":\"s3b-replay-battle-btc-chatgpt-20261103-20261110\",\"winning_outcome\":0,\"evidence_hash\":\"sha256:cef387d5905985f5bf2644d2cb4daad735dfd8b076fc429a598d199927a60e12\"}' prepaid-gas '100 Tgas' attached-deposit '0 NEAR' sign-as <resolver-account> network-config testnet sign-with-keychain send",
+        "blockers": [
+          "ONCHAIN_MARKET_NOT_PROVIDED",
+          "RULE_NOT_APPROVED"
+        ],
+        "warnings": [],
+        "onchain_market": null,
+        "prepared_at": "2026-11-12T02:00:00Z",
+        "idempotent": false
+      }
+    }
+  ],
+  "battle_pair": {
+    "topic_a": "Bitcoin",
+    "topic_b": "ChatGPT",
+    "recommendation": "READY_FOR_OPERATOR_REVIEW",
+    "review": {
+      "schema_version": "notch.oracle.review/1",
+      "candidate_ids": [
+        "cand_9118da9248a28ca00f02",
+        "cand_28cba27c64b5456c3a8b"
+      ],
+      "title": "Bitcoin vs ChatGPT",
+      "canonical_topic_ids": [
+        "entity:bitcoin",
+        "entity:chatgpt"
+      ],
+      "category": null,
+      "measurement_valid": true,
+      "measurement_status": "VALID",
+      "market_interest": "low_but_measurable",
+      "market_interest_reasons": [
+        "baseline_or_top_views=3751",
+        "source_count=1",
+        "baseline_or_top_views=3751",
+        "source_count=1"
+      ],
+      "recognizable_topic": true,
+      "recognizable_reasons": [],
+      "sensitivity_flags": [],
+      "relationship_flags": [],
+      "ambiguous_mapping": false,
+      "ambiguity_reasons": [],
+      "operator_approval_required": true,
+      "recommendation": "READY_FOR_OPERATOR_REVIEW",
+      "reasons": [],
+      "sources": [
+        {
+          "source": "coingecko",
+          "source_id": "coingecko:coin:bitcoin",
+          "url": "https://www.coingecko.com/en/coins/bitcoin"
+        },
+        {
+          "source": "wikimedia",
+          "source_id": "wikimedia:en.wikipedia.org:ChatGPT",
+          "url": "https://en.wikipedia.org/wiki/ChatGPT"
+        }
+      ]
+    }
+  },
+  "notes": [
+    "All rules are DRAFT and require explicit operator approval.",
+    "No market is created, signed or resolved by this demo.",
+    "Replay markets use historical observations with future entry/close timestamps and are explicitly labeled.",
+    "The future market has no evidence until its observation window passes.",
+    "Evidence hashes prove integrity, not organic attention."
+  ],
+  "calibration_reports": {
+    "future_bitcoin": {
+      "schema_version": "notch.oracle.calibration/1",
+      "mode": "trend_trading",
+      "article": "Bitcoin",
+      "project": "en.wikipedia.org",
+      "baseline_date": "2026-11-16",
+      "target_date": "2026-11-23",
+      "calibration_start": "2026-09-16",
+      "calibration_end": "2026-11-10",
+      "calibration_days": 56,
+      "min_baseline_views": 1000,
+      "observation_status": "PENDING_OBSERVATION",
+      "baseline_views": null,
+      "target_views": null,
+      "weekly_growth_bps": {
+        "2026-09-16": -3419,
+        "2026-09-17": -240,
+        "2026-09-18": -4025,
+        "2026-09-19": -1797,
+        "2026-09-20": -1641,
+        "2026-09-21": 85,
+        "2026-09-22": 378,
+        "2026-09-23": 24099,
+        "2026-09-24": 9502,
+        "2026-09-25": 46692,
+        "2026-09-26": -1774,
+        "2026-09-27": -1688,
+        "2026-09-28": -292,
+        "2026-09-29": 2314,
+        "2026-09-30": -5936,
+        "2026-10-01": -4561,
+        "2026-10-02": -7956,
+        "2026-10-03": 858,
+        "2026-10-04": -1082,
+        "2026-10-05": -188,
+        "2026-10-06": -3352,
+        "2026-10-07": -3197,
+        "2026-10-08": -1513,
+        "2026-10-09": 39901,
+        "2026-10-10": -523,
+        "2026-10-11": 1857,
+        "2026-10-12": 114,
+        "2026-10-13": 970,
+        "2026-10-14": 1109,
+        "2026-10-15": 176,
+        "2026-10-16": -8266,
+        "2026-10-17": -15,
+        "2026-10-18": -1024,
+        "2026-10-19": -1295,
+        "2026-10-20": -732,
+        "2026-10-21": -782,
+        "2026-10-22": -45,
+        "2026-10-23": 3127,
+        "2026-10-24": 4,
+        "2026-10-25": 307,
+        "2026-10-26": 2047,
+        "2026-10-27": 2264,
+        "2026-10-28": 14400,
+        "2026-10-29": 16013,
+        "2026-10-30": 10890,
+        "2026-10-31": 13499,
+        "2026-11-01": 10092,
+        "2026-11-02": 10865,
+        "2026-11-03": 3268,
+        "2026-11-04": 4476,
+        "2026-11-05": -4531,
+        "2026-11-06": -3649,
+        "2026-11-07": -3152,
+        "2026-11-08": -3263,
+        "2026-11-09": -3420,
+        "2026-11-10": 1620
+      },
+      "weekly_growth_stats": {
+        "count": 56,
+        "min": -8266,
+        "p10": -4025,
+        "p25": -1797,
+        "p50": -45,
+        "p75": 2264,
+        "p90": 13499,
+        "max": 46692,
+        "mean_abs": 5255
+      },
+      "daily_growth_stats": {
+        "count": 56,
+        "min": -8419,
+        "p10": -2795,
+        "p25": -1233,
+        "p50": 31,
+        "p75": 1330,
+        "p90": 4226,
+        "max": 47230,
+        "mean_abs": 3321
+      },
+      "suggested_threshold_bps": 2300,
+      "threshold_candidates": {
+        "p50": -45,
+        "p75": 2264,
+        "p90": 13499
+      },
+      "threshold_policy": "threshold-calibration-v1: nearest-rank p75 of historical 7-day growth, clamped to [0, 10000] and rounded up to 50 bps",
+      "up_frequency_at_threshold": 2500,
+      "status": "OK",
+      "reasons": [],
+      "missing_dates": [],
+      "source_queries": [
+        "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Bitcoin/daily/20260901/20261110"
+      ],
+      "source_raw_hashes": [
+        "a5f812634989d338a959859e293c4bf51e02bb579a59a39a739a0829ea4226c7"
+      ],
+      "retrieved_at": "2026-11-12T01:07:33.333129Z",
+      "report_digest": "sha256:90a8b59ef76ce8bf6c4c577c3325daf6d03b07f6f7fbadf3fb767475f7690b89",
+      "topic_b_article": null,
+      "growth_a_bps": null,
+      "growth_b_bps": null,
+      "difference_bps": null,
+      "abs_difference_stats": {},
+      "suggested_tie_tolerance_bps": null,
+      "tie_frequency_at_suggestion": null,
+      "tie_policy": null
+    },
+    "replay_trend_bitcoin": {
+      "schema_version": "notch.oracle.calibration/1",
+      "mode": "trend_trading",
+      "article": "Bitcoin",
+      "project": "en.wikipedia.org",
+      "baseline_date": "2026-11-03",
+      "target_date": "2026-11-10",
+      "calibration_start": "2026-09-08",
+      "calibration_end": "2026-11-02",
+      "calibration_days": 56,
+      "min_baseline_views": 1000,
+      "observation_status": "AVAILABLE",
+      "baseline_views": 3751,
+      "target_views": 4359,
+      "weekly_growth_bps": {
+        "2026-09-08": -3496,
+        "2026-09-09": 4701,
+        "2026-09-10": -1342,
+        "2026-09-11": 4706,
+        "2026-09-12": 4602,
+        "2026-09-13": -1247,
+        "2026-09-14": -4817,
+        "2026-09-15": 912,
+        "2026-09-16": -3419,
+        "2026-09-17": -240,
+        "2026-09-18": -4025,
+        "2026-09-19": -1797,
+        "2026-09-20": -1641,
+        "2026-09-21": 85,
+        "2026-09-22": 378,
+        "2026-09-23": 24099,
+        "2026-09-24": 9502,
+        "2026-09-25": 46692,
+        "2026-09-26": -1774,
+        "2026-09-27": -1688,
+        "2026-09-28": -292,
+        "2026-09-29": 2314,
+        "2026-09-30": -5936,
+        "2026-10-01": -4561,
+        "2026-10-02": -7956,
+        "2026-10-03": 858,
+        "2026-10-04": -1082,
+        "2026-10-05": -188,
+        "2026-10-06": -3352,
+        "2026-10-07": -3197,
+        "2026-10-08": -1513,
+        "2026-10-09": 39901,
+        "2026-10-10": -523,
+        "2026-10-11": 1857,
+        "2026-10-12": 114,
+        "2026-10-13": 970,
+        "2026-10-14": 1109,
+        "2026-10-15": 176,
+        "2026-10-16": -8266,
+        "2026-10-17": -15,
+        "2026-10-18": -1024,
+        "2026-10-19": -1295,
+        "2026-10-20": -732,
+        "2026-10-21": -782,
+        "2026-10-22": -45,
+        "2026-10-23": 3127,
+        "2026-10-24": 4,
+        "2026-10-25": 307,
+        "2026-10-26": 2047,
+        "2026-10-27": 2264,
+        "2026-10-28": 14400,
+        "2026-10-29": 16013,
+        "2026-10-30": 10890,
+        "2026-10-31": 13499,
+        "2026-11-01": 10092,
+        "2026-11-02": 10865
+      },
+      "weekly_growth_stats": {
+        "count": 56,
+        "min": -8266,
+        "p10": -4025,
+        "p25": -1641,
+        "p50": -15,
+        "p75": 2314,
+        "p90": 13499,
+        "max": 46692,
+        "mean_abs": 5227
+      },
+      "daily_growth_stats": {
+        "count": 56,
+        "min": -8419,
+        "p10": -2916,
+        "p25": -1233,
+        "p50": 31,
+        "p75": 1129,
+        "p90": 4490,
+        "max": 47230,
+        "mean_abs": 3176
+      },
+      "suggested_threshold_bps": 2350,
+      "threshold_candidates": {
+        "p50": -15,
+        "p75": 2314,
+        "p90": 13499
+      },
+      "threshold_policy": "threshold-calibration-v1: nearest-rank p75 of historical 7-day growth, clamped to [0, 10000] and rounded up to 50 bps",
+      "up_frequency_at_threshold": 2500,
+      "status": "OK",
+      "reasons": [],
+      "missing_dates": [],
+      "source_queries": [
+        "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Bitcoin/daily/20260901/20261110"
+      ],
+      "source_raw_hashes": [
+        "a5f812634989d338a959859e293c4bf51e02bb579a59a39a739a0829ea4226c7"
+      ],
+      "retrieved_at": "2026-11-12T01:07:33.333129Z",
+      "report_digest": "sha256:e132d75a06f07a7415cc85e35f824fe0aa6d295ce01a561fcb8a4ea8bae2dbfb",
+      "topic_b_article": null,
+      "growth_a_bps": null,
+      "growth_b_bps": null,
+      "difference_bps": null,
+      "abs_difference_stats": {},
+      "suggested_tie_tolerance_bps": null,
+      "tie_frequency_at_suggestion": null,
+      "tie_policy": null
+    },
+    "replay_trend_nvidia": {
+      "schema_version": "notch.oracle.calibration/1",
+      "mode": "trend_trading",
+      "article": "Nvidia",
+      "project": "en.wikipedia.org",
+      "baseline_date": "2026-11-03",
+      "target_date": "2026-11-10",
+      "calibration_start": "2026-09-08",
+      "calibration_end": "2026-11-02",
+      "calibration_days": 56,
+      "min_baseline_views": 1000,
+      "observation_status": "AVAILABLE",
+      "baseline_views": 4743,
+      "target_views": 123851,
+      "weekly_growth_bps": {
+        "2026-09-08": -1557,
+        "2026-09-09": 932,
+        "2026-09-10": -2751,
+        "2026-09-11": -3729,
+        "2026-09-12": -2095,
+        "2026-09-13": -129,
+        "2026-09-14": -450,
+        "2026-09-15": 3781,
+        "2026-09-16": 1895,
+        "2026-09-17": 2958,
+        "2026-09-18": 2859,
+        "2026-09-19": 1764,
+        "2026-09-20": 2387,
+        "2026-09-21": 1456,
+        "2026-09-22": -1002,
+        "2026-09-23": -302,
+        "2026-09-24": -28,
+        "2026-09-25": 1542,
+        "2026-09-26": 617,
+        "2026-09-27": -812,
+        "2026-09-28": 659,
+        "2026-09-29": 1342,
+        "2026-09-30": 120,
+        "2026-10-01": -1378,
+        "2026-10-02": -2464,
+        "2026-10-03": -771,
+        "2026-10-04": -1489,
+        "2026-10-05": -2226,
+        "2026-10-06": -2286,
+        "2026-10-07": -1110,
+        "2026-10-08": 3212,
+        "2026-10-09": 1075,
+        "2026-10-10": -910,
+        "2026-10-11": 776,
+        "2026-10-12": 270,
+        "2026-10-13": -178,
+        "2026-10-14": -663,
+        "2026-10-15": -972,
+        "2026-10-16": 2452,
+        "2026-10-17": 923,
+        "2026-10-18": 1298,
+        "2026-10-19": 2353,
+        "2026-10-20": 2324,
+        "2026-10-21": 828,
+        "2026-10-22": 185,
+        "2026-10-23": -1268,
+        "2026-10-24": 2147,
+        "2026-10-25": -135,
+        "2026-10-26": -1278,
+        "2026-10-27": -3024,
+        "2026-10-28": -2387,
+        "2026-10-29": -503,
+        "2026-10-30": 1458,
+        "2026-10-31": -2450,
+        "2026-11-01": -2863,
+        "2026-11-02": -2463
+      },
+      "weekly_growth_stats": {
+        "count": 56,
+        "min": -3729,
+        "p10": -2463,
+        "p25": -1378,
+        "p50": -135,
+        "p75": 1342,
+        "p90": 2387,
+        "max": 3781,
+        "mean_abs": 1522
+      },
+      "daily_growth_stats": {
+        "count": 56,
+        "min": -3937,
+        "p10": -1846,
+        "p25": -969,
+        "p50": 270,
+        "p75": 1149,
+        "p90": 2056,
+        "max": 3945,
+        "mean_abs": 1291
+      },
+      "suggested_threshold_bps": 1350,
+      "threshold_candidates": {
+        "p50": -135,
+        "p75": 1342,
+        "p90": 2387
+      },
+      "threshold_policy": "threshold-calibration-v1: nearest-rank p75 of historical 7-day growth, clamped to [0, 10000] and rounded up to 50 bps",
+      "up_frequency_at_threshold": 2500,
+      "status": "OK",
+      "reasons": [],
+      "missing_dates": [],
+      "source_queries": [
+        "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Nvidia/daily/20260901/20261110"
+      ],
+      "source_raw_hashes": [
+        "f372687814e75ca213ef31e014a2a9a8dc204340f249a44922ae9e1401e436f2"
+      ],
+      "retrieved_at": "2026-11-12T01:07:34.707435Z",
+      "report_digest": "sha256:5924d37f2f54e571f80d4c788441b126a98ddf10ce3899a7fc5565fb1a1b153e",
+      "topic_b_article": null,
+      "growth_a_bps": null,
+      "growth_b_bps": null,
+      "difference_bps": null,
+      "abs_difference_stats": {},
+      "suggested_tie_tolerance_bps": null,
+      "tie_frequency_at_suggestion": null,
+      "tie_policy": null
+    },
+    "replay_trend_chatgpt": {
+      "schema_version": "notch.oracle.calibration/1",
+      "mode": "trend_trading",
+      "article": "ChatGPT",
+      "project": "en.wikipedia.org",
+      "baseline_date": "2026-11-03",
+      "target_date": "2026-11-10",
+      "calibration_start": "2026-09-08",
+      "calibration_end": "2026-11-02",
+      "calibration_days": 56,
+      "min_baseline_views": 1000,
+      "observation_status": "AVAILABLE",
+      "baseline_views": 117118,
+      "target_views": 59377,
+      "weekly_growth_bps": {
+        "2026-09-08": 1630,
+        "2026-09-09": 16307,
+        "2026-09-10": 226,
+        "2026-09-11": 14287,
+        "2026-09-12": 10357,
+        "2026-09-13": 8934,
+        "2026-09-14": 6048,
+        "2026-09-15": 8235,
+        "2026-09-16": -3002,
+        "2026-09-17": 6019,
+        "2026-09-18": -3101,
+        "2026-09-19": 1892,
+        "2026-09-20": -910,
+        "2026-09-21": 5064,
+        "2026-09-22": 483,
+        "2026-09-23": 3714,
+        "2026-09-24": -5137,
+        "2026-09-25": 25,
+        "2026-09-26": -3152,
+        "2026-09-27": -713,
+        "2026-09-28": -4780,
+        "2026-09-29": -3336,
+        "2026-09-30": -4317,
+        "2026-10-01": -995,
+        "2026-10-02": -3381,
+        "2026-10-03": -2125,
+        "2026-10-04": -2389,
+        "2026-10-05": -1285,
+        "2026-10-06": 335,
+        "2026-10-07": 1715,
+        "2026-10-08": -364,
+        "2026-10-09": 2637,
+        "2026-10-10": 988,
+        "2026-10-11": -998,
+        "2026-10-12": -1531,
+        "2026-10-13": -2627,
+        "2026-10-14": -215,
+        "2026-10-15": 1154,
+        "2026-10-16": -1174,
+        "2026-10-17": -770,
+        "2026-10-18": 1550,
+        "2026-10-19": 15317,
+        "2026-10-20": 20942,
+        "2026-10-21": 19081,
+        "2026-10-22": 18038,
+        "2026-10-23": 20595,
+        "2026-10-24": 14813,
+        "2026-10-25": 11764,
+        "2026-10-26": 5858,
+        "2026-10-27": 3077,
+        "2026-10-28": 544,
+        "2026-10-29": 2719,
+        "2026-10-30": -2363,
+        "2026-10-31": -2534,
+        "2026-11-01": -2719,
+        "2026-11-02": -3951
+      },
+      "weekly_growth_stats": {
+        "count": 56,
+        "min": -5137,
+        "p10": -3336,
+        "p25": -2363,
+        "p50": 335,
+        "p75": 5858,
+        "p90": 15317,
+        "max": 20942,
+        "mean_abs": 5039
+      },
+      "daily_growth_stats": {
+        "count": 56,
+        "min": -4896,
+        "p10": -3355,
+        "p25": -1969,
+        "p50": -192,
+        "p75": 1853,
+        "p90": 8673,
+        "max": 20844,
+        "mean_abs": 3091
+      },
+      "suggested_threshold_bps": 5900,
+      "threshold_candidates": {
+        "p50": 335,
+        "p75": 5858,
+        "p90": 15317
+      },
+      "threshold_policy": "threshold-calibration-v1: nearest-rank p75 of historical 7-day growth, clamped to [0, 10000] and rounded up to 50 bps",
+      "up_frequency_at_threshold": 2500,
+      "status": "OK",
+      "reasons": [],
+      "missing_dates": [],
+      "source_queries": [
+        "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/ChatGPT/daily/20260901/20261110"
+      ],
+      "source_raw_hashes": [
+        "f3992626c971b8eafc4b661f88a3edbdb712727ec96de97b80b3902463c663e7"
+      ],
+      "retrieved_at": "2026-11-12T01:07:33.998301Z",
+      "report_digest": "sha256:53c920372d23adbbb517bcca048134265579fb79f4689ef080a9d60f631c6c57",
+      "topic_b_article": null,
+      "growth_a_bps": null,
+      "growth_b_bps": null,
+      "difference_bps": null,
+      "abs_difference_stats": {},
+      "suggested_tie_tolerance_bps": null,
+      "tie_frequency_at_suggestion": null,
+      "tie_policy": null
+    },
+    "replay_battle_bitcoin_chatgpt": {
+      "schema_version": "notch.oracle.calibration/1",
+      "mode": "trend_battle",
+      "article": "Bitcoin",
+      "project": "en.wikipedia.org",
+      "baseline_date": "2026-11-03",
+      "target_date": "2026-11-10",
+      "calibration_start": "2026-09-08",
+      "calibration_end": "2026-11-02",
+      "calibration_days": 56,
+      "min_baseline_views": 1000,
+      "observation_status": "AVAILABLE",
+      "baseline_views": 3751,
+      "target_views": 4359,
+      "weekly_growth_bps": {},
+      "weekly_growth_stats": {
+        "count": 56,
+        "min": -21674,
+        "p10": -14809,
+        "p25": -6259,
+        "p50": -1149,
+        "p75": 2855,
+        "p90": 14639,
+        "max": 46667,
+        "mean_abs": 8329
+      },
+      "daily_growth_stats": {},
+      "suggested_threshold_bps": null,
+      "threshold_candidates": {},
+      "threshold_policy": "threshold-calibration-v1: nearest-rank p75 of historical 7-day growth, clamped to [0, 10000] and rounded up to 50 bps",
+      "up_frequency_at_threshold": null,
+      "status": "OK",
+      "reasons": [],
+      "missing_dates": [],
+      "source_queries": [
+        "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Bitcoin/daily/20260901/20261110",
+        "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/ChatGPT/daily/20260901/20261110"
+      ],
+      "source_raw_hashes": [
+        "a5f812634989d338a959859e293c4bf51e02bb579a59a39a739a0829ea4226c7",
+        "f3992626c971b8eafc4b661f88a3edbdb712727ec96de97b80b3902463c663e7"
+      ],
+      "retrieved_at": "2026-11-12T01:07:33.998301Z",
+      "report_digest": "sha256:94c7c624d9e79b074ee0edb5b2ba5d273531fbe04cb7418a73effb0d4afb0dd4",
+      "topic_b_article": "ChatGPT",
+      "growth_a_bps": 1620,
+      "growth_b_bps": -4931,
+      "difference_bps": 6551,
+      "abs_difference_stats": {
+        "count": 56,
+        "min": 105,
+        "p10": 924,
+        "p25": 1511,
+        "p50": 4912,
+        "p75": 13253,
+        "p90": 18083,
+        "max": 46667,
+        "mean_abs": 8329
+      },
+      "suggested_tie_tolerance_bps": 930,
+      "tie_frequency_at_suggestion": 1071,
+      "tie_policy": "void"
+    }
+  },
+  "onchain_read": {
+    "captured_at_utc": "2026-11-12T01:09:03.341612Z",
+    "contract_account": "market.notch-dev.testnet",
+    "rpc_url": "https://rpc.testnet.near.org",
+    "latest_block_timestamp_ns": "1794445730470270496",
+    "latest_block_timestamp_utc": "2026-11-12T01:08:50.470270Z",
+    "contract_config": {
+      "owner": "notch-dev.testnet",
+      "operator": "notch-dev.testnet",
+      "resolver": "notch-dev.testnet",
+      "collateral_token": "usdc.tidepool-sandbox.testnet",
+      "min_entry_amount": "1000000",
+      "entries_paused": false,
+      "market_count": 0,
+      "fee_bps": 0
+    },
+    "market_count": 0,
+    "prepared_market_lookups": {
+      "s3b-future-btc-20261116-20261123": null,
+      "s3b-replay-trend-nvidia-20261103-20261110": null,
+      "s3b-replay-battle-btc-chatgpt-20261103-20261110": null
+    },
+    "submitted_transactions": [],
+    "note": "Read-only RPC calls. No transaction was signed or sent."
+  },
+  "fixture_replay_equivalence": {
+    "verified": true,
+    "note": "The same fixed demo clock and recorded fixture responses reproduce the same rule hashes, calibration digests and evidence digests as this live fetch. Retrieval wall-clock timestamps are excluded from digests."
+  },
+  "source_retrieval_note": "Wikimedia source ranges were fetched live for each article. Retrieval timestamps are recorded in source_ranges; the fixed demo reference clock is 2026-11-12T02:00:00Z."
+}

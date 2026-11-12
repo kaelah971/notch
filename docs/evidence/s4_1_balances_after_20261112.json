@@ -1,0 +1,37 @@
+{
+  "account": "notch-dev.testnet",
+  "network": "testnet",
+  "chain_height": 277336665,
+  "chain_time": "2026-11-12T08:13:41.116055Z",
+  "usdc": {
+    "contract": "usdc.tidepool-sandbox.testnet",
+    "balance": "101998769",
+    "storage": {
+      "total": "1250000000000000000000",
+      "available": "0"
+    }
+  },
+  "usdt": {
+    "contract": "usdt.tidepool-sandbox.testnet",
+    "balance": "98000000",
+    "storage": {
+      "total": "1250000000000000000000",
+      "available": "0"
+    }
+  },
+  "near_yocto": "2984597446695632999999997",
+  "market": {
+    "contract": "market.notch-dev.testnet",
+    "market_count": 2,
+    "config": {
+      "owner": "notch-dev.testnet",
+      "operator": "notch-dev.testnet",
+      "resolver": "notch-dev.testnet",
+      "collateral_token": "usdc.tidepool-sandbox.testnet",
+      "min_entry_amount": "1000000",
+      "entries_paused": false,
+      "market_count": 2,
+      "fee_bps": 0
+    }
+  }
+}

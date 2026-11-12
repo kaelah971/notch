@@ -1,0 +1,93 @@
+{
+  "schema_version": "notch.oracle.evidence/1",
+  "market_id": "s3b-short-trend-nvidia-20261112T040029Z",
+  "rule_hash": "sha256:79c8f464a8cb4fe1c2cd42b636755c9d31c5ad87abe2bca84af3427ccb47d0a9",
+  "mode": "trend_trading",
+  "resolver_version": "notch-s3b/0.1.0",
+  "source": {
+    "id": "wikimedia-pageviews-v1",
+    "provider": "Wikimedia Analytics API",
+    "project": "en.wikipedia.org",
+    "access": "all-access",
+    "agent": "user",
+    "metric": "daily_pageviews",
+    "granularity": "daily",
+    "timezone": "UTC",
+    "article": "Nvidia",
+    "documentation": "https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/documentation/getting-started.html"
+  },
+  "topics": [
+    {
+      "topic_id": "nvidia",
+      "article_title": "Nvidia",
+      "page_id": 39120,
+      "source_url": "https://en.wikipedia.org/wiki/Nvidia"
+    }
+  ],
+  "observation": {
+    "baseline_date": "2026-11-03",
+    "target_date": "2026-11-10",
+    "baseline_window_utc": "2026-11-03T00:00:00Z/2026-11-03T23:59:59Z",
+    "target_window_utc": "2026-11-10T00:00:00Z/2026-11-10T23:59:59Z",
+    "replay": true,
+    "replay_label": "HISTORICAL_REPLAY"
+  },
+  "observations": {
+    "nvidia": {
+      "article": "Nvidia",
+      "page_id": 39120,
+      "baseline": {
+        "date": "2026-11-03",
+        "views": 4743,
+        "source_timestamp": "2026110300",
+        "project": "en.wikipedia.org",
+        "article": "Nvidia",
+        "access": "all-access",
+        "agent": "user",
+        "retrieved_at": "2026-11-12T01:40:00Z",
+        "source_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Nvidia/daily/20261027/20261110",
+        "source_query": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Nvidia/daily/20261027/20261110",
+        "raw_response_hash": "f372687814e75ca213ef31e014a2a9a8dc204340f249a44922ae9e1401e436f2",
+        "observation_hash": "217ee3e46633d0288498df196a564de21d9dab606e4510c178ace8a3cf778f86"
+      },
+      "target": {
+        "date": "2026-11-10",
+        "views": 123851,
+        "source_timestamp": "2026111000",
+        "project": "en.wikipedia.org",
+        "article": "Nvidia",
+        "access": "all-access",
+        "agent": "user",
+        "retrieved_at": "2026-11-12T01:40:00Z",
+        "source_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Nvidia/daily/20261027/20261110",
+        "source_query": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Nvidia/daily/20261027/20261110",
+        "raw_response_hash": "f372687814e75ca213ef31e014a2a9a8dc204340f249a44922ae9e1401e436f2",
+        "observation_hash": "bdd8fa3a418cf5eb870db9afed44a5be239a4aa1b54e3b69434befe417dfc07a"
+      },
+      "range": {
+        "source_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Nvidia/daily/20261027/20261110",
+        "start_date": "2026-10-27",
+        "end_date": "2026-11-10",
+        "raw_response_hash": "f372687814e75ca213ef31e014a2a9a8dc204340f249a44922ae9e1401e436f2",
+        "retrieved_at": "2026-11-12T01:40:00Z"
+      }
+    }
+  },
+  "calculation": {
+    "outcome": "UP",
+    "invalidity_reason": null,
+    "baseline_views": 4743,
+    "target_views": 123851,
+    "growth_bps": 251123,
+    "threshold_bps": 1350,
+    "minimum_baseline_views": 1000
+  },
+  "outcome": "UP",
+  "invalidity_reason": null,
+  "retrieved_at": "2026-11-12T01:40:00Z",
+  "raw_source_hashes": [
+    "f372687814e75ca213ef31e014a2a9a8dc204340f249a44922ae9e1401e436f2"
+  ],
+  "integrity_note": "The evidence digest proves the integrity of the recorded source payload hashes and calculation inputs. It does not prove that Wikimedia pageviews are organic, complete or free of manipulation.",
+  "evidence_digest": "sha256:583eac071d0b3d8a9ad661f02180c2d1c58fbac435e68b5c6346a28348257e06"
+}

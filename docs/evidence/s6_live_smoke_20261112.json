@@ -1,0 +1,338 @@
+{
+  "schema_version": "notch.s6.live-smoke/1",
+  "generated_at": "2026-11-12T10:04:23.169178Z",
+  "base_url": "http://127.0.0.1:59240",
+  "network": "testnet",
+  "endpoints": {
+    "health": {
+      "status": 200,
+      "body": {
+        "data": {
+          "status": "ok",
+          "network": "testnet",
+          "checks": {
+            "near_rpc": {
+              "ok": true,
+              "market_count": 3,
+              "block_timestamp_ns": "1794477872109856908",
+              "block_time": "2026-11-12T10:04:32.109857Z"
+            },
+            "market_contract": {
+              "ok": true,
+              "contract": "market.notch-dev.testnet",
+              "collateral_token": "usdc.tidepool-sandbox.testnet",
+              "min_entry_amount": "1000000",
+              "entries_paused": false
+            },
+            "radar_db": {
+              "ok": true,
+              "path": "var/trend_radar_live_final/radar.sqlite3"
+            },
+            "oracle_dbs": [
+              {
+                "path": "var/oracle_s2_5_short/oracle.sqlite3",
+                "ok": true
+              },
+              {
+                "path": "var/oracle_live_final/oracle.sqlite3",
+                "ok": true
+              }
+            ],
+            "briefs": {
+              "ok": true,
+              "cache_count": 4,
+              "ai_key_present": false,
+              "ai_model": "z-ai/glm-5.3-flash"
+            },
+            "funding": {
+              "ok": true,
+              "provider": "tidepool-testnet",
+              "data_dir": "var\\intents"
+            }
+          },
+          "checked_at": "2026-11-12T10:04:34.639471Z"
+        }
+      }
+    },
+    "trends": {
+      "status": 200,
+      "count": 11,
+      "first": [
+        {
+          "candidate_id": "cand_b279c92126deeecb4beb",
+          "canonical_topic_id": "entity:nvidia",
+          "title": "Nvidia",
+          "category": "AI & Technology",
+          "eligibility_status": "ELIGIBLE",
+          "score": 85,
+          "confidence": 90,
+          "reliability": "high",
+          "observed_at": "2026-11-12T00:21:10.784731Z",
+          "freshness": {
+            "age_hours": 9.72,
+            "first_seen_at": "2026-11-12T00:21:06.649036Z",
+            "last_seen_at": "2026-11-12T00:21:06.649036Z"
+          },
+          "source_count": 2,
+          "sources": [
+            "wikimedia",
+            "hackernews"
+          ],
+          "source_urls": [
+            "https://en.wikipedia.org/wiki/Nvidia",
+            "https://www.wsj.com/business/nvidia-is-preparing-to-oust-nvidia-ceo-jensen-huang-30f421ad",
+            "https://twitter.com/watcherguru/status/2120645607866188008"
+          ],
+          "proposed_market_modes": [
+            "trend_trading",
+            "trend_battle"
+          ],
+          "settlement_coverage": {
+            "status": "ok",
+            "source": "wikimedia-pageviews-v1",
+            "article": "Nvidia",
+            "window_start": "2026-11-04",
+            "window_end": "2026-11-10",
+            "min_views": 4112,
+            "mean_views": 43298,
+            "latest_views": 123851,
+            "latest_date": "2026-11-10"
+          },
+          "notes": [
+            "Merged by curated entity alias 'nvidia'.",
+            "Eligible for PROPOSED market drafts only; the rule and evidence must be frozen by S3B before any onchain creation."
+          ]
+        }
+      ]
+    },
+    "trend_detail": {
+      "status": 200,
+      "candidate_id": "cand_b279c92126deeecb4beb",
+      "title": "Nvidia"
+    },
+    "trend_brief": {
+      "status": 200,
+      "brief_id": "brief_a86813abf29efd116c49",
+      "generation_status": "NON_AI_FALLBACK"
+    },
+    "markets": {
+      "status": 200,
+      "count": 3,
+      "markets": [
+        {
+          "market_id": "s3b-short-trend-nvidia-20261112T040029Z",
+          "mode": "trend_trading",
+          "status": "resolved",
+          "display_status": "historical_replay_resolved",
+          "is_historical_replay": true,
+          "winning_choice": "UP"
+        },
+        {
+          "market_id": "s3b-short-battle-btc-chatgpt-20261112T040029Z",
+          "mode": "trend_battle",
+          "status": "resolved",
+          "display_status": "historical_replay_resolved",
+          "is_historical_replay": true,
+          "winning_choice": "Bitcoin"
+        },
+        {
+          "market_id": "s3b-future-btc-20261116-20261123",
+          "mode": "trend_trading",
+          "status": "open",
+          "display_status": "open_future",
+          "is_historical_replay": false,
+          "winning_choice": null
+        }
+      ]
+    },
+    "market_detail": {
+      "status": 200,
+      "market_id": "s3b-short-trend-nvidia-20261112T040029Z",
+      "status_value": "resolved",
+      "winning_choice": "UP",
+      "evidence_verified": true
+    },
+    "market_evidence": {
+      "status": 200,
+      "verified": true,
+      "rule_hash": "sha256:79c8f464a8cb4fe1c2cd42b636755c9d31c5ad87abe2bca84af3427ccb47d0a9",
+      "evidence_digest": "sha256:583eac071d0b3d8a9ad661f02180c2d1c58fbac435e68b5c6346a28348257e06"
+    },
+    "market_brief": {
+      "status": 200,
+      "brief_id": "brief_fb893868b18932c34743",
+      "generation_status": "NON_AI_FALLBACK",
+      "resolution_outcome": "UP"
+    },
+    "closed_market_entry": {
+      "status": 409,
+      "error": {
+        "code": "MARKET_NOT_OPEN",
+        "message": "market is resolved and is not accepting entries"
+      }
+    },
+    "open_market_entry": {
+      "status": 200,
+      "market_id": "s3b-future-btc-20261116-20261123",
+      "intent": {
+        "network": "testnet",
+        "signer": "notch-dev.testnet",
+        "receiver": "usdc.tidepool-sandbox.testnet",
+        "method": "ft_transfer_call",
+        "args": {
+          "receiver_id": "market.notch-dev.testnet",
+          "amount": "1000000",
+          "msg": "{\"market_id\":\"s3b-future-btc-20261116-20261123\",\"outcome\":0}"
+        },
+        "attached_deposit_yocto": "1",
+        "gas_tgas": 100,
+        "market_id": "s3b-future-btc-20261116-20261123",
+        "outcome": 0,
+        "choice": "UP",
+        "stake": "1000000",
+        "collateral_token": "usdc.tidepool-sandbox.testnet",
+        "min_entry_amount": "1000000",
+        "expected": {
+          "market_id": "s3b-future-btc-20261116-20261123",
+          "outcome": 0,
+          "choice": "UP",
+          "stake": "1000000",
+          "collateral": "usdc.tidepool-sandbox.testnet",
+          "fee_bps": 0
+        },
+        "signed": false,
+        "broadcast": false
+      }
+    },
+    "briefs_status": {
+      "status": 200,
+      "body": {
+        "data": {
+          "provider": "near-ai",
+          "base_url": "https://cloud-api.near.ai/v1",
+          "configured_model": "z-ai/glm-5.3-flash",
+          "key_present": false,
+          "model_verified": true,
+          "catalog_count": 63,
+          "model": {
+            "model_id": "z-ai/glm-5.3-flash",
+            "owned_by": "nearai",
+            "pricing": {
+              "input": 0.08,
+              "output": 0.5,
+              "prompt": "0.00000008",
+              "completion": "0.0000005",
+              "image": "0",
+              "request": "0",
+              "input_cache_read": "0.000000012"
+            },
+            "context_length": 1048576,
+            "max_output_length": 1048576,
+            "supported_features": [
+              "tools",
+              "structured_outputs",
+              "reasoning",
+              "json_mode"
+            ],
+            "is_ready": true
+          },
+          "error": null,
+          "cache_count": 4
+        }
+      }
+    },
+    "wallet_balances": {
+      "status": 200,
+      "account_id": "notch-dev.testnet",
+      "usdc_balance": "101998769",
+      "usdc_decimals": 6,
+      "collateral_ready": true
+    },
+    "wallet_positions": {
+      "status": 200,
+      "count": 2,
+      "positions": [
+        {
+          "market_id": "s3b-short-trend-nvidia-20261112T040029Z",
+          "mode": "trend_trading",
+          "question": "HISTORICAL REPLAY (not a forecast): Will daily en.wikipedia.org pageviews for Nvidia grow by at least 13.50% on the full UTC day 2026-11-10 versus the full UTC day 2026-11-03? (Wikimedia Pageviews, all-access, user)",
+          "market_status": "resolved",
+          "winning_choice": "UP",
+          "stakes": [
+            "1000000",
+            "0"
+          ],
+          "total_stake": "1000000",
+          "claimed_total": "1000000",
+          "pending_amount": "0",
+          "claimable": "0",
+          "claim_state": "claimed"
+        },
+        {
+          "market_id": "s3b-short-battle-btc-chatgpt-20261112T040029Z",
+          "mode": "trend_battle",
+          "question": "HISTORICAL REPLAY (not a forecast): Which topic had higher normalized Wikimedia pageview growth from the full UTC day 2026-11-03 to the full UTC day 2026-11-10: Bitcoin or ChatGPT? A difference within 930 bps is a tie and voids the market.",
+          "market_status": "resolved",
+          "winning_choice": "Bitcoin",
+          "stakes": [
+            "1000000",
+            "0"
+          ],
+          "total_stake": "1000000",
+          "claimed_total": "1000000",
+          "pending_amount": "0",
+          "claimable": "0",
+          "claim_state": "claimed"
+        }
+      ]
+    },
+    "funding_tokens": {
+      "status": 200,
+      "token_count": 31,
+      "route_count": 5
+    },
+    "funding_readiness": {
+      "status": 200,
+      "body": {
+        "data": {
+          "account": "notch-dev.testnet",
+          "asset_id": "nep141:usdc.tidepool-sandbox.testnet",
+          "symbol": "USDC",
+          "decimals": 6,
+          "balance": "101998769",
+          "storage_registered": true,
+          "storage_total": "1250000000000000000000",
+          "min_market_entry": "1000000",
+          "ready": true,
+          "checked_at": "2026-11-12T10:06:33.638749Z",
+          "blocker": null
+        }
+      }
+    },
+    "funding_quote": {
+      "status": 200,
+      "quote_id": "d8d92c25-a9af-4dd2-b308-71260a2ef9f3",
+      "state": "QUOTED",
+      "dry": true
+    },
+    "funding_status": {
+      "status": 200,
+      "state": "QUOTED"
+    }
+  },
+  "assertions": {
+    "actual_markets": 3,
+    "historical_replays": 2,
+    "future_open_markets": 1,
+    "evidence_verified": true,
+    "deterministic_brief": true,
+    "closed_entry_rejected": true,
+    "open_entry_prepared": true,
+    "wallet_usdc": "101998769",
+    "positions": 2,
+    "funding_ready": true,
+    "live_ai_calls": 0,
+    "signed_transactions": 0,
+    "broadcast_transactions": 0
+  }
+}

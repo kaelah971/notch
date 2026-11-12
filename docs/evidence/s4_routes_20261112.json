@@ -1,0 +1,117 @@
+[
+  {
+    "destination": {
+      "asset_id": "nep141:usdc.tidepool-sandbox.testnet",
+      "blockchain": "near",
+      "coingecko_id": "usd-coin",
+      "contract_address": "usdc.tidepool-sandbox.testnet",
+      "decimals": 6,
+      "price": 0.999414,
+      "price_updated_at": "2026-11-12T07:07:28.841Z",
+      "symbol": "USDC"
+    },
+    "label": "USDT (near) -> USDC",
+    "source": {
+      "asset_id": "nep141:usdt.tidepool-sandbox.testnet",
+      "blockchain": "near",
+      "coingecko_id": "tether",
+      "contract_address": "usdt.tidepool-sandbox.testnet",
+      "decimals": 6,
+      "price": 0.999026,
+      "price_updated_at": "2026-11-12T07:07:28.841Z",
+      "symbol": "USDT"
+    }
+  },
+  {
+    "destination": {
+      "asset_id": "nep141:usdc.tidepool-sandbox.testnet",
+      "blockchain": "near",
+      "coingecko_id": "usd-coin",
+      "contract_address": "usdc.tidepool-sandbox.testnet",
+      "decimals": 6,
+      "price": 0.999414,
+      "price_updated_at": "2026-11-12T07:07:28.841Z",
+      "symbol": "USDC"
+    },
+    "label": "wNEAR (near) -> USDC",
+    "source": {
+      "asset_id": "nep141:wnear.tidepool-sandbox.testnet",
+      "blockchain": "near",
+      "coingecko_id": "near",
+      "contract_address": "wnear.tidepool-sandbox.testnet",
+      "decimals": 24,
+      "price": 3.52,
+      "price_updated_at": "2026-11-12T07:07:28.841Z",
+      "symbol": "wNEAR"
+    }
+  },
+  {
+    "destination": {
+      "asset_id": "nep141:usdc.tidepool-sandbox.testnet",
+      "blockchain": "near",
+      "coingecko_id": "usd-coin",
+      "contract_address": "usdc.tidepool-sandbox.testnet",
+      "decimals": 6,
+      "price": 0.999414,
+      "price_updated_at": "2026-11-12T07:07:28.841Z",
+      "symbol": "USDC"
+    },
+    "label": "wBTC (near) -> USDC",
+    "source": {
+      "asset_id": "nep141:wbtc.tidepool-sandbox.testnet",
+      "blockchain": "near",
+      "coingecko_id": "bitcoin",
+      "contract_address": "wbtc.tidepool-sandbox.testnet",
+      "decimals": 8,
+      "price": 73543.0,
+      "price_updated_at": "2026-11-12T07:07:28.841Z",
+      "symbol": "wBTC"
+    }
+  },
+  {
+    "destination": {
+      "asset_id": "nep141:usdc.tidepool-sandbox.testnet",
+      "blockchain": "near",
+      "coingecko_id": "usd-coin",
+      "contract_address": "usdc.tidepool-sandbox.testnet",
+      "decimals": 6,
+      "price": 0.999414,
+      "price_updated_at": "2026-11-12T07:07:28.841Z",
+      "symbol": "USDC"
+    },
+    "label": "ETH (near) -> USDC",
+    "source": {
+      "asset_id": "nep141:eth.tidepool-sandbox.testnet",
+      "blockchain": "near",
+      "coingecko_id": "ethereum",
+      "contract_address": "eth.tidepool-sandbox.testnet",
+      "decimals": 18,
+      "price": 2046.52,
+      "price_updated_at": "2026-11-12T07:07:28.841Z",
+      "symbol": "ETH"
+    }
+  },
+  {
+    "destination": {
+      "asset_id": "nep141:usdc.tidepool-sandbox.testnet",
+      "blockchain": "near",
+      "coingecko_id": "usd-coin",
+      "contract_address": "usdc.tidepool-sandbox.testnet",
+      "decimals": 6,
+      "price": 0.999414,
+      "price_updated_at": "2026-11-12T07:07:28.841Z",
+      "symbol": "USDC"
+    },
+    "label": "XAUT (near) -> USDC",
+    "source": {
+      "asset_id": "nep141:xaut.tidepool-sandbox.testnet",
+      "blockchain": "near",
+      "coingecko_id": "tether-gold",
+      "contract_address": "xaut.tidepool-sandbox.testnet",
+      "decimals": 6,
+      "price": 3961.2,
+      "price_updated_at": "2026-11-12T07:07:28.841Z",
+      "symbol": "XAUT"
+    }
+  }
+]

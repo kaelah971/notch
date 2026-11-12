@@ -1,0 +1,161 @@
+{
+  "amount_in": "1000000",
+  "amount_in_display": "1",
+  "amount_out": "999511",
+  "amount_out_display": "0.999511",
+  "balance_after": null,
+  "balance_before": "100000000",
+  "balance_delta": null,
+  "balance_verified": false,
+  "correlation_id": "c12aa519-9789-439e-aa4e-33732730b46b",
+  "created_at": "2026-11-12T07:06:31.653857Z",
+  "deadline": "2026-11-12T08:06:30.332Z",
+  "deposit_address": "e9fa20cc07cb1d7d5f01a7a1f81febae87ea1260601eb845c74513c7b4f8c204",
+  "deposit_memo": null,
+  "deposit_recorded_at": null,
+  "deposit_submitted": false,
+  "deposit_tx_hash": null,
+  "deposit_type": "INTENTS",
+  "destination_asset": "nep141:usdc.tidepool-sandbox.testnet",
+  "destination_decimals": 6,
+  "destination_symbol": "USDC",
+  "dry": false,
+  "events": [
+    {
+      "created_at": "2026-11-12T07:06:31.653857Z",
+      "data": {
+        "amount_in": "1000000",
+        "amount_out": "999511",
+        "balance_before": "100000000",
+        "balance_error": null,
+        "dry": false,
+        "expires_at": "2026-11-12T08:06:30.332000Z",
+        "instructions_supported": true,
+        "min_amount_out": "989515",
+        "source_asset": "nep141:usdt.tidepool-sandbox.testnet",
+        "state": "AWAITING_DEPOSIT"
+      },
+      "event": "quote_prepared"
+    },
+    {
+      "created_at": "2026-11-12T07:06:57.124057Z",
+      "data": {
+        "balance_delta": null,
+        "balance_verified": false,
+        "last_error": null,
+        "provider_status": "PENDING_DEPOSIT",
+        "refund_reason": null,
+        "refunded_amount": null,
+        "state": "AWAITING_DEPOSIT"
+      },
+      "event": "provider_status"
+    }
+  ],
+  "expires_at": "2026-11-12T08:06:30.332000Z",
+  "last_error": null,
+  "min_amount_out": "989515",
+  "min_amount_out_display": "0.989515",
+  "poll_count": 1,
+  "provider_status": "PENDING_DEPOSIT",
+  "quote_id": "c12aa519-9789-439e-aa4e-33732730b46b",
+  "quote_timestamp": "2026-11-12T07:06:35.164Z",
+  "raw_quote": {
+    "correlationId": "c12aa519-9789-439e-aa4e-33732730b46b",
+    "quote": {
+      "amountIn": "1000000",
+      "amountInFormatted": "1",
+      "amountInUsd": "0.9990",
+      "amountOut": "999511",
+      "amountOutFormatted": "0.999511",
+      "amountOutUsd": "0.9989",
+      "deadline": "2026-11-12T08:06:30.332Z",
+      "depositAddress": "e9fa20cc07cb1d7d5f01a7a1f81febae87ea1260601eb845c74513c7b4f8c204",
+      "minAmountIn": "1000000",
+      "minAmountOut": "989515",
+      "timeEstimate": 10,
+      "timeWhenInactive": "2026-11-12T08:06:30.332Z"
+    },
+    "quoteRequest": {
+      "amount": "1000000",
+      "deadline": "2026-11-12T08:06:30.332732Z",
+      "depositMode": "SIMPLE",
+      "depositType": "INTENTS",
+      "destinationAsset": "nep141:usdc.tidepool-sandbox.testnet",
+      "dry": false,
+      "originAsset": "nep141:usdt.tidepool-sandbox.testnet",
+      "recipient": "notch-dev.testnet",
+      "recipientType": "DESTINATION_CHAIN",
+      "refundTo": "notch-dev.testnet",
+      "refundType": "INTENTS",
+      "slippageTolerance": 100,
+      "swapType": "EXACT_INPUT"
+    },
+    "signature": "ed25519:549sTEUKrWEcrjas9S4DuEWHdWGk5hdLU3qWaaBxMVMCTACDbM9ptChRicDenX2KQhiyDMpa3S1AVgTH861tVZdE",
+    "timestamp": "2026-11-12T07:06:35.164Z"
+  },
+  "raw_status": {
+    "correlationId": "c12aa519-9789-439e-aa4e-33732730b46b",
+    "quoteResponse": {
+      "correlationId": "c12aa519-9789-439e-aa4e-33732730b46b",
+      "quote": {
+        "amountIn": "1000000",
+        "amountInFormatted": "1",
+        "amountInUsd": "0.9990",
+        "amountOut": "999511",
+        "amountOutFormatted": "0.999511",
+        "amountOutUsd": "0.9989",
+        "deadline": "2026-11-12T08:06:30.332Z",
+        "depositAddress": "e9fa20cc07cb1d7d5f01a7a1f81febae87ea1260601eb845c74513c7b4f8c204",
+        "minAmountIn": "1000000",
+        "minAmountOut": "989515",
+        "timeEstimate": 10,
+        "timeWhenInactive": "2026-11-12T08:06:30.332Z"
+      },
+      "quoteRequest": {
+        "amount": "1000000",
+        "deadline": "2026-11-12T08:06:30.332732Z",
+        "depositMode": "SIMPLE",
+        "depositType": "INTENTS",
+        "destinationAsset": "nep141:usdc.tidepool-sandbox.testnet",
+        "dry": false,
+        "originAsset": "nep141:usdt.tidepool-sandbox.testnet",
+        "recipient": "notch-dev.testnet",
+        "recipientType": "DESTINATION_CHAIN",
+        "refundTo": "notch-dev.testnet",
+        "refundType": "INTENTS",
+        "slippageTolerance": 100,
+        "swapType": "EXACT_INPUT"
+      },
+      "signature": "ed25519:549sTEUKrWEcrjas9S4DuEWHdWGk5hdLU3qWaaBxMVMCTACDbM9ptChRicDenX2KQhiyDMpa3S1AVgTH861tVZdE",
+      "timestamp": "2026-11-12T07:06:35.164Z"
+    },
+    "status": "PENDING_DEPOSIT",
+    "swapDetails": {
+      "destinationChainTxHashes": [],
+      "intentHashes": [],
+      "nearTxHashes": [],
+      "originChainTxHashes": [],
+      "withdrawFee": "0"
+    },
+    "tidepool": {
+      "explorer": [],
+      "intentsAccount": "e9fa20cc07cb1d7d5f01a7a1f81febae87ea1260601eb845c74513c7b4f8c204"
+    },
+    "updatedAt": "2026-11-12T07:06:35.171Z"
+  },
+  "recipient": "notch-dev.testnet",
+  "refund_reason": null,
+  "refund_to": "notch-dev.testnet",
+  "refund_tx_hash": null,
+  "refund_type": "INTENTS",
+  "refunded_amount": null,
+  "schema_version": "notch.intents.funding/1",
+  "signature": "ed25519:549sTEUKrWEcrjas9S4DuEWHdWGk5hdLU3qWaaBxMVMCTACDbM9ptChRicDenX2KQhiyDMpa3S1AVgTH861tVZdE",
+  "slippage_bps": 100,
+  "source_asset": "nep141:usdt.tidepool-sandbox.testnet",
+  "source_chain": "near",
+  "source_decimals": 6,
+  "source_symbol": "USDT",
+  "state": "AWAITING_DEPOSIT",
+  "updated_at": "2026-11-12T07:06:57.124057Z"
+}

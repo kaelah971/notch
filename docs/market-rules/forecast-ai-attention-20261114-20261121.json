@@ -1,0 +1,65 @@
+{
+  "schema_version": "notch.market-rule/1",
+  "market_id": "forecast-ai-attention-20261114-20261121",
+  "mode": "trend_trading",
+  "question": "FORECAST (not a replay): Will daily en.wikipedia.org pageviews for Artificial_intelligence grow by at least 15.00% on the full UTC day 2026-11-21 versus the full UTC day 2026-11-14? (Wikimedia Pageviews, all-access, user)",
+  "choices": [
+    "UP",
+    "DOWN"
+  ],
+  "source": {
+    "id": "wikimedia-pageviews-v1",
+    "provider": "Wikimedia Analytics API",
+    "project": "en.wikipedia.org",
+    "article": "Artificial_intelligence",
+    "access": "all-access",
+    "agent": "user",
+    "granularity": "daily",
+    "timezone": "UTC",
+    "endpoint_template": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Artificial_intelligence/daily/{start}/{end}",
+    "documentation": "https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/documentation/getting-started.html"
+  },
+  "observation": {
+    "kind": "forecast",
+    "replay": false,
+    "baseline_date": "2026-11-14",
+    "target_date": "2026-11-21",
+    "baseline_window_utc": "2026-11-14T00:00:00Z/2026-11-14T23:59:59Z",
+    "target_window_utc": "2026-11-21T00:00:00Z/2026-11-21T23:59:59Z"
+  },
+  "formula": {
+    "version": "growth-bps-v1",
+    "growth_bps": "floor((target_views - baseline_views) * 10000 / baseline_views)",
+    "threshold_bps": 1500,
+    "up_if": "growth_bps >= threshold_bps",
+    "down_if": "growth_bps < threshold_bps",
+    "integer_only": true,
+    "rounding": "mathematical floor of the rational result; for negative numerators, floor is used rather than truncation toward zero"
+  },
+  "minimum_baseline_views": 1000,
+  "source_validation": {
+    "requires_full_days": true,
+    "requires_exact_article": true,
+    "requires_one_daily_observation_per_window": true,
+    "reject_missing_or_partial": true,
+    "allowed_agent": "user",
+    "allowed_access": "all-access"
+  },
+  "invalidation_policy": "refund_on_void",
+  "missing_data_policy": "void",
+  "market_timing": {
+    "open_at_ns": "1794441600000000000",
+    "close_at_ns": "1794614340000000000",
+    "resolve_after_ns": "1795435200000000000",
+    "open_at_utc": "2026-11-12T00:00:00Z",
+    "close_at_utc": "2026-11-13T23:59:00Z",
+    "resolve_after_utc": "2026-11-23T12:00:00Z"
+  },
+  "notes": [
+    "This is a future forecast market; the observation window starts after entries close.",
+    "No pageview measurements are committed in this rule.",
+    "The rule is frozen by the SHA-256 digest stored onchain as rule_hash.",
+    "Resolution must use the exact source query, dates, article, access, agent and formula above.",
+    "If baseline or target data is missing, incomplete or below the minimum baseline, void the market and refund stakes."
+  ]
+}

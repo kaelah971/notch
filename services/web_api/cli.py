@@ -1,0 +1,106 @@
+"""Start the S6 frontend-ready API server."""
+
+from __future__ import annotations
+
+import argparse
+from dataclasses import replace
+from pathlib import Path
+
+from services.intents.balance import NearRpcClient
+from services.intents.client import RateLimiter as FundingRateLimiter, TidepoolClient
+from services.intents.config import IntentsConfig
+from services.intents.service import IntentsFundingService
+from services.intents.store import FundingStore
+from services.near_ai.client import NearAIClient
+from services.near_ai.config import NearAIConfig
+from services.near_ai.service import BriefService
+from services.near_ai.store import BriefStore
+from services.web_api.app import WebAPI
+from services.web_api.chain import MarketChainReader
+from services.web_api.config import WebAPIConfig
+from services.web_api.repositories import OracleRepository, RadarRepository
+from services.web_api.server import serve
+
+
+def build_default_app(config: WebAPIConfig | None = None) -> WebAPI:
+    config = config or WebAPIConfig.from_env()
+    intents = IntentsConfig.from_env()
+    intents = replace(
+        intents,
+        market_contract=config.market_contract,
+        rpc_url=config.rpc_url,
+        data_dir=str(Path(intents.data_dir)),
+    )
+    funding_store = FundingStore(Path(intents.data_dir) / "funding.sqlite3")
+    funding_client = TidepoolClient(
+        base_url=intents.base_url,
+        api_key=intents.api_key,
+        timeout_seconds=intents.request_timeout_seconds,
+        max_retries=intents.max_retries,
+        rate_limiter=FundingRateLimiter(interval_seconds=intents.rate_limit_seconds),
+    )
+    chain_reader = NearRpcClient(
+        rpc_url=intents.rpc_url,
+        timeout_seconds=intents.request_timeout_seconds,
+    )
+    funding_service = IntentsFundingService(
+        client=funding_client,
+        store=funding_store,
+        config=intents,
+        reader=chain_reader,
+    )
+
+    ai = NearAIConfig.from_env()
+    ai = replace(
+        ai,
+        radar_db=config.radar_db,
+        oracle_db=config.oracle_db_paths[0],
+        data_dir=str(Path(ai.data_dir)),
+    )
+    brief_store = BriefStore(Path(ai.data_dir) / "briefs.sqlite3")
+    brief_service = BriefService(
+        config=ai,
+        client=NearAIClient(config=ai),
+        store=brief_store,
+    )
+
+    chain = MarketChainReader(config=intents, reader=chain_reader)
+    radar = RadarRepository(config.radar_db)
+    oracle = OracleRepository(config.oracle_db_paths)
+    return WebAPI(
+        config=config,
+        chain=chain,
+        radar=radar,
+        oracle=oracle,
+        brief_service=brief_service,
+        funding_service=funding_service,
+    )
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="notch-web-api",
+        description="S6 frontend-ready HTTP API for Notch testnet data.",
+    )
+    parser.add_argument("--host", default=None)
+    parser.add_argument("--port", type=int, default=None)
+    args = parser.parse_args(argv)
+    config = WebAPIConfig.from_env()
+    if args.host:
+        config = replace(config, host=args.host)
+    if args.port:
+        config = replace(config, port=args.port)
+    app = build_default_app(config)
+    print(
+        f"Notch S6 API listening on http://{config.host}:{config.port} "
+        f"(network={config.network})"
+    )
+    try:
+        serve(app, host=config.host, port=config.port)
+    except KeyboardInterrupt:
+        return 0
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

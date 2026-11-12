@@ -1,0 +1,47 @@
+/* Notch design tokens — ref 01 (Sunburst palette) on a near-black system. */
+:root {
+  /* Brand: Sunburst is the single accent. */
+  --sunburst: #fceb53;
+  --luminance: #ffe745;
+  --radiance: #fbde37;
+  --spark: #fec428;
+  --gleam: #f8b518;
+  --zinger: #f49f04;
+
+  /* Surfaces (ref 02/04: true black page, charcoal floating containers). */
+  --bg: #000000;
+  --surface-1: #121212;
+  --surface-2: #1c1c1e;   /* sidebar pill, cards */
+  --surface-3: #2a2a2c;   /* logo tile, hover */
+  --hairline: rgba(255, 255, 255, 0.08);
+
+  --text: #ffffff;
+  --text-2: rgba(235, 235, 245, 0.62);
+  --text-3: rgba(235, 235, 245, 0.38);
+  --on-accent: #0a0a0a;
+
+  /* Accent states (replaces ref 04 purple). */
+  --accent-tint: rgba(252, 235, 83, 0.14);
+  --accent-ring: rgba(252, 235, 83, 0.55);
+
+  /* Data states — used only for outcomes, never decoration. */
+  --pos: #fceb53;
+  --warn: #f49f04;
+  --neg: #ff6b5e;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 999px;
+
+  --font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ease: cubic-bezier(0.32, 0.72, 0, 1); /* iOS-like */
+
+  --sidebar-collapsed: 72px;
+  --sidebar-expanded: 232px;
+  --gutter: 16px;
+  --tabbar-h: 64px;
+
+  color-scheme: dark;
+}

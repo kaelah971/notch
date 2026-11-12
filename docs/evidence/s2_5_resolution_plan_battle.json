@@ -1,0 +1,95 @@
+{
+  "job_id": "job_2fe088e5486f86b40ef5",
+  "market_id": "s3b-short-battle-btc-chatgpt-20261112T040029Z",
+  "rule_hash": "sha256:b6a5c88950744db167b02743ec5bab517d7dc0073911ef2dab478f55934c6e57",
+  "evidence_digest": "sha256:ad15ea91fa97e32cc97e5dd94dc5db72a511e5fa980b1e8c7615b2db0ccd3e5d",
+  "action": "resolve_market",
+  "status": "PREPARED",
+  "created_at": "2026-11-12T05:38:00Z",
+  "updated_at": "2026-11-12T05:38:00Z",
+  "plan": {
+    "schema_version": "notch.oracle.resolution-plan/1",
+    "job_id": "job_2fe088e5486f86b40ef5",
+    "market_id": "s3b-short-battle-btc-chatgpt-20261112T040029Z",
+    "rule_hash": "sha256:b6a5c88950744db167b02743ec5bab517d7dc0073911ef2dab478f55934c6e57",
+    "mode": "trend_battle",
+    "evidence_digest": "sha256:ad15ea91fa97e32cc97e5dd94dc5db72a511e5fa980b1e8c7615b2db0ccd3e5d",
+    "outcome": "TOPIC_A",
+    "action": "resolve_market",
+    "status": "PREPARED",
+    "contract_call": {
+      "contract_id": "market.notch-dev.testnet",
+      "method": "resolve_market",
+      "args": {
+        "market_id": "s3b-short-battle-btc-chatgpt-20261112T040029Z",
+        "winning_outcome": 0,
+        "evidence_hash": "sha256:ad15ea91fa97e32cc97e5dd94dc5db72a511e5fa980b1e8c7615b2db0ccd3e5d"
+      },
+      "gas_tgas": 100,
+      "deposit_yocto": 0
+    },
+    "near_cli_command_template": "near contract call-function as-transaction market.notch-dev.testnet resolve_market json-args '{\"market_id\":\"s3b-short-battle-btc-chatgpt-20261112T040029Z\",\"winning_outcome\":0,\"evidence_hash\":\"sha256:ad15ea91fa97e32cc97e5dd94dc5db72a511e5fa980b1e8c7615b2db0ccd3e5d\"}' prepaid-gas '100 Tgas' attached-deposit '0 NEAR' sign-as <resolver-account> network-config testnet sign-with-keychain send",
+    "blockers": [],
+    "warnings": [],
+    "onchain_market": {
+      "market_id": "s3b-short-battle-btc-chatgpt-20261112T040029Z",
+      "mode": "trend_battle",
+      "question": "HISTORICAL REPLAY (not a forecast): Which topic had higher normalized Wikimedia pageview growth from the full UTC day 2026-11-03 to the full UTC day 2026-11-10: Bitcoin or ChatGPT? A difference within 930 bps is a tie and voids the market.",
+      "choices": [
+        "Bitcoin",
+        "ChatGPT"
+      ],
+      "source_id": "wikimedia-pageviews-v1",
+      "rule_hash": "sha256:b6a5c88950744db167b02743ec5bab517d7dc0073911ef2dab478f55934c6e57",
+      "open_at": "1794456029000000000",
+      "close_at": "1794461429000000000",
+      "resolve_after": "1794461729000000000",
+      "invalidation_policy": "refund_on_void",
+      "status": "closed",
+      "entries_open": false,
+      "entries_paused": false,
+      "totals": [
+        "1000000",
+        "0"
+      ],
+      "escrow_total": "1000000",
+      "paid_total": "0",
+      "pending_total": "0",
+      "unclaimed_reserve": "1000000",
+      "winning_outcome": null,
+      "winning_choice": null,
+      "evidence_hash": null,
+      "void_reason_hash": null,
+      "created_at": "1794457611021522982",
+      "resolved_at": null,
+      "voided_at": null,
+      "fee_bps": 0,
+      "resolution_kind": null,
+      "battle": {
+        "topic_a": {
+          "topic_id": "bitcoin",
+          "source_id": "wikimedia-pageviews-v1",
+          "project": "en.wikipedia.org",
+          "article_title": "Bitcoin",
+          "metric": "daily_pageviews_growth_comparison"
+        },
+        "topic_b": {
+          "topic_id": "chatgpt",
+          "source_id": "wikimedia-pageviews-v1",
+          "project": "en.wikipedia.org",
+          "article_title": "ChatGPT",
+          "metric": "daily_pageviews_growth_comparison"
+        },
+        "observation_start": "1793664000000000000",
+        "observation_end": "1794355199000000000",
+        "formula": "growth_comparison_v1",
+        "min_baseline_views": "1000",
+        "tie_tolerance_bps": 930,
+        "tie_policy": "void"
+      }
+    },
+    "prepared_at": "2026-11-12T05:38:00Z",
+    "idempotent": false
+  },
+  "persisted": true
+}

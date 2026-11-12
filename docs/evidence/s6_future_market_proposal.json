@@ -1,0 +1,158 @@
+{
+  "schema_version": "notch.s6.future-market-proposal/1",
+  "status": "CREATED_AND_VERIFIED",
+  "approval_required": true,
+  "network": "testnet",
+  "contract": "market.notch-dev.testnet",
+  "collateral_token": "usdc.tidepool-sandbox.testnet",
+  "market_id": "s3b-future-btc-20261116-20261123",
+  "rule_hash": "sha256:cd215ff8e2e09166607b04925464acc086b5c20b058de4fab2e8e07c633b789b",
+  "rule_status": "APPROVED",
+  "question": "FORECAST (not a replay): Will daily en.wikipedia.org pageviews for Bitcoin grow by at least 23.00% on the full UTC day 2026-11-23 versus the full UTC day 2026-11-16? (Wikimedia Pageviews, all-access, user)",
+  "mode": "trend_trading",
+  "choices": [
+    "UP",
+    "DOWN"
+  ],
+  "source": {
+    "id": "wikimedia-pageviews-v1",
+    "provider": "Wikimedia Analytics API",
+    "project": "en.wikipedia.org",
+    "access": "all-access",
+    "agent": "user",
+    "metric": "daily_pageviews",
+    "granularity": "daily",
+    "timezone": "UTC",
+    "article": "Bitcoin",
+    "documentation": "https://doc.wikimedia.org/generated-data-platform/aqs/analytics-api/documentation/getting-started.html"
+  },
+  "topics": [
+    {
+      "topic_id": "bitcoin",
+      "article_title": "Bitcoin",
+      "page_id": 28249265,
+      "source_url": "https://en.wikipedia.org/wiki/Bitcoin"
+    }
+  ],
+  "observation": {
+    "baseline_date": "2026-11-16",
+    "target_date": "2026-11-23",
+    "baseline_window_utc": "2026-11-16T00:00:00Z/2026-11-16T23:59:59Z",
+    "target_window_utc": "2026-11-23T00:00:00Z/2026-11-23T23:59:59Z",
+    "replay": false,
+    "replay_label": null
+  },
+  "formula": {
+    "version": "growth-threshold-v1",
+    "growth_bps": "floor((target_views - baseline_views) * 10000 / baseline_views)",
+    "threshold_bps": 2300,
+    "up_if": "growth_bps >= threshold_bps",
+    "down_if": "growth_bps < threshold_bps",
+    "integer_only": true,
+    "rounding": "mathematical floor; negative numerators floor below zero"
+  },
+  "minimum_baseline_views": 1000,
+  "invalidation_policy": "refund_on_void",
+  "missing_data_policy": "void",
+  "market_timing": {
+    "open_at_ns": "1794452400000000000",
+    "close_at_ns": "1794787140000000000",
+    "resolve_after_ns": "1795608000000000000",
+    "open_at_utc": "2026-11-12T03:00:00Z",
+    "close_at_utc": "2026-11-15T23:59:00Z",
+    "resolve_after_utc": "2026-11-25T12:00:00Z"
+  },
+  "resolution_eligibility_utc": "2026-11-25T12:00:00Z",
+  "candidate": {
+    "candidate_ids": [
+      "cand_9118da9248a28ca00f02"
+    ],
+    "canonical_topic_ids": [
+      "entity:bitcoin"
+    ],
+    "source_proposal_refs": [
+      "prop_a8af34451aa43e7b131f"
+    ],
+    "validation_status": "READY_FOR_OPERATOR_REVIEW_FUTURE",
+    "operator_approval_required": true
+  },
+  "calibration": {
+    "report_digest": "sha256:90a8b59ef76ce8bf6c4c577c3325daf6d03b07f6f7fbadf3fb767475f7690b89",
+    "suggested_threshold_bps": 2300,
+    "policy": "threshold-calibration-v1: nearest-rank p75 of historical 7-day growth, clamped to [0, 10000] and rounded up to 50 bps",
+    "calibration_window": {
+      "start": "2026-09-16",
+      "end": "2026-11-10"
+    },
+    "status": "OK"
+  },
+  "create_args": {
+    "args": {
+      "market_id": "s3b-future-btc-20261116-20261123",
+      "mode": "trend_trading",
+      "question": "FORECAST (not a replay): Will daily en.wikipedia.org pageviews for Bitcoin grow by at least 23.00% on the full UTC day 2026-11-23 versus the full UTC day 2026-11-16? (Wikimedia Pageviews, all-access, user)",
+      "choices": [
+        "UP",
+        "DOWN"
+      ],
+      "source_id": "wikimedia-pageviews-v1",
+      "rule_hash": "sha256:cd215ff8e2e09166607b04925464acc086b5c20b058de4fab2e8e07c633b789b",
+      "open_at": "1794452400000000000",
+      "close_at": "1794787140000000000",
+      "resolve_after": "1795608000000000000",
+      "invalidation_policy": "refund_on_void"
+    }
+  },
+  "near_cli_command": "near contract call-function as-transaction market.notch-dev.testnet create_market file-args docs/evidence/s6_future_market_create_args.json prepaid-gas '100 Tgas' attached-deposit '0 NEAR' sign-as notch-dev.testnet network-config testnet sign-with-keychain display",
+  "broadcast": true,
+  "signed_preview": true,
+  "prepared_at": "2026-11-12T09:34:26.456304Z",
+  "signed_preview_at": "2026-11-12T09:34:26.456304Z",
+  "tx_hash": "ALVPQpRCwngtpLPtG94SrXb9Y4jogaFToTzvGusveXDA",
+  "explorer": "https://testnet.nearblocks.io/txns/ALVPQpRCwngtpLPtG94SrXb9Y4jogaFToTzvGusveXDA",
+  "market_created_at_ns": "1794477609221673198",
+  "market_created_at_utc": "2026-11-12T10:00:09.221673Z",
+  "approved_by": "notch-dev.testnet",
+  "approved_at": "2026-11-12T09:59:29.136639Z",
+  "approval_reason": "Operator approved S6 future Bitcoin market creation",
+  "onchain_market": {
+    "market_id": "s3b-future-btc-20261116-20261123",
+    "mode": "trend_trading",
+    "question": "FORECAST (not a replay): Will daily en.wikipedia.org pageviews for Bitcoin grow by at least 23.00% on the full UTC day 2026-11-23 versus the full UTC day 2026-11-16? (Wikimedia Pageviews, all-access, user)",
+    "choices": [
+      "UP",
+      "DOWN"
+    ],
+    "source_id": "wikimedia-pageviews-v1",
+    "rule_hash": "sha256:cd215ff8e2e09166607b04925464acc086b5c20b058de4fab2e8e07c633b789b",
+    "open_at": "1794452400000000000",
+    "close_at": "1794787140000000000",
+    "resolve_after": "1795608000000000000",
+    "invalidation_policy": "refund_on_void",
+    "status": "open",
+    "entries_open": true,
+    "entries_paused": false,
+    "totals": [
+      "0",
+      "0"
+    ],
+    "escrow_total": "0",
+    "paid_total": "0",
+    "pending_total": "0",
+    "unclaimed_reserve": "0",
+    "winning_outcome": null,
+    "winning_choice": null,
+    "evidence_hash": null,
+    "void_reason_hash": null,
+    "created_at": "1794477609221673198",
+    "resolved_at": null,
+    "voided_at": null,
+    "fee_bps": 0,
+    "resolution_kind": null,
+    "battle": null
+  },
+  "onchain_verified": true,
+  "creation_evidence": "docs/evidence/s6_future_market_creation_20261112.json",
+  "api_verified": true,
+  "entry_intent_status": 200
+}

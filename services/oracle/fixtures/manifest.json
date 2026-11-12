@@ -1,0 +1,9 @@
+{
+  "mediawiki_query": "mediawiki_identity.json",
+  "pageviews": {
+    "Bitcoin": "pageviews_Bitcoin.json",
+    "ChatGPT": "pageviews_ChatGPT.json",
+    "Nvidia": "pageviews_Nvidia.json"
+  },
+  "fetched_at": "2026-11-12T01:40:00Z"
+}

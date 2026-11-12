@@ -1,0 +1,13 @@
+{
+  "wikimedia_top": "test_wikimedia_top.json",
+  "mediawiki_query": "test_mediawiki_query.json",
+  "pageviews": {
+    "Nvidia": "test_pageviews_nvidia.json",
+    "ChatGPT": "test_pageviews_chatgpt.json",
+    "Artificial_intelligence": "test_pageviews_artificial_intelligence.json",
+    "Bitcoin": "test_pageviews_bitcoin.json"
+  },
+  "coingecko_trending": "test_coingecko_trending.json",
+  "hackernews_front": "test_hackernews_front.json",
+  "fetched_at": "2026-11-11T23:45:00Z"
+}

@@ -1,0 +1,13 @@
+{
+  "account": "notch-dev.testnet",
+  "asset_id": "nep141:usdc.tidepool-sandbox.testnet",
+  "balance": "100000000",
+  "blocker": null,
+  "checked_at": "2026-11-12T07:31:08.938302Z",
+  "decimals": 6,
+  "min_market_entry": "1000000",
+  "ready": true,
+  "storage_registered": true,
+  "storage_total": "1250000000000000000000",
+  "symbol": "USDC"
+}
