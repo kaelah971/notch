@@ -128,6 +128,111 @@ export interface StrategyDryRun {
   }>
 }
 
+export type StrategyEvaluationStatus = 'EVALUATED' | 'UNSUPPORTED' | 'INSUFFICIENT_DATA'
+export type EvaluationUnavailableReason = 'MISSING_OBSERVATIONS' | 'ZERO_BASELINE'
+
+export interface StrategyEvaluationWindow {
+  start: string
+  end: string
+  sum_views: number
+  average_views: number
+}
+
+export interface StrategyEvaluationDecision {
+  signal_date: string
+  signal_cutoff_utc: string
+  previous_window: StrategyEvaluationWindow
+  signal_window: StrategyEvaluationWindow
+  target_window: StrategyEvaluationWindow
+  momentum_bps: number
+  threshold_bps: number
+  prediction: PredictedOutcome
+  outcome: PredictedOutcome
+  correct: boolean
+}
+
+export interface StrategyEvaluationUnavailable {
+  signal_date: string
+  missing_dates: string[]
+  reason: EvaluationUnavailableReason
+  policy_action: 'SKIP_NO_SIGNAL' | 'UNAVAILABLE'
+}
+
+export interface StrategyEvaluationBaseline {
+  name: 'Always UP on the same triggered signal dates'
+  evaluated_signals: number
+  correct: number
+  incorrect: number
+  accuracy: number | null
+  percentage_point_difference: number | null
+}
+
+export interface StrategyEvaluation {
+  status: StrategyEvaluationStatus
+  reason: string | null
+  strategy_id: string | null
+  strategy_hash: string | null
+  schema_version: typeof STRATEGY_SCHEMA_VERSION | null
+  evaluation_methodology_version: typeof STRATEGY_EVALUATION_METHODOLOGY_VERSION | null
+  dataset_id: string | null
+  dataset_version: number | null
+  dataset_label: string | null
+  dataset_content_sha256: string | null
+  source_url: string | null
+  dataset_start_utc: string | null
+  dataset_end_utc: string | null
+  evaluated_start_utc: string | null
+  evaluated_end_utc: string | null
+  candidate_windows: number
+  eligible_windows: number
+  triggered_signals: number
+  correct: number
+  incorrect: number
+  skipped_windows: number
+  unavailable_windows: number
+  missing_windows: number
+  zero_baseline_windows: number
+  accuracy: number | null
+  baseline: StrategyEvaluationBaseline
+  decisions: StrategyEvaluationDecision[]
+  unavailable: StrategyEvaluationUnavailable[]
+  eligible_window_dates: string[]
+  lookahead_safe: true
+  overlap: {
+    window_step_days: 1
+    full_span_days: number
+    overlap_days: number
+    disclosure: string
+  }
+  result_digest: string | null
+}
+
+export interface StrategyComparisonMetrics {
+  eligible_windows: number
+  triggered_signals: number
+  correct: number
+  incorrect: number
+  accuracy: number | null
+  baseline_accuracy: number | null
+  percentage_point_difference: number | null
+}
+
+export interface StrategyComparison {
+  available: boolean
+  reason: string | null
+  first: StrategyEvaluation
+  second: StrategyEvaluation
+  matched_eligible_windows: number
+  matched_signal_windows: number
+  matched: {
+    first: StrategyComparisonMetrics
+    second: StrategyComparisonMetrics
+  }
+  same_eligible_population: boolean
+  same_signal_population: boolean
+  warnings: string[]
+}
+
 type StorageLike = Pick<Storage, 'getItem' | 'setItem'>
 
 const FIELD_LABELS: Record<StrategyField, string> = {
@@ -450,58 +555,259 @@ function dateRange(start: string, end: string): string[] {
   return rows
 }
 
-export function dryRunStrategy(strategy: StrategyDefinition, dataset: HistoricalDataset): StrategyDryRun {
+export function canonicalStrategyHash(strategy: StrategyDefinition): string {
   const validation = validateStrategy(strategy)
-  if (!validation.ok) return { available: false, reason: validation.errors.join(' '), dataset_id: null, dataset_label: null, candidate_dates: 0, signal_dates: 0, correct: 0, incorrect: 0, no_signal_dates: 0, unavailable_dates: 0, lookahead_safe: true, decisions: [] }
-  const sameArticle = dataset.source.article.toLowerCase() === strategy.source.topic.toLowerCase()
-  const sameMethodology = dataset.source.project === strategy.source.project && dataset.source.access === strategy.source.access && dataset.source.agent === strategy.source.agent && dataset.source.metric === strategy.source.metric
-  if (!sameArticle || !sameMethodology) {
-    return { available: false, reason: 'This frozen example dataset does not match the strategy topic and source.', dataset_id: dataset.dataset_id, dataset_label: dataset.label, candidate_dates: 0, signal_dates: 0, correct: 0, incorrect: 0, no_signal_dates: 0, unavailable_dates: 0, lookahead_safe: true, decisions: [] }
+  if (!validation.ok) throw new Error(validation.errors.join(' '))
+  return `fnv1a32:${stableHash(serializeStrategy(validation.value))}`
+}
+
+function emptyEvaluation(status: StrategyEvaluationStatus, reason: string | null, strategy: StrategyDefinition | null, dataset: HistoricalDataset): StrategyEvaluation {
+  const validation = strategy ? validateStrategy(strategy) : null
+  const validStrategy = validation?.ok ? validation.value : null
+  const lookback = validStrategy?.observation_window.lookback_days ?? 0
+  const horizon = validStrategy?.forecast_horizon_days ?? 0
+  const fullSpan = lookback * 2 + horizon
+  return {
+    status,
+    reason,
+    strategy_id: validStrategy?.strategy_id ?? null,
+    strategy_hash: validStrategy ? canonicalStrategyHash(validStrategy) : null,
+    schema_version: validStrategy?.schema_version ?? null,
+    evaluation_methodology_version: validStrategy?.evaluation_methodology_version ?? null,
+    dataset_id: dataset.dataset_id,
+    dataset_version: dataset.version,
+    dataset_label: dataset.label,
+    dataset_content_sha256: dataset.content_sha256,
+    source_url: dataset.source.url,
+    dataset_start_utc: dataset.observation_start,
+    dataset_end_utc: dataset.observation_end,
+    evaluated_start_utc: null,
+    evaluated_end_utc: null,
+    candidate_windows: 0,
+    eligible_windows: 0,
+    triggered_signals: 0,
+    correct: 0,
+    incorrect: 0,
+    skipped_windows: 0,
+    unavailable_windows: 0,
+    missing_windows: 0,
+    zero_baseline_windows: 0,
+    accuracy: null,
+    baseline: {
+      name: 'Always UP on the same triggered signal dates',
+      evaluated_signals: 0,
+      correct: 0,
+      incorrect: 0,
+      accuracy: null,
+      percentage_point_difference: null,
+    },
+    decisions: [],
+    unavailable: [],
+    eligible_window_dates: [],
+    lookahead_safe: true,
+    overlap: {
+      window_step_days: 1,
+      full_span_days: fullSpan,
+      overlap_days: Math.max(0, fullSpan - 1),
+      disclosure: fullSpan ? `Candidate windows advance one UTC day and overlap by ${Math.max(0, fullSpan - 1)} of ${fullSpan} observation days; counts are windows, not independent trials.` : 'Overlap is unavailable until the strategy is valid.',
+    },
+    result_digest: null,
   }
-  const values = new Map(dataset.observations.map((row) => [row.date, row.views]))
+}
+
+function windowFor(dates: string[], values: Map<string, number | null>): StrategyEvaluationWindow {
+  const sum = dates.reduce((total, date) => total + (values.get(date) ?? 0), 0)
+  return { start: dates[0], end: dates.at(-1)!, sum_views: sum, average_views: Math.floor(sum / dates.length) }
+}
+
+function finalizeEvaluation(evaluation: StrategyEvaluation): StrategyEvaluation {
+  const digestPayload = { ...evaluation, result_digest: null }
+  return { ...evaluation, result_digest: `fnv1a32:${stableHash(canonicalJson(digestPayload))}` }
+}
+
+export function evaluateStrategy(strategy: StrategyDefinition, dataset: HistoricalDataset): StrategyEvaluation {
+  const validation = validateStrategy(strategy)
+  if (!validation.ok) return finalizeEvaluation(emptyEvaluation('UNSUPPORTED', validation.errors.join(' '), null, dataset))
+  const validStrategy = validation.value
+  const sameArticle = dataset.source.article.toLowerCase() === validStrategy.source.topic.toLowerCase()
+  const sameMethodology = dataset.source.provider === 'Wikimedia Analytics API'
+    && dataset.source.project === validStrategy.source.project
+    && dataset.source.access === validStrategy.source.access
+    && dataset.source.agent === validStrategy.source.agent
+    && dataset.source.metric === validStrategy.source.metric
+  if (!sameArticle || !sameMethodology) {
+    return finalizeEvaluation(emptyEvaluation('UNSUPPORTED', `No genuine frozen Wikimedia dataset matches ${validStrategy.source.topic} with the ${validStrategy.source.methodology_version} methodology.`, validStrategy, dataset))
+  }
+
+  const values = new Map<string, number | null>()
+  for (const observation of dataset.observations) {
+    try { parseDate(observation.date) } catch { continue }
+    const validValue = Number.isSafeInteger(observation.views) && observation.views >= 0 ? observation.views : null
+    if (values.has(observation.date)) values.set(observation.date, null)
+    else values.set(observation.date, validValue)
+  }
   const dates = [...values.keys()].sort()
-  if (!dates.length) return { available: false, reason: 'The frozen example dataset has no observations.', dataset_id: dataset.dataset_id, dataset_label: dataset.label, candidate_dates: 0, signal_dates: 0, correct: 0, incorrect: 0, no_signal_dates: 0, unavailable_dates: 0, lookahead_safe: true, decisions: [] }
-  const lookback = strategy.observation_window.lookback_days
-  const horizon = strategy.forecast_horizon_days
+  const result = emptyEvaluation('EVALUATED', null, validStrategy, dataset)
+  if (!dates.length) return finalizeEvaluation({ ...result, status: 'INSUFFICIENT_DATA', reason: 'The frozen dataset has no valid dated observations.' })
+
+  const lookback = validStrategy.observation_window.lookback_days
+  const horizon = validStrategy.forecast_horizon_days
   const first = shiftDay(dates[0], lookback * 2 - 1)
   const last = shiftDay(dates.at(-1)!, -horizon)
   const candidates = first <= last ? dateRange(first, last) : []
-  const decisions: StrategyDryRun['decisions'] = []
-  let noSignal = 0
-  let unavailable = 0
+  if (!candidates.length) return finalizeEvaluation({ ...result, status: 'INSUFFICIENT_DATA', reason: `The dataset is too short for ${lookback}-day signal windows plus a ${horizon}-day forecast horizon.` })
+
+  const decisions: StrategyEvaluationDecision[] = []
+  const unavailable: StrategyEvaluationUnavailable[] = []
+  const eligibleWindowDates: string[] = []
+  let skippedWindows = 0
+  let missingWindows = 0
+  let zeroBaselineWindows = 0
+
   for (const signalDate of candidates) {
-    const previous = dateRange(shiftDay(signalDate, -(lookback * 2 - 1)), shiftDay(signalDate, -lookback))
-    const current = dateRange(shiftDay(signalDate, -(lookback - 1)), signalDate)
-    const target = dateRange(shiftDay(signalDate, 1), shiftDay(signalDate, horizon))
-    const required = [...previous, ...current, ...target]
-    if (required.some((date) => !values.has(date) || !Number.isFinite(values.get(date)))) {
-      if (strategy.missing_data_policy === 'NO_SIGNAL') noSignal += 1
-      else unavailable += 1
+    const previousDates = dateRange(shiftDay(signalDate, -(lookback * 2 - 1)), shiftDay(signalDate, -lookback))
+    const signalDates = dateRange(shiftDay(signalDate, -(lookback - 1)), signalDate)
+    const targetDates = dateRange(shiftDay(signalDate, 1), shiftDay(signalDate, horizon))
+    const required = [...previousDates, ...signalDates, ...targetDates]
+    const missingDates = required.filter((date) => !values.has(date) || !Number.isFinite(values.get(date)))
+    if (missingDates.length) {
+      missingWindows += 1
+      unavailable.push({ signal_date: signalDate, missing_dates: [...new Set(missingDates)], reason: 'MISSING_OBSERVATIONS', policy_action: validStrategy.missing_data_policy === 'NO_SIGNAL' ? 'SKIP_NO_SIGNAL' : 'UNAVAILABLE' })
       continue
     }
-    const previousSum = previous.reduce((sum, date) => sum + values.get(date)!, 0)
-    const currentSum = current.reduce((sum, date) => sum + values.get(date)!, 0)
-    const momentum = growthBpsFromSums(previousSum, currentSum)
-    const signaled = strategy.signal_direction === 'RISING' ? momentum >= strategy.threshold_bps : momentum <= -strategy.threshold_bps
-    if (!signaled) { noSignal += 1; continue }
-    const targetSum = target.reduce((sum, date) => sum + values.get(date)!, 0)
-    const outcome: PredictedOutcome = targetSum >= currentSum ? 'UP' : 'DOWN'
-    decisions.push({ signal_date: signalDate, momentum_bps: momentum, threshold_bps: strategy.threshold_bps, prediction: strategy.predicted_outcome, outcome, correct: strategy.predicted_outcome === outcome })
+    const previousWindow = windowFor(previousDates, values)
+    const signalWindow = windowFor(signalDates, values)
+    const targetWindow = windowFor(targetDates, values)
+    if (previousWindow.sum_views <= 0) {
+      zeroBaselineWindows += 1
+      unavailable.push({ signal_date: signalDate, missing_dates: [], reason: 'ZERO_BASELINE', policy_action: 'UNAVAILABLE' })
+      continue
+    }
+    eligibleWindowDates.push(signalDate)
+    const momentum = growthBpsFromSums(previousWindow.sum_views, signalWindow.sum_views)
+    const signaled = validStrategy.signal_direction === 'RISING' ? momentum >= validStrategy.threshold_bps : momentum <= -validStrategy.threshold_bps
+    if (!signaled) {
+      skippedWindows += 1
+      continue
+    }
+    const outcome: PredictedOutcome = targetWindow.sum_views >= signalWindow.sum_views ? 'UP' : 'DOWN'
+    decisions.push({
+      signal_date: signalDate,
+      signal_cutoff_utc: `${signalDate}T23:59:59Z`,
+      previous_window: previousWindow,
+      signal_window: signalWindow,
+      target_window: targetWindow,
+      momentum_bps: momentum,
+      threshold_bps: validStrategy.threshold_bps,
+      prediction: validStrategy.predicted_outcome,
+      outcome,
+      correct: validStrategy.predicted_outcome === outcome,
+    })
   }
+
   const correct = decisions.filter((decision) => decision.correct).length
+  const accuracy = decisions.length ? correct / decisions.length * 100 : null
+  const baselineCorrect = decisions.filter((decision) => decision.outcome === 'UP').length
+  const baselineAccuracy = decisions.length ? baselineCorrect / decisions.length * 100 : null
+  const overlap = result.overlap
+  const evaluated = {
+    ...result,
+    evaluated_start_utc: candidates[0] ?? null,
+    evaluated_end_utc: candidates.at(-1) ?? null,
+    candidate_windows: candidates.length,
+    eligible_windows: eligibleWindowDates.length,
+    triggered_signals: decisions.length,
+    correct,
+    incorrect: decisions.length - correct,
+    skipped_windows: skippedWindows,
+    unavailable_windows: unavailable.length,
+    missing_windows: missingWindows,
+    zero_baseline_windows: zeroBaselineWindows,
+    accuracy,
+    baseline: {
+      name: 'Always UP on the same triggered signal dates' as const,
+      evaluated_signals: decisions.length,
+      correct: baselineCorrect,
+      incorrect: decisions.length - baselineCorrect,
+      accuracy: baselineAccuracy,
+      percentage_point_difference: accuracy == null || baselineAccuracy == null ? null : accuracy - baselineAccuracy,
+    },
+    decisions,
+    unavailable,
+    eligible_window_dates: eligibleWindowDates,
+    overlap,
+  }
+  return finalizeEvaluation(evaluated)
+}
+
+export function compareStrategyEvaluations(first: StrategyEvaluation, second: StrategyEvaluation): StrategyComparison {
+  const firstEligible = new Set(first.eligible_window_dates)
+  const secondEligible = new Set(second.eligible_window_dates)
+  const firstSignals = new Set(first.decisions.map((decision) => decision.signal_date))
+  const secondSignals = new Set(second.decisions.map((decision) => decision.signal_date))
+  const matchedEligible = [...firstEligible].filter((date) => secondEligible.has(date))
+  const matchedSignals = [...firstSignals].filter((date) => secondSignals.has(date))
+  const sameEligible = firstEligible.size === secondEligible.size && matchedEligible.length === firstEligible.size
+  const sameSignals = firstSignals.size === secondSignals.size && matchedSignals.length === firstSignals.size
+  const warnings: string[] = []
+  if (!sameEligible) warnings.push(`Eligible-window coverage differs: ${first.eligible_windows} vs ${second.eligible_windows}; compare those populations cautiously.`)
+  if (!sameSignals) warnings.push(`Triggered-signal coverage differs: ${first.triggered_signals} vs ${second.triggered_signals}; accuracy is not a claim that one strategy outperforms the other.`)
+  if (first.overlap.overlap_days > 0 || second.overlap.overlap_days > 0) warnings.push('Adjacent historical windows overlap; these observations are not independent trials.')
+  const matchedDateSet = new Set(matchedEligible)
+  const matchedMetrics = (evaluation: StrategyEvaluation) => {
+    const decisions = evaluation.decisions.filter((decision) => matchedDateSet.has(decision.signal_date))
+    const correct = decisions.filter((decision) => decision.correct).length
+    const accuracy = decisions.length ? correct / decisions.length * 100 : null
+    const baselineCorrect = decisions.filter((decision) => decision.outcome === 'UP').length
+    const baselineAccuracy = decisions.length ? baselineCorrect / decisions.length * 100 : null
+    return {
+      eligible_windows: matchedEligible.length,
+      triggered_signals: decisions.length,
+      correct,
+      incorrect: decisions.length - correct,
+      accuracy,
+      baseline_accuracy: baselineAccuracy,
+      percentage_point_difference: accuracy == null || baselineAccuracy == null ? null : accuracy - baselineAccuracy,
+    }
+  }
+  return {
+    available: first.status === 'EVALUATED' && second.status === 'EVALUATED',
+    reason: first.status !== 'EVALUATED' ? first.reason : second.status !== 'EVALUATED' ? second.reason : null,
+    first,
+    second,
+    matched_eligible_windows: matchedEligible.length,
+    matched_signal_windows: matchedSignals.length,
+    matched: { first: matchedMetrics(first), second: matchedMetrics(second) },
+    same_eligible_population: sameEligible,
+    same_signal_population: sameSignals,
+    warnings,
+  }
+}
+
+export function compareStrategies(first: StrategyDefinition, second: StrategyDefinition, dataset: HistoricalDataset): StrategyComparison {
+  return compareStrategyEvaluations(evaluateStrategy(first, dataset), evaluateStrategy(second, dataset))
+}
+
+export function dryRunStrategy(strategy: StrategyDefinition, dataset: HistoricalDataset): StrategyDryRun {
+  const evaluation = evaluateStrategy(strategy, dataset)
+  if (evaluation.status !== 'EVALUATED') {
+    return { available: false, reason: evaluation.reason, dataset_id: evaluation.dataset_id, dataset_label: evaluation.dataset_label, candidate_dates: evaluation.candidate_windows, signal_dates: 0, correct: 0, incorrect: 0, no_signal_dates: 0, unavailable_dates: evaluation.unavailable_windows, lookahead_safe: true, decisions: [] }
+  }
+  const noSignalDates = evaluation.skipped_windows + (strategy.missing_data_policy === 'NO_SIGNAL' ? evaluation.missing_windows : 0)
+  const unavailableDates = evaluation.zero_baseline_windows + (strategy.missing_data_policy === 'UNAVAILABLE' ? evaluation.missing_windows : 0)
   return {
     available: true,
     reason: null,
-    dataset_id: dataset.dataset_id,
-    dataset_label: dataset.label,
-    candidate_dates: candidates.length,
-    signal_dates: decisions.length,
-    correct,
-    incorrect: decisions.length - correct,
-    no_signal_dates: noSignal,
-    unavailable_dates: unavailable,
+    dataset_id: evaluation.dataset_id,
+    dataset_label: evaluation.dataset_label,
+    candidate_dates: evaluation.candidate_windows,
+    signal_dates: evaluation.triggered_signals,
+    correct: evaluation.correct,
+    incorrect: evaluation.incorrect,
+    no_signal_dates: noSignalDates,
+    unavailable_dates: unavailableDates,
     lookahead_safe: true,
-    decisions,
+    decisions: evaluation.decisions.map((decision) => ({ signal_date: decision.signal_date, momentum_bps: decision.momentum_bps, threshold_bps: decision.threshold_bps, prediction: decision.prediction, outcome: decision.outcome, correct: decision.correct })),
   }
 }
 
