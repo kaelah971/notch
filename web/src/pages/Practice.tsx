@@ -71,6 +71,7 @@ export function Practice() {
         </div>
         <div className="practice-head-side">
           <span className="badge badge-live">Practice Mode</span>
+          <Link className="btn btn-quiet" to="/app/strategy-builder">Build a strategy →</Link>
           <Link className="btn btn-quiet" to="/app/portfolio">Real Portfolio →</Link>
         </div>
       </header>

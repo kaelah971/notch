@@ -9,6 +9,7 @@ import { Markets } from './pages/Markets'
 import { MarketDetail } from './pages/MarketDetail'
 import { Radar } from './pages/Radar'
 import { Discover } from './pages/Discover'
+import { StrategyBuilder } from './pages/StrategyBuilder'
 import { More, Profile, Settings } from './pages/Simple'
 import { SignalsHub } from './signals/SignalsHub'
 import { Predictor } from './signals/Predictor'
@@ -29,6 +30,8 @@ const router = createBrowserRouter([
       { path: 'practice', element: <Practice /> },
       { path: 'battles', element: <Markets battlesOnly /> },
       { path: 'discover', element: <Discover /> },
+      { path: 'strategy-builder', element: <StrategyBuilder /> },
+      { path: 'strategies', element: <StrategyBuilder /> },
       { path: 'radar', element: <Radar /> },
       { path: 'portfolio', element: <Portfolio /> },
       { path: 'leaderboard', element: <SignalsHub /> },

@@ -10,6 +10,7 @@ export const primaryNav: NavItem[] = [
   { to: '/app/markets', label: 'Markets', icon: MarketsIcon },
   { to: '/app/practice', label: 'Practice Mode', icon: Dices },
   { to: '/app/discover', label: 'Discover', icon: Radar },
+  { to: '/app/strategy-builder', label: 'Strategy Builder', icon: SlidersHorizontal },
   { to: '/app/battles', label: 'Trend Battles', icon: Swords },
   { to: '/app/portfolio', label: 'Portfolio', icon: Wallet },
   { to: '/app/leaderboard', label: 'Leaderboard', icon: Trophy },

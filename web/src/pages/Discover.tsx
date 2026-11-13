@@ -112,7 +112,12 @@ function ScoutCard({ item, rank, open, onToggle }: { item: ScoutCandidate; rank:
             Open market research <ArrowUpRight size={14} aria-hidden="true" />
           </Link>
         ) : item.proposal ? (
-          <span className="scout-review"><FileSearch size={14} aria-hidden="true" /> Review-only proposal</span>
+          <div className="scout-card-footer-actions">
+            <span className="scout-review"><FileSearch size={14} aria-hidden="true" /> Review-only proposal</span>
+            <Link className="scout-action" to={`/app/strategy-builder?candidate=${encodeURIComponent(item.candidate_id)}`}>
+              Build strategy <ArrowUpRight size={14} aria-hidden="true" />
+            </Link>
+          </div>
         ) : (
           <span className="scout-review">No proposal: evidence is not yet suitable</span>
         )}

@@ -44,6 +44,7 @@ export const api = {
   trends: () => request<Trend[], { count: number }>('/api/trends'),
   scout: (direction: ScoutDirection = 'all', limit = 12) =>
     request<ScoutCandidate[], ScoutMeta>(`/api/scout?direction=${direction}&limit=${limit}`),
+  scoutDetail: (id: string) => request<ScoutCandidate>(`/api/scout/${enc(id)}`),
   pulse: (window: PulseWindow = '7d', refresh = true) =>
     request<PulseData>(`/api/pulse?window=${window}&refresh=${refresh ? 'true' : 'false'}`),
   readiness: (accountId: string) => request<Readiness>(`/api/funding/readiness?account_id=${enc(accountId)}`),
