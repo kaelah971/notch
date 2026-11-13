@@ -409,6 +409,10 @@ class APITests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(payload["meta"]["count"], 1)
         self.assertEqual(payload["data"][0]["claim_state"], "claimed")
+        self.assertEqual(payload["data"][0]["prediction_status"], "CORRECT")
+        self.assertEqual(payload["data"][0]["prediction_choice"], "UP")
+        self.assertEqual(payload["data"][0]["prediction_choices"], ["UP"])
+        self.assertEqual(payload["data"][0]["evidence_hash"], "sha256:" + "c" * 64)
 
     def test_funding_tokens_readiness_and_status(self):
         status, payload = self.call("GET", "/api/funding/tokens")

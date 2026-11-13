@@ -25,6 +25,7 @@ from services.oracle.evidence import verify_evidence
 from services.trend_radar.models import iso_utc, now_utc, parse_iso
 from services.web_api.chain import ChainReadError, MarketChainReader
 from services.web_api.config import WebAPIConfig
+from services.web_api.predictions import classify_prediction
 from services.web_api.repositories import OracleRepository, RadarRepository, RepositoryError
 from services.web_api.schemas import (
     ApiError,
@@ -565,6 +566,7 @@ class WebAPI:
             position = self.chain.get_position(market_id, account_id)
             if position is None:
                 continue
+            result = classify_prediction(market, position)
             positions.append(
                 PositionSummary(
                     market_id=market_id,
@@ -578,6 +580,11 @@ class WebAPI:
                     pending_amount=str(position.get("pending_amount")),
                     claimable=str(position.get("claimable")),
                     claim_state=str(position.get("claim_state")),
+                    prediction_status=result["status"],
+                    prediction_choice=result["choice"],
+                    prediction_choices=result["choices"],
+                    evidence_hash=market.get("evidence_hash"),
+                    resolution_kind=market.get("resolution_kind"),
                 )
             )
         return {

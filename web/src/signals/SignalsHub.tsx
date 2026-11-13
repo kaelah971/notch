@@ -7,8 +7,8 @@ import './Signals.css'
 
 /**
  * Notch Signals V1 — look up any account's verified onchain calls, follow on this device,
- * and make the same call yourself. No rankings, profiles or follower counts are shown
- * because none are verified or persisted yet.
+ * and make the same call yourself. Forecast passports are derived only from finalized
+ * market outcomes; rankings and follower counts are not shown.
  */
 export function SignalsHub() {
   const nav = useNavigate()
@@ -48,7 +48,7 @@ export function SignalsHub() {
       <section className="msec" aria-labelledby="lb-h">
         <div className="msec-hrow"><h2 id="lb-h" className="msec-h">Leaderboard</h2></div>
         <p className="msec-empty">
-          <strong className="txt">No verified rankings yet.</strong> Rankings need resolved future-outcome markets, an onchain entry index to discover predictors, and opt-in public profiles. Historical demonstrations never count. Until then, Notch shows no ranks, win rates or follower counts.
+          <strong className="txt">No verified rankings yet.</strong> Rankings need resolved future-outcome markets, an onchain entry index to discover predictors, and opt-in public profiles. Historical demonstrations never count. Forecast passports below each account show the verified sample and accuracy without inventing a rank.
         </p>
       </section>
     </>

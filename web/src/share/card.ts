@@ -1,5 +1,7 @@
 // Canvas-rendered Notch share cards (1200×630, the Open Graph aspect). No external deps.
 
+import type { PredictionStatus } from '../api/types'
+
 export interface MarketCardSpec {
   kind: 'market'
   title: string
@@ -13,9 +15,15 @@ export interface CallCardSpec {
   title: string
   choice: string
   stake: string // formatted test-USDC
-  confirmedAt: string // ISO, from the confirming read
+  confirmedAt: string | null // ISO, only when a confirmation time is actually known
   txRef: string | null // tx hash when known
   verification: 'tx' | 'contract-read'
+  result?: {
+    status: PredictionStatus
+    outcome: string | null
+    evidenceHash?: string | null
+    marketId?: string
+  }
   account: string | null // only when the user opts in
   url: string
 }
@@ -23,6 +31,27 @@ export type CardSpec = MarketCardSpec | CallCardSpec
 
 const Y = '#fceb53'
 const W = 1200, H = 630
+
+export function callCardBadge(spec: CallCardSpec): string {
+  const txVerified = spec.verification === 'tx' && Boolean(spec.txRef?.trim())
+  return spec.result?.status === 'CORRECT'
+    ? '✓ Prediction correct'
+    : spec.result?.status === 'INCORRECT'
+      ? '✕ Prediction incorrect'
+      : spec.result?.status === 'VOIDED'
+        ? '↺ Prediction voided'
+        : spec.result?.status === 'UNKNOWN'
+          ? '? Result unavailable'
+          : txVerified ? '✓ Confirmed onchain' : '✓ Position verified onchain'
+}
+
+export function callCardOutcomeSuffix(spec: CallCardSpec): string {
+  return spec.result?.status === 'CORRECT' && spec.result.outcome
+    ? ` · final ${spec.result.outcome}`
+    : spec.result?.status === 'INCORRECT' && spec.result.outcome
+      ? ` · final ${spec.result.outcome}`
+      : spec.result?.status === 'VOIDED' ? ' · refunded' : ''
+}
 
 function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number, maxLines: number): string[] {
   const words = text.split(/\s+/)
@@ -34,6 +63,36 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, maxW: number, maxLine
   }
   if (cur) lines.push(cur)
   if (lines.length > maxLines) { lines.length = maxLines; lines[maxLines - 1] = lines[maxLines - 1].replace(/\s*\S*$/, '…') }
+  return lines
+}
+
+/** Break a long identifier without truncating it; account visibility is an explicit user choice. */
+function wrapToken(ctx: CanvasRenderingContext2D, text: string, maxW: number): string[] {
+  const lines: string[] = []
+  let current = ''
+  for (const token of text.split(/\s+/)) {
+    const candidate = current ? `${current} ${token}` : token
+    if (ctx.measureText(candidate).width <= maxW) {
+      current = candidate
+      continue
+    }
+    if (current) lines.push(current)
+    if (ctx.measureText(token).width <= maxW) {
+      current = token
+      continue
+    }
+    let chunk = ''
+    for (const char of token) {
+      if (ctx.measureText(chunk + char).width > maxW && chunk) {
+        lines.push(chunk)
+        chunk = char
+      } else {
+        chunk += char
+      }
+    }
+    current = chunk
+  }
+  if (current) lines.push(current)
   return lines
 }
 
@@ -72,7 +131,7 @@ export async function renderCard(spec: CardSpec): Promise<HTMLCanvasElement> {
 
   let y = 220
   if (spec.kind === 'call') {
-    pill(ctx, 64, y - 44, spec.verification === 'tx' ? '✓ Confirmed onchain' : '✓ Position verified onchain', 'rgba(252,235,83,.16)', Y, 22)
+    pill(ctx, 64, y - 44, callCardBadge(spec), 'rgba(252,235,83,.16)', Y, 22)
     y += 30
   } else {
     pill(ctx, 64, y - 44, spec.status, 'rgba(255,255,255,.1)', '#fff', 22)
@@ -85,15 +144,30 @@ export async function renderCard(spec: CardSpec): Promise<HTMLCanvasElement> {
   y += 24
 
   if (spec.kind === 'call') {
+    const txVerified = spec.verification === 'tx' && Boolean(spec.txRef?.trim())
     ctx.font = '500 26px "Hanken Grotesk Variable", system-ui, sans-serif'; ctx.fillStyle = 'rgba(235,235,245,.6)'
     ctx.fillText('My call', 64, y + 20)
     const w = pill(ctx, 64, y + 36, spec.choice, Y, '#0a0a0a', 34)
     ctx.font = '700 34px "Hanken Grotesk Variable", system-ui, sans-serif'; ctx.fillStyle = '#fff'
-    ctx.fillText(`${spec.stake} test-USDC`, 64 + w + 24, y + 36 + 42)
+    ctx.fillText(`${spec.stake} test-USDC${callCardOutcomeSuffix(spec)}`, 64 + w + 24, y + 36 + 42)
     ctx.font = '500 20px "Geist Mono Variable", ui-monospace, monospace'; ctx.fillStyle = 'rgba(235,235,245,.5)'
-    const ref = spec.txRef ? `tx ${spec.txRef.slice(0, 10)}…${spec.txRef.slice(-6)}` : 'verified by market contract read'
-    const who = spec.account ? ` · ${spec.account}` : ''
-    ctx.fillText(`${new Date(spec.confirmedAt).toISOString().slice(0, 16).replace('T', ' ')} UTC · ${ref}${who}`, 64, H - 92)
+    const ref = txVerified ? `tx ${spec.txRef!.slice(0, 10)}…${spec.txRef!.slice(-6)}`
+      : spec.result?.status === 'PENDING' ? 'market not finalized'
+        : spec.result?.status === 'VOIDED' ? 'market voided or refunded'
+          : 'verified by market contract read'
+    const evidence = spec.result?.evidenceHash
+      ? ` · evidence ${spec.result.evidenceHash.slice(0, 12)}…${spec.result.evidenceHash.slice(-6)}`
+      : ''
+    const callBaseline = y + 36 + 42
+    const ctaY = H - 44
+    const metaY = Math.max(callBaseline + 30, spec.account ? ctaY - 60 : ctaY - 48)
+    const confirmed = spec.confirmedAt ? `${new Date(spec.confirmedAt).toISOString().slice(0, 16).replace('T', ' ')} UTC · ` : ''
+    ctx.fillText(`${confirmed}${ref}${evidence}`, 64, metaY)
+    if (spec.account) {
+      for (const [i, line] of wrapToken(ctx, `Account · ${spec.account}`, W - 128).entries()) {
+        ctx.fillText(line, 64, metaY + 28 + i * 22)
+      }
+    }
     ctx.font = '700 28px "Hanken Grotesk Variable", system-ui, sans-serif'; ctx.fillStyle = Y
     ctx.fillText('Think I’m wrong? Make your call.', 64, H - 44)
   } else {

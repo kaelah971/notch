@@ -335,7 +335,16 @@ storage registration.
 
 Returns onchain positions only where `get_position` returns data. Each item
 includes market status, stakes, total stake, claimed total, pending amount,
-claimable and claim state.
+claimable and claim state, plus a deterministic market-level prediction result:
+`prediction_status` is one of `PENDING`, `CORRECT`, `INCORRECT`, `VOIDED`, or
+`UNKNOWN`; `prediction_choice` is populated only for a single-sided position;
+`prediction_choices` preserves all selected sides; and finalized market
+`evidence_hash`/`resolution_kind` are included when available.
+
+Results are derived only from the finalized market view and the account's
+aggregated position. Repeated entries on one side remain one market-level
+prediction. A settled position with stakes on both sides is `UNKNOWN`, not an
+automatic win or loss.
 
 If the account has no positions, `data` is `[]`.
 

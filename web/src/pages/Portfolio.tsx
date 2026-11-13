@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom'
 import { api } from '../api/client'
 import { useApi } from '../api/useApi'
 import type { Market, Position } from '../api/types'
-import { formatUnits, sumUnits, USDC_DECIMALS } from '../api/format'
+import { cleanQuestion, formatUnits, sumUnits, USDC_DECIMALS } from '../api/format'
+import { PREDICTION_STATUS_HELP, PREDICTION_STATUS_LABEL, predictionBadgeClass, predictionStatus, selectedChoices, shortEvidence } from '../api/predictions'
 import { ErrorState, SkeletonList, Unavailable } from '../components/States'
+import { marketTitle } from '../components/market'
 import { explorerAccount, explorerTx, useWallet } from '../wallet/WalletProvider'
 import { Funding } from './Funding'
 import { ShareCallButton } from '../share/ShareButtons'
@@ -141,15 +143,28 @@ function PositionRow({ p, accountId, onChange }: { p: Row; accountId: string; on
     } finally { setBusy(null) }
   }
 
+  const headline = p.market ? marketTitle(p.market) : cleanQuestion(p.question)
+  const settlementRule = cleanQuestion(p.question)
+  const called = selectedChoices(p)
+
   return (
     <div className="prow">
       <div className="prow-main">
-        <Link to={`/app/markets/${encodeURIComponent(p.market_id)}`} className="prow-title">{p.question.replace(/^(HISTORICAL REPLAY \(not a forecast\)|FORECAST \(not a replay\)):\s*/i, '')}</Link>
+        <Link to={`/app/markets/${encodeURIComponent(p.market_id)}`} className="prow-title" title={settlementRule}>{headline}</Link>
         <p className="prow-meta">
-          {p.replay && <span className="badge badge-replay">Resolved demonstration</span>}
+          {p.replay && <span className="badge badge-replay">Resolved demonstration · not counted</span>}
+          <span className="dim">Prediction</span>
+          <span className={`badge ${predictionBadgeClass(predictionStatus(p))}`} title={PREDICTION_STATUS_HELP[predictionStatus(p)]}>{PREDICTION_STATUS_LABEL[predictionStatus(p)]}</span>
+          <span className="dim">Payout</span>
           <span className="badge">{CLAIM_LABEL[p.claim_state] ?? p.claim_state}</span>
-          {p.winning_choice && <span className="dim">Outcome {p.winning_choice}</span>}
+          {called.length > 0 && <span className="dim">Called {called.join(' / ')}</span>}
+          {p.winning_choice && <span className="dim">Final outcome {p.winning_choice}</span>}
+          {shortEvidence(p.evidence_hash) && <span className="mono dim">Evidence {shortEvidence(p.evidence_hash)}</span>}
         </p>
+        <details className="prow-rule">
+          <summary>Full settlement rule</summary>
+          <p>{settlementRule}</p>
+        </details>
       </div>
       <dl className="prow-nums">
         <div><dt>Staked</dt><dd className="mono">{formatUnits(p.total_stake, USDC_DECIMALS)}</dd></div>
@@ -158,8 +173,9 @@ function PositionRow({ p, accountId, onChange }: { p: Row; accountId: string; on
       </dl>
       {p.market && !p.replay && (() => {
         const i = p.stakes.findIndex((s) => s !== '0')
-        return i >= 0 ? <ShareCallButton className="btn btn-quiet" m={p.market} choice={p.market.choices[i] ?? `Outcome ${i + 1}`}
-          stake={formatUnits(p.stakes[i], USDC_DECIMALS, 6)} confirmedAt={new Date().toISOString()} txRef={null} account={accountId} /> : null
+        return called.length === 1 && i >= 0 ? <ShareCallButton className="btn btn-quiet" m={p.market} choice={called[0] ?? p.market.choices[i] ?? `Outcome ${i + 1}`}
+          stake={formatUnits(p.stakes[i], USDC_DECIMALS, 6)} confirmedAt={null} txRef={null} account={accountId}
+          result={{ status: predictionStatus(p), outcome: p.winning_choice, evidenceHash: p.evidence_hash, marketId: p.market_id }} /> : null
       })()}
       {p.claim_state === 'claimable' && (
         <button className="btn btn-primary" onClick={claim} disabled={!!busy}>{busy ? 'Waiting for wallet…' : 'Claim payout'}</button>

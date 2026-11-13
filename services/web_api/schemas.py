@@ -141,6 +141,11 @@ class PositionSummary:
     pending_amount: str
     claimable: str
     claim_state: str
+    prediction_status: str
+    prediction_choice: str | None
+    prediction_choices: list[str]
+    evidence_hash: str | None
+    resolution_kind: str | None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -155,6 +160,11 @@ class PositionSummary:
             "pending_amount": self.pending_amount,
             "claimable": self.claimable,
             "claim_state": self.claim_state,
+            "prediction_status": self.prediction_status,
+            "prediction_choice": self.prediction_choice,
+            "prediction_choices": self.prediction_choices,
+            "evidence_hash": self.evidence_hash,
+            "resolution_kind": self.resolution_kind,
         }
 
 

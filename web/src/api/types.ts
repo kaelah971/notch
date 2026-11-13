@@ -129,6 +129,7 @@ export interface WalletBalances {
 }
 
 export type ClaimState = 'open' | 'pending' | 'claimable' | 'claimed' | 'not_eligible'
+export type PredictionStatus = 'PENDING' | 'CORRECT' | 'INCORRECT' | 'VOIDED' | 'UNKNOWN'
 export interface Position {
   market_id: string
   mode: MarketMode
@@ -141,6 +142,11 @@ export interface Position {
   pending_amount: string
   claimable: string
   claim_state: ClaimState
+  prediction_status: PredictionStatus
+  prediction_choice: string | null
+  prediction_choices: string[]
+  evidence_hash: string | null
+  resolution_kind: string | null
 }
 
 export interface FundingAsset { asset_id: string; decimals: number; blockchain: string; symbol: string; contract_address?: string }

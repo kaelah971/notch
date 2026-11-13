@@ -10,4 +10,22 @@
 .call-title:hover { color: var(--sunburst); }
 .call-sides { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 6px; color: var(--text-2); font-size: 14px; }
 .call-sides strong { color: var(--text); }
-@media (max-width: 640px) { .call { grid-template-columns: 1fr; } }
+.call-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.call-actions .btn { white-space: nowrap; }
+.passport { margin: 4px 0 30px; padding: 18px; background: var(--surface-1); border-radius: var(--radius-lg); box-shadow: inset 0 0 0 1px var(--hairline); }
+.passport-head { display: flex; justify-content: space-between; gap: 16px; align-items: baseline; margin-bottom: 14px; }
+.passport-head p { color: var(--text-2); font-size: 13px; margin-top: 5px; }
+.passport-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+.passport-stat { min-width: 0; padding: 12px; background: var(--surface-2); border-radius: var(--radius-md); }
+.passport-stat p { color: var(--text-2); font: var(--w-label) 11px var(--font-mono); letter-spacing: var(--track-label); text-transform: uppercase; }
+.passport-stat strong { display: block; margin-top: 8px; font-size: clamp(20px, 3vw, 28px); line-height: 1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.passport-stat span { display: block; margin-top: 8px; color: var(--text-3); font-size: 12px; line-height: 1.3; }
+.result-correct { background: rgba(74, 222, 128, .14); color: var(--pos); }
+.result-incorrect { background: rgba(255, 107, 94, .14); color: var(--neg); }
+.result-voided { background: rgba(244, 159, 4, .14); color: var(--warn); }
+.result-pending { background: var(--accent-tint); color: var(--sunburst); }
+.result-unknown { background: var(--surface-3); color: var(--text-2); }
+@media (max-width: 900px) { .passport-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .call { grid-template-columns: 1fr; } .call-actions { justify-content: flex-start; } .passport-head { display: block; } .passport-head .fine { display: block; margin-top: 8px; } }
+@media (max-width: 390px) { .passport { padding: 14px; } .passport-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .passport-stat { padding: 10px; } }
+@media (max-width: 320px) { .passport-grid { grid-template-columns: 1fr; } }
