@@ -40,6 +40,31 @@ The global `--data-dir` must appear before the subcommand. The scan writes
 CoinGecko price or market-cap movement is never treated as attention. Hacker
 News points/comments are discussion signals, not settlement measurements.
 
+## Scout V1
+
+The read-only `/api/scout` view is a bounded Scout over the stored Radar
+Wikimedia coverage for four supported topics: Nvidia, Bitcoin, ChatGPT and
+Artificial intelligence. It does not trigger an upstream scan; the existing
+Radar scanner owns Wikimedia fetching, rate limits and cache refresh.
+
+For each complete daily window, Scout computes:
+
+```text
+change_bps = floor((current_views - baseline_views) * 10000 / baseline_views)
+```
+
+A movement is `RISING` at `>= 2,000` bps, `FALLING` at `<= -2,000` bps,
+and `STABLE` otherwise. At least five daily observations are required;
+zero-baseline and missing-day records remain unavailable or review-only. Data
+older than 48 hours is marked stale. Scout ranking is deterministic:
+`min(60, abs(change_bps)//500)` plus sample-quality, freshness and baseline
+quality points, with candidate ID as the final tie-break.
+
+Every result includes the observation dates, raw response hashes, a derived
+evidence digest, the exact Wikimedia article/API URLs and limitations. A
+proposal is always `REVIEW_ONLY`, requires human review, and is never an
+on-chain market.
+
 ## Configuration
 
 Environment variables (see `.env.example`):

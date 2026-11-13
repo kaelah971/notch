@@ -425,6 +425,425 @@ def build_market_context(rule_record: dict[str, Any], evidence: dict[str, Any]) 
     )
 
 
+def _research_rule_payload(rule: dict[str, Any]) -> dict[str, Any]:
+    source = rule.get("source") or {}
+    return {
+        "market_id": rule.get("market_id"),
+        "mode": rule.get("mode"),
+        "question": rule.get("question"),
+        "choices": rule.get("choices"),
+        "source": {
+            key: source.get(key)
+            for key in ("id", "provider", "project", "access", "agent", "metric", "granularity", "timezone", "article")
+            if source.get(key) is not None
+        },
+        "topics": [
+            {
+                key: item.get(key)
+                for key in ("topic_id", "article_title", "page_id", "source_url")
+                if item.get(key) is not None
+            }
+            for item in (rule.get("topics") or [])
+        ],
+        "observation": rule.get("observation") or {},
+        "formula": rule.get("formula") or {},
+        "minimum_baseline_views": rule.get("minimum_baseline_views"),
+        "invalidation_policy": rule.get("invalidation_policy"),
+        "missing_data_policy": rule.get("missing_data_policy"),
+    }
+
+
+def _research_evidence_payload(evidence: dict[str, Any] | None, market_id: str) -> dict[str, Any] | None:
+    if not evidence:
+        return None
+    observations: dict[str, Any] = {}
+    for topic_id, item in (evidence.get("observations") or {}).items():
+        compact_item: dict[str, Any] = {"article": item.get("article"), "page_id": item.get("page_id")}
+        for key in ("baseline", "target"):
+            observation = item.get(key) or {}
+            if observation:
+                compact_item[key] = {
+                    "date": observation.get("date"),
+                    "views": observation.get("views"),
+                }
+        observations[str(topic_id)] = compact_item
+    return {
+        "market_id": evidence.get("market_id"),
+        "rule_hash": evidence.get("rule_hash"),
+        "evidence_digest": evidence.get("evidence_digest"),
+        "mode": evidence.get("mode"),
+        "source": evidence.get("source"),
+        "observation": evidence.get("observation"),
+        "calculation": evidence.get("calculation"),
+        "outcome": evidence.get("outcome"),
+        "invalidity_reason": evidence.get("invalidity_reason"),
+        "retrieved_at": evidence.get("retrieved_at"),
+        "raw_source_hashes": evidence.get("raw_source_hashes"),
+        "observations": observations,
+    }
+
+
+def _research_calibration_payload(item: dict[str, Any], source_id: str) -> dict[str, Any]:
+    calibration = item.get("calibration") or {}
+    return {
+        "source_id": source_id,
+        "kind": "calibration",
+        "article": item.get("article"),
+        "mode": item.get("mode"),
+        "calibration": {
+            key: calibration.get(key)
+            for key in (
+                "schema_version", "mode", "article", "project", "calibration_start", "calibration_end",
+                "calibration_days", "min_baseline_views", "observation_status", "weekly_growth_stats",
+                "daily_growth_stats", "suggested_threshold_bps", "threshold_policy", "status", "report_digest",
+            )
+            if calibration.get(key) is not None
+        },
+    }
+
+
+def _research_replay_payload(item: dict[str, Any], source_id: str) -> dict[str, Any]:
+    replay_rule = item.get("rule") or {}
+    replay_evidence = item.get("evidence") or {}
+    return {
+        "source_id": source_id,
+        "kind": "historical_replay",
+        "market_id": item.get("market_id"),
+        "rule": _research_rule_payload(replay_rule),
+        "evidence": _research_evidence_payload(replay_evidence, str(item.get("market_id") or "")),
+    }
+
+
+def build_market_research_context(
+    rule_record: dict[str, Any],
+    evidence: dict[str, Any] | None,
+    attention_snapshots: list[dict[str, Any]],
+    historical_context: list[dict[str, Any]],
+) -> BriefContext:
+    """Build the explicit, two-sided market research packet."""
+    rule = rule_record.get("rule", rule_record)
+    market_id = str(rule.get("market_id") or rule_record.get("market_id"))
+    topics = rule.get("topics") or []
+    topic = " vs ".join(str(item.get("article_title") or item.get("topic_id")) for item in topics)
+    if not topic:
+        topic = str((rule.get("source") or {}).get("article") or market_id)
+    refs: list[EvidenceReference] = []
+    payload_observations: list[dict[str, Any]] = []
+    observed_claims: list[EvidenceClaim] = []
+    supporting_up: list[EvidenceClaim] = []
+    supporting_down: list[EvidenceClaim] = []
+    missing: list[str] = []
+
+    def add_ref(
+        ref_id: str,
+        source: str,
+        title: str,
+        url: str | None,
+        observed_at: str | None,
+        raw_hash: str | None,
+        kind: str,
+    ) -> str:
+        refs.append(
+            EvidenceReference(
+                ref_id=ref_id,
+                source=source,
+                title=title,
+                url=url,
+                observed_at=observed_at,
+                raw_hash=raw_hash,
+                kind=kind,
+            )
+        )
+        return ref_id
+
+    rule_ref = add_ref(
+        f"market:{market_id}:rule",
+        "notch-market-rule",
+        "Published market rule",
+        None,
+        rule_record.get("created_at"),
+        str(rule_record.get("rule_hash") or "") or None,
+        "rule",
+    )
+    evidence_ref = None
+    if evidence is not None:
+        evidence_ref = add_ref(
+            f"market:{market_id}:evidence",
+            "notch-oracle-evidence",
+            "Verified oracle evidence receipt",
+            None,
+            evidence.get("retrieved_at"),
+            str(evidence.get("evidence_digest") or "") or None,
+            "oracle",
+        )
+
+    for snapshot in sorted(attention_snapshots, key=lambda item: str(item.get("article") or "")):
+        article = str(snapshot.get("article") or "topic")
+        safe_article = re.sub(r"[^a-z0-9]+", "-", article.lower()).strip("-") or "topic"
+        rows: list[dict[str, Any]] = []
+        for item in sorted(snapshot.get("observations") or [], key=lambda value: str(value.get("date") or "")):
+            date = str(item.get("date") or "")
+            if not date or item.get("views") is None:
+                continue
+            ref_id = f"market:{market_id}:attention:{safe_article}:{date}"
+            add_ref(
+                ref_id,
+                "wikimedia-pageviews-v1",
+                f"{article} pageviews on {date}",
+                item.get("source_url") or snapshot.get("source_url"),
+                item.get("retrieved_at") or snapshot.get("retrieved_at"),
+                item.get("raw_response_hash") or snapshot.get("raw_response_hash"),
+                "measurement",
+            )
+            row = {
+                "source_id": ref_id,
+                "date": date,
+                "views": item.get("views"),
+            }
+            rows.append(row)
+        payload_observations.append({
+            "article": article,
+            "project": snapshot.get("project"),
+            "access": snapshot.get("access"),
+            "agent": snapshot.get("agent"),
+            "window_start": snapshot.get("window_start"),
+            "window_end": snapshot.get("window_end"),
+            "source_status": snapshot.get("source_status"),
+            "retrieved_at": snapshot.get("retrieved_at"),
+            "missing_dates": snapshot.get("missing_dates") or [],
+            "error": snapshot.get("error"),
+            "observations": [{"date": row["date"], "views": row["views"]} for row in rows],
+        })
+        if snapshot.get("error"):
+            missing.append(f"{article} attention observations were unavailable: {snapshot['error']}.")
+        if snapshot.get("missing_dates"):
+            missing.append(f"{article} has no supplied observation for {', '.join(snapshot['missing_dates'][:4])}.")
+        if not rows:
+            missing.append(f"No verified {article} pageview observations were supplied for the research window.")
+            continue
+        if len(rows) >= 2:
+            observed_claims.append(EvidenceClaim(
+                f"{article} pageviews moved from {_fmt(rows[0]['views'])} on {rows[0]['date']} to {_fmt(rows[-1]['views'])} on {rows[-1]['date']}.",
+                ClaimKind.FACT.value,
+                [rows[0]["source_id"], rows[-1]["source_id"]],
+            ))
+            if int(rows[-1]["views"]) >= int(rows[0]["views"]):
+                supporting_up.append(EvidenceClaim(
+                    f"The supplied {article} observations increased from {_fmt(rows[0]['views'])} to {_fmt(rows[-1]['views'])} across the available window; this is attention evidence, not a forecast of the target day.",
+                    ClaimKind.INTERPRETATION.value,
+                    [rows[0]["source_id"], rows[-1]["source_id"]],
+                ))
+            else:
+                supporting_down.append(EvidenceClaim(
+                    f"The supplied {article} observations decreased from {_fmt(rows[0]['views'])} to {_fmt(rows[-1]['views'])} across the available window; this is attention evidence, not a forecast of the target day.",
+                    ClaimKind.INTERPRETATION.value,
+                    [rows[0]["source_id"], rows[-1]["source_id"]],
+                ))
+
+    historical_payload: list[dict[str, Any]] = []
+    historical_claims: list[EvidenceClaim] = []
+    for index, item in enumerate(historical_context):
+        source_id = str(item.get("source_id") or f"market:{market_id}:historical:{index + 1}")
+        if item.get("kind") == "calibration":
+            calibration = item.get("calibration") or {}
+            add_ref(
+                source_id,
+                "notch-oracle-calibration",
+                f"{item.get('article')} deterministic calibration ({item.get('mode')})",
+                None,
+                calibration.get("calibration_end"),
+                (calibration.get("source_raw_hashes") or [None])[0],
+                "historical_simulation",
+            )
+            historical_payload.append(_research_calibration_payload(item, source_id))
+            stats = calibration.get("weekly_growth_stats") or {}
+            if stats:
+                historical_claims.append(EvidenceClaim(
+                    f"Matching {item.get('article')} {item.get('mode')} calibration covered {_fmt(calibration.get('calibration_days'))} days from {calibration.get('calibration_start')} to {calibration.get('calibration_end')}; its p75 weekly growth was {_fmt(stats.get('p75'))} bps.",
+                    ClaimKind.FACT.value,
+                    [source_id],
+                ))
+        elif item.get("kind") == "historical_replay":
+            replay_rule = item.get("rule") or {}
+            replay_evidence = item.get("evidence") or {}
+            add_ref(
+                source_id,
+                "notch-historical-replay",
+                f"Matching historical replay {item.get('market_id')}",
+                None,
+                replay_evidence.get("retrieved_at"),
+                replay_evidence.get("evidence_digest"),
+                "historical_simulation",
+            )
+            historical_payload.append(_research_replay_payload(item, source_id))
+            historical_claims.append(EvidenceClaim(
+                f"Matching historical replay {item.get('market_id')} recorded outcome {replay_evidence.get('outcome')} under the same {replay_rule.get('mode')} methodology; it is historical context, not a forecast.",
+                ClaimKind.FACT.value,
+                [source_id],
+            ))
+    if not historical_claims:
+        missing.append("No same-topic, same-methodology historical replay or calibration was supplied.")
+
+    evidence_observations = evidence.get("observations") if evidence else {}
+    if isinstance(evidence_observations, dict):
+        for topic_id, item in evidence_observations.items():
+            for key in ("baseline", "target"):
+                observation = item.get(key) or {}
+                if not observation:
+                    continue
+                ref_id = f"market:{market_id}:oracle:{topic_id}:{key}"
+                add_ref(
+                    ref_id,
+                    "notch-oracle-evidence",
+                    f"{item.get('article') or topic_id} {key} observation",
+                    observation.get("source_url"),
+                    observation.get("retrieved_at"),
+                    observation.get("raw_response_hash"),
+                    "oracle",
+                )
+                observed_claims.append(EvidenceClaim(
+                    f"The verified receipt records {item.get('article') or topic_id} at {_fmt(observation.get('views'))} views on {observation.get('date')} ({key}).",
+                    ClaimKind.FACT.value,
+                    [ref_id, evidence_ref] if evidence_ref else [ref_id],
+                ))
+
+    observation = rule.get("observation") or {}
+    formula = rule.get("formula") or {}
+    baseline_date = observation.get("baseline_date")
+    target_date = observation.get("target_date")
+    supplied_dates = {row.get("date") for snapshot in payload_observations for row in snapshot.get("observations", [])}
+    if baseline_date not in supplied_dates:
+        missing.append(f"The rule baseline date {baseline_date} is not in the supplied current observation window.")
+    if target_date not in supplied_dates:
+        missing.append(f"The rule target date {target_date} is not in the supplied current observation window; no outcome is asserted.")
+
+    if evidence:
+        resolution = _resolution_explanation(rule, evidence)
+    else:
+        resolution = ResolutionExplanation(
+            rule_hash=str(rule_record.get("rule_hash") or ""),
+            evidence_digest="",
+            mode=str(rule.get("mode") or ""),
+            outcome="PENDING",
+            text=(
+                f"The published rule resolves {formula.get('up_if') or 'UP/DOWN according to the formula'} "
+                f"using the full UTC-day baseline {baseline_date} and target {target_date}. "
+                "The supplied observations do not include a finalized oracle receipt, so no market outcome is asserted."
+            ),
+            formula=str(formula.get("growth_bps") or formula),
+            observation_window={
+                "baseline_date": baseline_date,
+                "target_date": target_date,
+                "baseline_window_utc": observation.get("baseline_window_utc"),
+                "target_window_utc": observation.get("target_window_utc"),
+            },
+        )
+
+    if not supporting_up:
+        supporting_up.append(EvidenceClaim(
+            "The supplied evidence does not establish an UP case for the target rule.",
+            ClaimKind.UNKNOWN.value,
+            [],
+        ))
+    if not supporting_down:
+        supporting_down.append(EvidenceClaim(
+            "The supplied evidence does not establish a DOWN case for the target rule.",
+            ClaimKind.UNKNOWN.value,
+            [],
+        ))
+    assumptions = [
+        EvidenceClaim(
+            "The locked market rule, full UTC-day windows, and published threshold are used exactly as supplied.",
+            ClaimKind.FACT.value,
+            [rule_ref],
+        ),
+        EvidenceClaim(
+            "Pageviews measure attention and do not establish sentiment, causality, price direction, or a calibrated probability.",
+            ClaimKind.UNKNOWN.value,
+            [],
+        ),
+    ]
+    latest_observation_date = max(
+        (str(row.get("date")) for snapshot in payload_observations for row in snapshot.get("observations", [])),
+        default=None,
+    )
+    retrieved_values = [
+        str(snapshot.get("retrieved_at"))
+        for snapshot in payload_observations
+        if snapshot.get("retrieved_at")
+    ]
+    data_as_of = max(retrieved_values, default=str(evidence.get("retrieved_at") if evidence else ""))
+    measurement_window = {
+        "baseline_date": baseline_date,
+        "target_date": target_date,
+        "baseline_window_utc": observation.get("baseline_window_utc"),
+        "target_window_utc": observation.get("target_window_utc"),
+        "observation_cutoff": latest_observation_date,
+        "attention_window_start": min((str(item.get("window_start")) for item in attention_snapshots if item.get("window_start")), default=None),
+        "attention_window_end": max((str(item.get("window_end")) for item in attention_snapshots if item.get("window_end")), default=None),
+        "source": (rule.get("source") or {}).get("provider"),
+    }
+    fallback = BriefDraft(
+        headline=f"{topic} research: source observations through {latest_observation_date or 'unavailable'}",
+        summary=(
+            f"The published question uses the {baseline_date} baseline and {target_date} target under a locked {rule.get('mode')} rule. "
+            f"Current source observations are available through {latest_observation_date or 'no supplied date'}; this research does not assert a market outcome."
+        ),
+        observed_signals=observed_claims[:5],
+        notable_changes=[],
+        uncertainty=[
+            EvidenceClaim("No calibrated probability is produced by this research brief.", ClaimKind.UNKNOWN.value, []),
+            EvidenceClaim("The supplied pageview observations do not explain why attention changed.", ClaimKind.UNKNOWN.value, []),
+        ],
+        missing_evidence=list(dict.fromkeys(missing))[:8],
+        suggested_research_questions=[
+            "What independent source could explain the observed attention change?",
+            "Will the rule's full baseline and target UTC days be available before resolution?",
+            "Which assumptions should be checked before staking?",
+        ],
+        supporting_up=supporting_up,
+        supporting_down=supporting_down,
+        key_assumptions=assumptions,
+        historical_context=historical_claims,
+    )
+    payload = {
+        "brief_type": BriefType.MARKET.value,
+        "research_mode": True,
+        "market_id": market_id,
+        "topic": topic,
+        "rule": _research_rule_payload(rule),
+        "rule_record": {
+            "rule_hash": rule_record.get("rule_hash"),
+            "status": rule_record.get("status"),
+            "created_at": rule_record.get("created_at"),
+        },
+        "evidence": _research_evidence_payload(evidence, market_id),
+        "attention_observations": payload_observations,
+        "historical_context": historical_payload,
+        "resolution": resolution.to_dict(),
+        "measurement_window": measurement_window,
+        "data_as_of": data_as_of,
+        "source_ids": [ref.ref_id for ref in refs],
+    }
+    allowed_numbers, allowed_dates = _allowed_numbers(payload)
+    return BriefContext(
+        brief_type=BriefType.MARKET.value,
+        topic=topic,
+        candidate_id=_first_candidate_id(rule),
+        market_id=market_id,
+        measurement_window=measurement_window,
+        data_as_of=data_as_of,
+        evidence_references=refs,
+        allowed_numbers=allowed_numbers,
+        allowed_dates=allowed_dates,
+        prompt_payload=payload,
+        fallback=fallback,
+        resolution=resolution,
+        input_digest=_input_digest(payload, "market-research"),
+        research_fields_required=True,
+    )
+
+
 def _resolution_explanation(rule: dict[str, Any], evidence: dict[str, Any]) -> ResolutionExplanation:
     observation = rule.get("observation") or {}
     calculation = evidence.get("calculation") or {}

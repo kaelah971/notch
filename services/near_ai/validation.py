@@ -28,7 +28,12 @@ ALLOWED_KEYS = {
     "uncertainty",
     "missing_evidence",
     "suggested_research_questions",
+    "supporting_up",
+    "supporting_down",
+    "key_assumptions",
+    "historical_context",
 }
+RESEARCH_KEYS = {"supporting_up", "supporting_down", "key_assumptions", "historical_context"}
 CLAIM_KEYS = {"text", "kind", "evidence_refs"}
 
 
@@ -51,7 +56,18 @@ def validate_brief_draft(content: dict[str, Any], context: BriefContext) -> Brie
             "UNKNOWN_FIELD",
             f"unsupported AI fields: {', '.join(sorted(extra))}",
         )
-    missing = ALLOWED_KEYS - set(content)
+    required = {
+        "headline",
+        "summary",
+        "observed_signals",
+        "notable_changes",
+        "uncertainty",
+        "missing_evidence",
+        "suggested_research_questions",
+    }
+    if context.research_fields_required:
+        required |= RESEARCH_KEYS
+    missing = required - set(content)
     if missing:
         raise BriefValidationError(
             "MISSING_FIELD",
@@ -59,7 +75,7 @@ def validate_brief_draft(content: dict[str, Any], context: BriefContext) -> Brie
         )
     headline = _text(content["headline"], "headline", 180)
     summary = _text(content["summary"], "summary", 700)
-    observed = _claims(content["observed_signals"], context, "observed_signals", min_items=1, max_items=5)
+    observed = _claims(content["observed_signals"], context, "observed_signals", min_items=0 if context.research_fields_required else 1, max_items=5)
     notable = _claims(content["notable_changes"], context, "notable_changes", min_items=0, max_items=5)
     uncertainty = _claims(content["uncertainty"], context, "uncertainty", min_items=1, max_items=5)
     missing_evidence = _string_list(content["missing_evidence"], "missing_evidence", max_items=5, max_len=220)
@@ -69,12 +85,20 @@ def validate_brief_draft(content: dict[str, Any], context: BriefContext) -> Brie
         max_items=4,
         max_len=220,
     )
+    supporting_up = _claims(content.get("supporting_up", []), context, "supporting_up", min_items=1 if context.research_fields_required else 0, max_items=5)
+    supporting_down = _claims(content.get("supporting_down", []), context, "supporting_down", min_items=1 if context.research_fields_required else 0, max_items=5)
+    assumptions = _claims(content.get("key_assumptions", []), context, "key_assumptions", min_items=1 if context.research_fields_required else 0, max_items=5)
+    historical = _claims(content.get("historical_context", []), context, "historical_context", min_items=0, max_items=5)
     texts = [headline, summary]
     texts.extend(claim.text for claim in observed)
     texts.extend(claim.text for claim in notable)
     texts.extend(claim.text for claim in uncertainty)
     texts.extend(missing_evidence)
     texts.extend(questions)
+    texts.extend(claim.text for claim in supporting_up)
+    texts.extend(claim.text for claim in supporting_down)
+    texts.extend(claim.text for claim in assumptions)
+    texts.extend(claim.text for claim in historical)
     for text in texts:
         _validate_text(text, context)
     return BriefDraft(
@@ -85,6 +109,10 @@ def validate_brief_draft(content: dict[str, Any], context: BriefContext) -> Brie
         uncertainty=uncertainty,
         missing_evidence=missing_evidence,
         suggested_research_questions=questions,
+        supporting_up=supporting_up,
+        supporting_down=supporting_down,
+        key_assumptions=assumptions,
+        historical_context=historical,
     )
 
 

@@ -19,10 +19,12 @@ from services.intents.validation import ValidationError, is_near_account, parse_
 from services.near_ai.client import NearAIClient, NearAIError
 from services.near_ai.config import NearAIConfig
 from services.near_ai.grounding import GroundingError
+from services.near_ai.observations import fetch_market_observations
 from services.near_ai.service import BriefService
 from services.near_ai.store import BriefStore
 from services.oracle.evidence import verify_evidence
 from services.trend_radar.models import iso_utc, now_utc, parse_iso
+from services.trend_radar.scout import build_scout_feed, scout_metadata
 from services.web_api.chain import ChainReadError, MarketChainReader
 from services.web_api.config import WebAPIConfig
 from services.web_api.pulse import WINDOW_SECONDS, PulseIndexer, empty_pulse_payload
@@ -70,9 +72,11 @@ class WebAPI:
         brief_service: BriefService,
         funding_service: IntentsFundingService,
         rate_limiter: RateLimiter | None = None,
+        attention_fetcher: Any = None,
         pulse: PulseIndexer | None = None,
     ) -> None:
         self.config = config
+        self.attention_fetcher = attention_fetcher
         self.chain = chain
         self.radar = radar
         self.oracle = oracle
@@ -115,7 +119,16 @@ class WebAPI:
             return 400, ApiError(
                 exc.code, str(exc), status=400, details={"field": exc.field}
             ).to_dict()
-        except (ChainReadError, NearRpcError, RepositoryError, NearAIError, GroundingError, TidepoolError) as exc:
+        except NearAIError as exc:
+            status = exc.status if exc.status in {401, 403, 429} else 503
+            code = exc.code or ("NEAR_AI_RATE_LIMITED" if status == 429 else "NEAR_AI_UNAVAILABLE")
+            return status, ApiError(
+                code,
+                str(exc),
+                status=status,
+                details={"provider": "near-ai", "retryable": exc.retryable},
+            ).to_dict()
+        except (ChainReadError, NearRpcError, RepositoryError, GroundingError, TidepoolError) as exc:
             return 503, ApiError(
                 "DEPENDENCY_UNAVAILABLE", str(exc), status=503
             ).to_dict()
@@ -133,6 +146,10 @@ class WebAPI:
             return 200, {"data": self.brief_service.status()}
         if parts == ["api", "trends"]:
             return 200, self._trends()
+        if parts == ["api", "scout"]:
+            return 200, self._scout(query)
+        if len(parts) == 3 and parts[:2] == ["api", "scout"]:
+            return 200, {"data": self._scout_detail(parts[2])}
         if parts == ["api", "pulse"]:
             return 200, self._pulse(query)
         if len(parts) == 3 and parts[:2] == ["api", "trends"]:
@@ -168,6 +185,8 @@ class WebAPI:
             return 200, self._funding_quote(body)
         if len(parts) == 4 and parts[:2] == ["api", "markets"] and parts[3] == "entry-intent":
             return 200, self._entry_intent(parts[2], body)
+        if len(parts) == 4 and parts[:2] == ["api", "markets"] and parts[3] == "research":
+            return 200, self._market_research(parts[2], body)
         raise ApiError("NOT_FOUND", "endpoint not found", status=404)
 
     # ------------------------------------------------------------------
@@ -271,6 +290,69 @@ class WebAPI:
         }
 
     # ------------------------------------------------------------------
+    # Attention Scout
+    # ------------------------------------------------------------------
+    def _scout(self, query: dict[str, str]) -> dict[str, Any]:
+        direction = query.get("direction", "all").lower()
+        try:
+            limit = max(1, min(int(query.get("limit", "12")), 24))
+        except ValueError as exc:
+            raise ApiError("INVALID_LIMIT", "limit must be an integer", status=400) from exc
+        try:
+            candidates = (
+                self.radar.list_scout_candidates(limit=100)
+                if hasattr(self.radar, "list_scout_candidates")
+                else self.radar.list_candidates(limit=100)
+            )
+            markets = self.chain.list_markets()
+            market_ids = {str(item.get("market_id")) for item in markets if item.get("market_id")}
+            matches = (
+                self.oracle.published_topic_matches(market_ids)
+                if hasattr(self.oracle, "published_topic_matches")
+                else {}
+            )
+            data = build_scout_feed(
+                candidates,
+                now=now_utc(),
+                existing_market_matches=matches,
+                direction=direction,
+                limit=limit,
+            )
+        except ValueError as exc:
+            raise ApiError("INVALID_DIRECTION", str(exc), status=400) from exc
+        meta = {
+            **scout_metadata(),
+            "count": len(data),
+            "direction": direction.upper(),
+            "status": "ok" if data else "unavailable",
+            "source_mode": "stored Trend Radar Wikimedia observations; upstream scan/cache refresh is operator-controlled",
+        }
+        if not data:
+            meta["reason"] = "No supported topic has a complete, fresh Wikimedia movement in the stored Radar data."
+        return {"data": data, "meta": meta}
+
+    def _scout_detail(self, candidate_id: str) -> dict[str, Any]:
+        candidate = self.radar.get_candidate(candidate_id)
+        if candidate is None:
+            raise ApiError("SCOUT_NOT_FOUND", f"unknown Scout candidate: {candidate_id}", status=404)
+        markets = self.chain.list_markets()
+        market_ids = {str(item.get("market_id")) for item in markets if item.get("market_id")}
+        matches = (
+            self.oracle.published_topic_matches(market_ids)
+            if hasattr(self.oracle, "published_topic_matches")
+            else {}
+        )
+        data = build_scout_feed(
+            [candidate],
+            now=now_utc(),
+            existing_market_matches=matches,
+            limit=1,
+        )
+        if not data:
+            raise ApiError("SCOUT_NOT_FOUND", "candidate is not in the supported Scout topic set", status=404)
+        return data[0]
+
+    # ------------------------------------------------------------------
     # Pulse
     # ------------------------------------------------------------------
     def _pulse(self, query: dict[str, str]) -> dict[str, Any]:
@@ -362,6 +444,47 @@ class WebAPI:
                 "market_id": market_id,
                 "onchain_rule_hash": market.get("rule_hash"),
                 "onchain_evidence_hash": market.get("evidence_hash"),
+            },
+        }
+
+    def _market_research(self, market_id: str, _body: dict[str, Any]) -> dict[str, Any]:
+        market = self.chain.get_market(market_id)
+        if market is None:
+            raise ApiError("MARKET_NOT_FOUND", f"unknown market: {market_id}", status=404)
+        rule = self.oracle.find_rule(market_id)
+        if rule is None or str(rule.get("status")) not in {"APPROVED", "PUBLISHED"}:
+            raise ApiError("RULE_NOT_AVAILABLE", "a published market rule is required for research", status=404)
+        if str(rule.get("rule_hash")) != str(market.get("rule_hash")):
+            raise ApiError("RULE_MISMATCH", "stored rule does not match the onchain market rule hash", status=503)
+        verified_record = self.oracle.verify(market_id) or {}
+        evidence = verified_record.get("evidence") if verified_record.get("verified") else None
+        attention = fetch_market_observations(
+            rule,
+            fetcher=self.attention_fetcher,
+            now=now_utc(),
+        ) if self.attention_fetcher is not None else []
+        historical = self.oracle.matching_historical_context(rule)
+        brief = self.brief_service.market_research_from_records(
+            rule,
+            evidence,
+            attention_snapshots=attention,
+            historical_context=historical,
+            allow_ai=True,
+        )
+        summary = self._market_summary(market, self.chain.now_ns(), rule=rule, evidence=evidence)
+        inference = brief.inference
+        return {
+            "data": {
+                "brief": brief.to_dict(),
+                "market": summary.to_dict(),
+            },
+            "meta": {
+                "market_id": market_id,
+                "generation_mode": "explicit_research_request",
+                "ai_call_triggered": brief.provider == "near-ai" and not brief.cache_hit,
+                "cache_hit": brief.cache_hit,
+                "source_ids": inference.get("source_ids", []),
+                "observation_cutoff": inference.get("input_observation_cutoff"),
             },
         }
 

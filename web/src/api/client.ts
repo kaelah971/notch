@@ -1,6 +1,6 @@
 import type {
   ApiErrorBody, Brief, EntryIntent, Envelope, FundingInstructions, FundingQuote, FundingTokens, Market, MarketDetail, MarketEvidence,
-  PoolSnapshot, Position, PulseData, PulseWindow, QuoteRequest, Readiness, Trend, WalletBalances,
+  PoolSnapshot, Position, PulseData, PulseWindow, QuoteRequest, Readiness, ScoutCandidate, ScoutDirection, ScoutMeta, Trend, WalletBalances,
 } from './types'
 
 const BASE = ((import.meta.env.VITE_API_BASE as string | undefined) ?? '').replace(/\/$/, '')
@@ -40,7 +40,10 @@ export const api = {
   market: (id: string) => request<MarketDetail>(`/api/markets/${enc(id)}`),
   marketEvidence: (id: string) => request<MarketEvidence>(`/api/markets/${enc(id)}/evidence`),
   marketBrief: (id: string) => request<{ brief: Brief; market: Market }>(`/api/markets/${enc(id)}/brief`),
+  marketResearch: (id: string) => request<{ brief: Brief; market: Market }>(`/api/markets/${enc(id)}/research`, { method: 'POST', body: '{}' }),
   trends: () => request<Trend[], { count: number }>('/api/trends'),
+  scout: (direction: ScoutDirection = 'all', limit = 12) =>
+    request<ScoutCandidate[], ScoutMeta>(`/api/scout?direction=${direction}&limit=${limit}`),
   pulse: (window: PulseWindow = '7d', refresh = true) =>
     request<PulseData>(`/api/pulse?window=${window}&refresh=${refresh ? 'true' : 'false'}`),
   readiness: (accountId: string) => request<Readiness>(`/api/funding/readiness?account_id=${enc(accountId)}`),

@@ -12,6 +12,7 @@ from types import SimpleNamespace
 from urllib.parse import parse_qs, urlparse
 
 from services.intents.validation import ValidationError
+from services.near_ai.client import NearAIError
 from services.web_api.app import RateLimiter, WebAPI
 from services.web_api.chain import ChainReadError
 from services.web_api.config import WebAPIConfig
@@ -163,7 +164,16 @@ class FakeRadar:
                     "window_end": "2026-11-10",
                     "min_views": 4112,
                     "mean_views": 43298,
-                    "daily_views": [{"date": "2026-11-10", "views": 123851}],
+                    "daily_views": [
+                        {"date": "2026-11-04", "views": 4112},
+                        {"date": "2026-11-05", "views": 4743},
+                        {"date": "2026-11-06", "views": 4626},
+                        {"date": "2026-11-07", "views": 5535},
+                        {"date": "2026-11-08", "views": 17886},
+                        {"date": "2026-11-09", "views": 142333},
+                        {"date": "2026-11-10", "views": 123851},
+                    ],
+                    "raw_hashes": ["sha256:test-pageviews"],
                 },
                 "discovery_evidence": [],
             }
@@ -193,7 +203,7 @@ class FakeOracle:
             "rule_hash": "sha256:" + "a" * 64,
             "market_id": OPEN_ID,
             "mode": "trend_trading",
-            "status": "DRAFT",
+            "status": "APPROVED",
             "created_at": "2026-11-12T00:00:00Z",
             "rule": {
                 "market_id": OPEN_ID,
@@ -215,6 +225,15 @@ class FakeOracle:
             rule["rule"]["observation"] = {"replay": True}
         return rule, self.evidence
 
+    def find_rule(self, market_id):
+        return json.loads(json.dumps(self.rule))
+
+    def matching_historical_context(self, rule, limit=4):
+        return []
+
+    def published_topic_matches(self, market_ids):
+        return {}
+
     def verify(self, market_id):
         return {
             "market_id": market_id,
@@ -228,6 +247,9 @@ class FakeOracle:
 class FakeResult:
     def __init__(self, data):
         self.data = data
+        self.inference = data.get("inference", {})
+        self.provider = data.get("provider", "deterministic")
+        self.cache_hit = bool(data.get("cache_hit", False))
 
     def to_dict(self):
         return self.data
@@ -259,6 +281,17 @@ class FakeBrief:
                 "generation_status": "NON_AI_FALLBACK",
                 "provider": "deterministic",
                 "resolution": {"outcome": "UP", "rule_hash": rule["rule_hash"]},
+            }
+        )
+
+    def market_research_from_records(self, rule, evidence, *, attention_snapshots, historical_context, allow_ai=True):
+        return FakeResult(
+            {
+                "brief_id": "brief_research_test",
+                "generation_status": "NON_AI_FALLBACK",
+                "provider": "deterministic",
+                "inference": {"source_ids": ["market:test:rule"], "input_observation_cutoff": None},
+                "research": {"supporting_up": [], "supporting_down": []},
             }
         )
 
@@ -366,6 +399,23 @@ class APITests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(payload["data"]["title"], "Nvidia")
 
+    def test_scout_is_source_backed_and_bounded(self):
+        status, payload = self.call("GET", "/api/scout?direction=rising&limit=99")
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["meta"]["direction"], "RISING")
+        self.assertEqual(payload["meta"]["source"], "wikimedia-pageviews-v1")
+        self.assertEqual(len(payload["data"]), 1)
+        item = payload["data"][0]
+        self.assertEqual(item["topic"], "Nvidia")
+        self.assertEqual(item["source"]["id"], "wikimedia-pageviews-v1")
+        self.assertEqual(item["observation_window"]["sample_count"], 7)
+        self.assertTrue(item["evidence_digest"].startswith("sha256:"))
+        self.assertEqual(item["proposal"]["status"], "REVIEW_ONLY")
+        self.assertFalse(item["proposal"]["published"])
+        status, payload = self.call("GET", "/api/scout/cand_test_nvidia")
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["data"]["candidate_id"], "cand_test_nvidia")
+
     def test_pulse_reports_unconfigured_coverage_explicitly(self):
         status, payload = self.call("GET", "/api/pulse?window=7d&refresh=false")
         self.assertEqual(status, 200)
@@ -403,6 +453,22 @@ class APITests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(payload["data"]["brief"]["generation_status"], "NON_AI_FALLBACK")
         self.assertFalse(payload["meta"]["ai_call_triggered"])
+        status, payload = self.call("POST", f"/api/markets/{OPEN_ID}/research", {})
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["data"]["brief"]["brief_id"], "brief_research_test")
+        self.assertFalse(payload["meta"]["ai_call_triggered"])
+        self.assertEqual(payload["meta"]["generation_mode"], "explicit_research_request")
+
+    def test_market_research_provider_error_is_safe(self):
+        def fail(*args, **kwargs):
+            raise NearAIError("provider throttled", status=429, code="RATE_LIMITED", retryable=True)
+
+        self.app.brief_service.market_research_from_records = fail
+        status, payload = self.call("POST", f"/api/markets/{OPEN_ID}/research", {})
+        self.assertEqual(status, 429)
+        self.assertEqual(payload["error"]["code"], "RATE_LIMITED")
+        self.assertTrue(payload["error"]["details"]["retryable"])
+        self.assertNotIn("Authorization", json.dumps(payload))
 
     def test_wallet_balances_base_units(self):
         status, payload = self.call("GET", "/api/wallets/notch-dev.testnet/balances")

@@ -12,7 +12,7 @@ from typing import Any
 
 
 BRIEF_SCHEMA = "notch.near-ai.brief/1"
-PROMPT_VERSION = "s5-brief-prompt/1"
+PROMPT_VERSION = "s5-brief-prompt/2"
 
 
 class BriefType(str, Enum):
@@ -100,6 +100,10 @@ class BriefDraft:
     uncertainty: list[EvidenceClaim]
     missing_evidence: list[str]
     suggested_research_questions: list[str]
+    supporting_up: list[EvidenceClaim] = field(default_factory=list)
+    supporting_down: list[EvidenceClaim] = field(default_factory=list)
+    key_assumptions: list[EvidenceClaim] = field(default_factory=list)
+    historical_context: list[EvidenceClaim] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -110,6 +114,10 @@ class BriefDraft:
             "uncertainty": [c.to_dict() for c in self.uncertainty],
             "missing_evidence": list(self.missing_evidence),
             "suggested_research_questions": list(self.suggested_research_questions),
+            "supporting_up": [c.to_dict() for c in self.supporting_up],
+            "supporting_down": [c.to_dict() for c in self.supporting_down],
+            "key_assumptions": [c.to_dict() for c in self.key_assumptions],
+            "historical_context": [c.to_dict() for c in self.historical_context],
         }
 
 
@@ -128,6 +136,7 @@ class BriefContext:
     fallback: BriefDraft
     resolution: ResolutionExplanation | None = None
     input_digest: str = ""
+    research_fields_required: bool = False
 
     def reference_ids(self) -> set[str]:
         return {ref.ref_id for ref in self.evidence_references}
@@ -147,6 +156,7 @@ class BriefContext:
             "fallback": self.fallback.to_dict(),
             "resolution": self.resolution.to_dict() if self.resolution else None,
             "input_digest": self.input_digest,
+            "research_fields_required": self.research_fields_required,
         }
 
 
@@ -177,6 +187,8 @@ class TrendBrief:
     usage: dict[str, Any] = field(default_factory=dict)
     input_digest: str = ""
     cache_hit: bool = False
+    research: dict[str, Any] = field(default_factory=dict)
+    inference: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -205,6 +217,8 @@ class TrendBrief:
             "usage": self.usage,
             "input_digest": self.input_digest,
             "cache_hit": self.cache_hit,
+            "research": self.research,
+            "inference": self.inference,
         }
 
     @classmethod
@@ -269,4 +283,6 @@ class TrendBrief:
             usage=dict(data.get("usage") or {}),
             input_digest=str(data.get("input_digest") or ""),
             cache_hit=bool(data.get("cache_hit", False)),
+            research=dict(data.get("research") or {}),
+            inference=dict(data.get("inference") or {}),
         )

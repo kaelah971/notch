@@ -15,6 +15,7 @@ from services.near_ai.client import NearAIClient
 from services.near_ai.config import NearAIConfig
 from services.near_ai.service import BriefService
 from services.near_ai.store import BriefStore
+from services.trend_radar.http import LiveFetcher
 from services.web_api.app import WebAPI
 from services.web_api.chain import MarketChainReader
 from services.web_api.config import WebAPIConfig
@@ -68,6 +69,11 @@ def build_default_app(config: WebAPIConfig | None = None) -> WebAPI:
     chain = MarketChainReader(config=intents, reader=chain_reader)
     radar = RadarRepository(config.radar_db)
     oracle = OracleRepository(config.oracle_db_paths)
+    attention_fetcher = LiveFetcher(
+        Path(config.radar_db).parent,
+        timeout_seconds=config.request_timeout_seconds,
+        max_retries=1,
+    )
     pulse = PulseIndexer(
         rpc=chain_reader,
         store=PulseStore(config.pulse_db_path),
@@ -77,6 +83,7 @@ def build_default_app(config: WebAPIConfig | None = None) -> WebAPI:
         max_blocks=config.pulse_max_blocks_per_request,
     )
     return WebAPI(
+        attention_fetcher=attention_fetcher,
         config=config,
         chain=chain,
         radar=radar,

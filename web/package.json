@@ -10,6 +10,7 @@
     "test:forecast": "node --experimental-strip-types --test tests/forecast.test.mjs",
     "test:practice": "node --experimental-strip-types --test tests/practice.test.mjs",
     "test:backtest": "node --experimental-strip-types --test tests/backtest.test.mjs",
+    "test:research": "node --experimental-strip-types --test tests/research.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

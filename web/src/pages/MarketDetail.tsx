@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ChevronLeft, ShieldCheck, ShieldQuestion, ExternalLink } from 'lucide-react'
-import { api } from '../api/client'
+import { ApiError, api } from '../api/client'
 import { useApi } from '../api/useApi'
-import type { Brief, MarketDetail as MD, MarketEvidence } from '../api/types'
+import type { Brief, BriefClaim, BriefEvidenceReference, MarketDetail as MD, MarketEvidence } from '../api/types'
 import { cleanQuestion, formatUtc, relativeTo } from '../api/format'
 import { PoolBars, StatusBadge, isOpenForEntry, marketCategory, marketTitle, modeLabel, parseRule } from '../components/market'
 import { AttentionChart } from '../components/AttentionChart'
@@ -14,6 +14,11 @@ import { ErrorState, SkeletonList } from '../components/States'
 import './MarketDetail.css'
 
 type Topic = { article_title: string; source_url?: string }
+type ResearchState =
+  | { marketId: string; status: 'idle' }
+  | { marketId: string; status: 'loading' }
+  | { marketId: string; status: 'ok'; brief: Brief }
+  | { marketId: string; status: 'error'; error: ApiError }
 const short = (h?: string | null) => (h ? `${h.slice(0, 15)}…${h.slice(-6)}` : '—')
 
 export function MarketDetail() {
@@ -21,6 +26,16 @@ export function MarketDetail() {
   const [m, reload] = useApi(() => api.market(id).then((r) => r.data), [id])
   const [ev] = useApi(() => api.marketEvidence(id).then((r) => r.data), [id])
   const [br] = useApi(() => api.marketBrief(id).then((r) => r.data.brief), [id])
+  const [research, setResearch] = useState<ResearchState>({ marketId: id, status: 'idle' })
+
+  const requestResearch = () => {
+    setResearch({ marketId: id, status: 'loading' })
+    api.marketResearch(id).then(
+      (response) => setResearch({ marketId: id, status: 'ok', brief: response.data.brief }),
+      (error) => setResearch({ marketId: id, status: 'error', error: error instanceof ApiError ? error : new ApiError(0, 'UNKNOWN', String(error)) }),
+    )
+  }
+  const researchForMarket = research.marketId === id ? research : { marketId: id, status: 'idle' as const }
 
   // Open markets: silently re-read pools from the contract every 20s (no skeleton flash).
   const [fresh, setFresh] = useState<{ d: MD; at: number } | null>(null)
@@ -68,7 +83,7 @@ export function MarketDetail() {
             <h2 className="card-h">Activity</h2>
             <p className="dim">Per-entry history isn’t available yet: the contract exposes pool totals and per-account positions, not an entry log or participant count. Indexing the market’s <span className="mono">ft_on_transfer</span> receipts would add it without contract changes.</p>
           </section>
-          <BriefPanel brief={br.status === 'ok' ? br.data : null} loading={br.status === 'loading'} errorCode={br.status === 'error' ? br.error.code : null} />
+          <ResearchPanel fallbackBrief={br.status === 'ok' ? br.data : null} research={researchForMarket} onRequest={requestResearch} />
         </div>
         <aside className="md-side">
           <EntryPanel d={d} onPositionChange={reload} />
@@ -110,7 +125,7 @@ function RulePanel({ d }: { d: MD }) {
           <div><dt>Source</dt><dd>Wikimedia Pageviews <span className="dim">({d.source_id})</span></dd></div>
           {topics.map((t) => (
             <div key={t.article_title}><dt>Topic</dt><dd>
-              {t.source_url ? <a className="link" href={t.source_url} target="_blank" rel="noreferrer">{t.article_title} <ExternalLink size={13} /></a> : t.article_title}
+              {t.source_url ? <a className="link" href={t.source_url} target="_blank" rel="noreferrer">{t.article_title} <ExternalLink aria-hidden="true" size={13} /></a> : t.article_title}
             </dd></div>
           ))}
           <div><dt>If data is missing</dt><dd>{String(rule.missing_data_policy ?? '—')}</dd></div>
@@ -149,33 +164,81 @@ function EvidencePanel({ ev, loading, onchainHash }: { ev: MarketEvidence | null
 }
 
 const BRIEF_LABEL: Record<string, string> = {
-  AI_GENERATED: 'AI-generated · NEAR AI',
-  NON_AI_FALLBACK: 'Source-only summary · not AI',
-  INVALID_AI_FALLBACK: 'Source-only summary · AI output rejected',
-  AI_UNAVAILABLE_FALLBACK: 'Source-only summary · AI unavailable',
+  AI_GENERATED: 'AI interpretation · NEAR AI',
+  NON_AI_FALLBACK: 'Source-only research · no AI',
+  INVALID_AI_FALLBACK: 'Source-only research · AI output rejected',
+  AI_UNAVAILABLE_FALLBACK: 'Source-only research · AI unavailable',
 }
 
-function BriefPanel({ brief, loading, errorCode }: { brief: Brief | null; loading: boolean; errorCode: string | null }) {
-  if (loading) return <div className="card skeleton" style={{ height: 160 }} />
+function ResearchPanel({ fallbackBrief, research, onRequest }: { fallbackBrief: Brief | null; research: ResearchState; onRequest: () => void }) {
+  const brief = research.status === 'ok' ? research.brief : fallbackBrief
+  const inference = brief?.inference
+  const verification = inference?.verification
+  const verified = verification?.status === 'verified'
+  const inputDigest = inference?.input_digest ?? (typeof brief?.input_digest === 'string' ? brief.input_digest : undefined)
+  const errorText = research.status === 'error'
+    ? research.error.code === 'RATE_LIMITED' || research.error.code === 'NEAR_AI_RATE_LIMITED' ? 'NEAR AI is rate limited. Wait briefly, then try again.'
+      : research.error.code === 'NETWORK' ? 'The research API is unreachable. Your market and wallet state are unchanged.'
+        : research.error.code === 'RULE_NOT_AVAILABLE' ? 'This market has no published rule available for research.'
+          : 'Research is unavailable right now. The market remains usable without AI.'
+    : null
   return (
-    <section className="card">
-      <div className="card-hrow"><h2 className="card-h">Brief</h2>{brief && <span className="badge">{BRIEF_LABEL[brief.generation_status] ?? brief.generation_status}</span>}</div>
-      {!brief ? (
-        <p className="dim">{errorCode === 'EVIDENCE_NOT_AVAILABLE' ? 'A brief is published once evidence exists for this market.' : 'No brief is available.'}</p>
-      ) : (
+    <section className="card md-research" aria-labelledby="market-research-title">
+      <div className="card-hrow"><h2 className="card-h" id="market-research-title">AI market research</h2>{brief && <span className="badge">{BRIEF_LABEL[brief.generation_status] ?? brief.generation_status}</span>}</div>
+      <p className="md-research-intro">Request a bounded brief grounded in this market’s published rule, available Wikimedia observations, and matching historical context. AI interpretation is separate from verified source data and never places a prediction. This is read-only: no wallet, signature, or transaction is requested.</p>
+      <button type="button" className="btn btn-primary md-research-trigger" onClick={onRequest} disabled={research.status === 'loading'} aria-busy={research.status === 'loading'}>
+        {research.status === 'loading' ? 'Inspecting evidence…' : 'Request research brief'}
+      </button>
+      {research.status === 'loading' && <p className="md-research-status" role="status">Reading the published rule and source observations. No wallet or signing call is made.</p>}
+      {errorText && <div className="md-research-error" role="alert"><strong>{errorText}</strong><button type="button" className="btn btn-quiet" onClick={onRequest}>Try again</button></div>}
+      {!brief && research.status !== 'loading' && !errorText && <p className="dim md-research-empty">No source-only brief is available yet. Request research to inspect this market’s evidence package.</p>}
+      {brief && (
         <>
+          <div className="md-research-boundary"><strong>Interpretation boundary</strong><span>The published rule and source observations are supplied with timestamps, hashes and source links. Finalized oracle evidence is marked verified separately. The sections below are AI commentary or deterministic fallback text; no calibrated probability is shown.</span></div>
           <p className="brief-head">{brief.headline}</p>
-          {typeof brief.summary === 'string' && <p className="brief-sum">{brief.summary}</p>}
-          {Array.isArray(brief.observed_signals) && brief.observed_signals.length > 0 && (
-            <ul className="brief-list">{(brief.observed_signals as { text: string }[]).map((s, i) => <li key={i}>{s.text}</li>)}</ul>
-          )}
-          {Array.isArray(brief.uncertainty) && brief.uncertainty.length > 0 && (
-            <><h3 className="brief-sub">Uncertainty</h3><ul className="brief-list dim">{(brief.uncertainty as { text: string }[]).map((s, i) => <li key={i}>{s.text}</li>)}</ul></>
-          )}
-          <p className="fine">The outcome is decided by the frozen rule and evidence, never by this text.</p>
+          {brief.summary && <p className="brief-sum">{brief.summary}</p>}
+          {brief.fallback_reason && <p className="fine">Source-only status: {brief.fallback_reason}</p>}
+          {brief.resolution && <div className="md-research-rule"><h3>Published resolution criteria</h3><p>{typeof brief.resolution.text === 'string' ? brief.resolution.text : 'The published rule is available above.'}</p>{typeof brief.resolution.formula === 'string' && <code>{brief.resolution.formula}</code>}</div>}
+          <ResearchClaimSection title="Evidence supporting UP" claims={brief.research?.supporting_up ?? []} tone="up" />
+          <ResearchClaimSection title="Evidence supporting DOWN" claims={brief.research?.supporting_down ?? []} tone="down" />
+          <ResearchClaimSection title="Key assumptions" claims={brief.research?.key_assumptions ?? []} />
+          <ResearchClaimSection title="Historical context" claims={brief.research?.historical_context ?? []} />
+          <ResearchClaimSection title="Uncertainty" claims={brief.uncertainty ?? []} muted />
+          {!!brief.missing_evidence?.length && <ResearchTextList title="Missing information" items={brief.missing_evidence} />}
+          {!!brief.suggested_research_questions?.length && <ResearchTextList title="Investigate next" items={brief.suggested_research_questions} />}
+          <ResearchSources references={brief.evidence_references ?? []} />
+          <div className="md-research-meta">
+            <span>Provider: <strong>{inference?.provider ?? brief.provider}</strong> · model: <strong>{inference?.model ?? brief.model}</strong></span>
+            <span>Observation as-of: <strong>{inference?.input_observation_cutoff ?? String(brief.measurement_window?.observation_cutoff ?? brief.data_as_of ?? 'unavailable')}</strong></span>
+            <span>Input package digest: <code>{short(inputDigest)}</code></span>
+            {inference?.input_evidence_digest && <span>Oracle evidence digest: <code>{short(inference.input_evidence_digest)}</code></span>}
+            <span className={verified ? 'md-research-verified' : 'md-research-unverified'}>{verified ? 'Verified Inference' : 'Inference verification unavailable'}{verification?.reason ? ` · ${verification.reason}` : ''}</span>
+          </div>
         </>
       )}
     </section>
+  )
+}
+
+function ResearchClaimSection({ title, claims, tone, muted = false }: { title: string; claims: BriefClaim[]; tone?: 'up' | 'down'; muted?: boolean }) {
+  return (
+    <div className={`md-research-section${tone ? ` is-${tone}` : ''}${muted ? ' is-muted' : ''}`}>
+      <h3>{title}</h3>
+      {!claims.length ? <p className="dim">No supplied claim in this section.</p> : <ul className="md-research-claims">{claims.map((claim) => <li key={`${claim.kind}:${claim.text}`}><div className="md-claim-head"><span className="md-claim-kind">{claim.kind}</span>{claim.evidence_refs.length > 0 && <span className="md-claim-refs">{claim.evidence_refs.join(' · ')}</span>}</div><p>{claim.text}</p></li>)}</ul>}
+    </div>
+  )
+}
+
+function ResearchTextList({ title, items }: { title: string; items: string[] }) {
+  return <div className="md-research-section is-muted"><h3>{title}</h3><ul className="md-research-claims">{items.map((item) => <li key={item}><p>{item}</p></li>)}</ul></div>
+}
+
+function ResearchSources({ references }: { references: BriefEvidenceReference[] }) {
+  return (
+    <div className="md-research-sources">
+      <h3>Source references</h3>
+      {!references.length ? <p className="dim">No source references were supplied.</p> : <ul>{references.map((reference) => <li key={reference.ref_id}><code>{reference.ref_id}</code><span>{reference.title} · {reference.source}{reference.observed_at ? ` · ${reference.observed_at}` : ''}</span>{reference.url && <a className="link" href={reference.url} target="_blank" rel="noreferrer">Open source <ExternalLink aria-hidden="true" size={12} /></a>}</li>)}</ul>}
+    </div>
   )
 }
 

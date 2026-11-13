@@ -66,6 +66,42 @@ export interface MarketEvidence {
 
 export type BriefStatus = 'AI_GENERATED' | 'NON_AI_FALLBACK' | 'INVALID_AI_FALLBACK' | 'AI_UNAVAILABLE_FALLBACK'
 
+export interface BriefClaim {
+  text: string
+  kind: 'FACT' | 'INTERPRETATION' | 'UNKNOWN' | string
+  evidence_refs: string[]
+}
+
+export interface BriefEvidenceReference {
+  ref_id: string
+  source: string
+  title: string
+  url?: string | null
+  observed_at?: string | null
+  raw_hash?: string | null
+  kind?: string
+}
+
+export interface BriefInference {
+  provider: string
+  model: string
+  request_timestamp?: string
+  input_observation_cutoff?: string | null
+  input_digest?: string
+  input_evidence_digest?: string | null
+  source_ids: string[]
+  generation_status: BriefStatus | string
+  request_id?: string
+  verification?: { status: 'verified' | 'unverified' | 'unavailable' | 'not_applicable' | string; reason?: string }
+}
+
+export interface BriefResearch {
+  supporting_up: BriefClaim[]
+  supporting_down: BriefClaim[]
+  key_assumptions: BriefClaim[]
+  historical_context: BriefClaim[]
+}
+
 export interface Brief {
   brief_id: string
   brief_type: string
@@ -74,7 +110,19 @@ export interface Brief {
   provider: string
   model: string
   headline: string
-  evidence_references: unknown[]
+  summary?: string
+  evidence_references: BriefEvidenceReference[]
+  observed_signals?: BriefClaim[]
+  notable_changes?: BriefClaim[]
+  uncertainty?: BriefClaim[]
+  missing_evidence?: string[]
+  suggested_research_questions?: string[]
+  measurement_window?: Record<string, unknown>
+  data_as_of?: string
+  resolution?: Record<string, unknown> | null
+  fallback_reason?: string | null
+  research?: BriefResearch
+  inference?: BriefInference
   [k: string]: unknown
 }
 
@@ -90,6 +138,50 @@ export interface Trend {
   sources: string[]
   source_urls: string[]
   settlement_coverage?: { window_start: string; window_end: string; latest_views: number; latest_date: string }
+}
+
+export type ScoutDirection = 'all' | 'rising' | 'falling'
+export interface ScoutObservation { date: string; views: number; observation_id: string }
+export interface ScoutCandidate {
+  candidate_id: string
+  canonical_topic_id: string
+  topic: string
+  source_article: string
+  source_url: string
+  source: { id: string; project: string; access: string; agent: string; metric: string; article: string; article_url: string; api_url: string | null }
+  observation_window: { start: string | null; end: string | null; sample_count: number; expected_days: number; missing_days: string[]; minimum_sample_days: number }
+  baseline: { date: string; views: number } | null
+  current: { date: string; views: number } | null
+  change: { change_bps: number | null; change_percent: number | null; absolute_views: number | null; formula: string }
+  direction: 'RISING' | 'FALLING' | 'STABLE'
+  is_notable: boolean
+  is_unusual: boolean
+  freshness: { observed_at: string | null; age_hours: number | null; stale_after_hours: number; status: string }
+  evidence_digest: string
+  evidence: { daily: ScoutObservation[]; raw_hashes: string[] }
+  existing_market_match: { market_id: string; status: string; rule_hash?: string; question?: string; topics: string[] } | null
+  candidate_status: 'REVIEWABLE' | 'NEEDS_REVIEW' | 'STALE' | 'UNAVAILABLE'
+  uncertainty: string[]
+  limitations: string[]
+  rank: { score: number; version: string; components: Record<string, number> }
+  proposal: { proposal_id: string; status: string; published: false; human_review_required: true; topic: string; question: string; direction: string; threshold_bps: number; evidence_digest: string; review_note: string; [k: string]: unknown } | null
+}
+export interface ScoutMeta {
+  count: number
+  direction: string
+  status: string
+  version: string
+  supported_topics: string[]
+  source: string
+  formula: string
+  notable_change_bps: number
+  unusual_change_bps: number
+  minimum_sample_days: number
+  minimum_baseline_views: number
+  stale_after_hours: number
+  ranking: string
+  source_mode: string
+  reason?: string
 }
 
 export type PulseWindow = '24h' | '7d' | '30d' | 'all'

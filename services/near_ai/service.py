@@ -25,6 +25,7 @@ from .config import NearAIConfig
 from .grounding import (
     GroundingError,
     build_market_context,
+    build_market_research_context,
     build_radar_context,
     load_candidate,
     load_market,
@@ -94,6 +95,24 @@ class BriefService:
         allow_ai: bool = False,
     ) -> TrendBrief:
         context = build_market_context(rule_record, evidence)
+        return self._generate(context, force=force, allow_ai=allow_ai)
+
+    def market_research_from_records(
+        self,
+        rule_record: dict[str, Any],
+        evidence: dict[str, Any] | None,
+        *,
+        attention_snapshots: list[dict[str, Any]],
+        historical_context: list[dict[str, Any]],
+        force: bool = False,
+        allow_ai: bool = True,
+    ) -> TrendBrief:
+        context = build_market_research_context(
+            rule_record,
+            evidence,
+            attention_snapshots,
+            historical_context,
+        )
         return self._generate(context, force=force, allow_ai=allow_ai)
 
     def get(self, brief_id: str) -> TrendBrief | None:
@@ -218,6 +237,7 @@ class BriefService:
                 "estimated_cost_usd": completion.estimated_cost_usd(model_info),
             },
             fallback_reason=None,
+            request_id=completion.request_id,
         )
         self.store.save(cache_key, brief)
         return brief
@@ -241,6 +261,7 @@ class BriefService:
             status=status,
             usage={},
             fallback_reason=reason,
+            request_id=None,
         )
         if model_info is not None:
             brief.usage["model_catalog_verified"] = True
@@ -262,10 +283,44 @@ class BriefService:
         status: GenerationStatus,
         usage: dict[str, Any],
         fallback_reason: str | None,
+        request_id: str | None = None,
     ) -> TrendBrief:
         now = self.now_fn()
+        generated_at = iso_utc(now) or ""
         brief_key = self._cache_key(context, "near-ai" if provider == "near-ai" else "deterministic")
         brief_id = "brief_" + hashlib.sha256(brief_key.encode("utf-8")).hexdigest()[:20]
+        research = {
+            "supporting_up": [claim.to_dict() for claim in draft.supporting_up],
+            "supporting_down": [claim.to_dict() for claim in draft.supporting_down],
+            "key_assumptions": [claim.to_dict() for claim in draft.key_assumptions],
+            "historical_context": [claim.to_dict() for claim in draft.historical_context],
+        }
+        evidence_payload = context.prompt_payload.get("evidence")
+        input_evidence_digest = (
+            str(evidence_payload.get("evidence_digest"))
+            if isinstance(evidence_payload, dict) and evidence_payload.get("evidence_digest")
+            else None
+        )
+        inference = {
+            "provider": provider,
+            "model": model,
+            "request_timestamp": generated_at,
+            "input_observation_cutoff": context.measurement_window.get("observation_cutoff"),
+            "input_digest": context.input_digest,
+            "input_evidence_digest": input_evidence_digest,
+            "source_ids": sorted(ref.ref_id for ref in context.evidence_references),
+            "generation_status": status.value,
+            "verification": {
+                "status": "unavailable" if provider == "near-ai" else "not_applicable",
+                "reason": (
+                    "NEAR AI response signature and preflight attestation were not cryptographically verified."
+                    if provider == "near-ai"
+                    else "No AI inference was used."
+                ),
+            },
+        }
+        if request_id:
+            inference["request_id"] = request_id
         return TrendBrief(
             schema_version=BRIEF_SCHEMA,
             brief_id=brief_id,
@@ -283,7 +338,7 @@ class BriefService:
             uncertainty=draft.uncertainty,
             missing_evidence=draft.missing_evidence,
             suggested_research_questions=draft.suggested_research_questions,
-            generated_at=iso_utc(now) or "",
+            generated_at=generated_at,
             provider=provider,
             model=model,
             generation_status=status.value,
@@ -292,6 +347,8 @@ class BriefService:
             usage=usage,
             input_digest=context.input_digest,
             cache_hit=False,
+            research=research,
+            inference=inference,
         )
 
     def _cache_key(self, context: BriefContext, mode: str) -> str:
@@ -356,4 +413,5 @@ class BriefService:
             "generated_at": brief.generated_at,
             "cache_hit": brief.cache_hit,
             "input_digest": brief.input_digest,
+            "inference": brief.inference,
         }

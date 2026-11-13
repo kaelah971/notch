@@ -9,7 +9,7 @@ export interface NavItem { to: string; label: string; icon: NavIcon }
 export const primaryNav: NavItem[] = [
   { to: '/app/markets', label: 'Markets', icon: MarketsIcon },
   { to: '/app/practice', label: 'Practice Mode', icon: Dices },
-  { to: '/app/radar', label: 'Trend Radar', icon: Radar },
+  { to: '/app/discover', label: 'Discover', icon: Radar },
   { to: '/app/battles', label: 'Trend Battles', icon: Swords },
   { to: '/app/portfolio', label: 'Portfolio', icon: Wallet },
   { to: '/app/leaderboard', label: 'Leaderboard', icon: Trophy },
@@ -22,7 +22,7 @@ export const accountNav: NavItem[] = [
 // Mobile tab bar. Battles lives inside Markets; Profile/Settings under More.
 export const mobileTabs: NavItem[] = [
   { to: '/app/markets', label: 'Markets', icon: MarketsIcon },
-  { to: '/app/radar', label: 'Radar', icon: Radar },
+  { to: '/app/discover', label: 'Discover', icon: Radar },
   { to: '/app/portfolio', label: 'Portfolio', icon: Wallet },
   { to: '/app/leaderboard', label: 'Leaderboard', icon: Trophy },
   { to: '/app/more', label: 'More', icon: Ellipsis },
