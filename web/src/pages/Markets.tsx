@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import { api } from '../api/client'
 import { useApi } from '../api/useApi'
@@ -101,6 +101,7 @@ export function Markets({ battlesOnly = false }: { battlesOnly?: boolean }) {
         <div>
           <h1>{battlesOnly ? 'Trend Battles' : 'Markets'}</h1>
           <p>{battlesOnly ? 'Two topics. One attention metric. Settled from public evidence.' : 'Call where public attention goes next. Settled from Wikipedia pageviews on NEAR Testnet.'}</p>
+          {!battlesOnly && <Link className="btn btn-quiet market-practice-link" to="/app/practice">Try Practice Mode · 1,000 credits</Link>}
         </div>
       </header>
 

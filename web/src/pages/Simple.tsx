@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ChevronRight, User, SlidersHorizontal, Swords } from 'lucide-react'
+import { ChevronRight, User, SlidersHorizontal, Swords, Dices } from 'lucide-react'
 import { Unavailable } from '../components/States'
 import './Simple.css'
 
@@ -37,9 +37,10 @@ export function Settings() {
   )
 }
 
-/** Mobile "More": Battles shortcut, Profile, Settings. */
+/** Mobile "More": Practice, Battles, Profile, Settings. */
 export function More() {
   const rows = [
+    { to: '/app/practice', label: 'Practice Mode', icon: Dices },
     { to: '/app/battles', label: 'Trend Battles', icon: Swords },
     { to: '/app/profile', label: 'Profile', icon: User },
     { to: '/app/settings', label: 'Settings', icon: SlidersHorizontal },

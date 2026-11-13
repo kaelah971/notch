@@ -1,4 +1,4 @@
-import { Radar, Swords, Wallet, Trophy, User, SlidersHorizontal, Ellipsis, type LucideIcon } from 'lucide-react'
+import { Radar, Swords, Wallet, Trophy, User, SlidersHorizontal, Ellipsis, Dices, type LucideIcon } from 'lucide-react'
 import { MarketsIcon } from './icons'
 import type { ComponentType, SVGProps } from 'react'
 
@@ -8,6 +8,7 @@ export interface NavItem { to: string; label: string; icon: NavIcon }
 // Desktop sidebar (ref 04): primary group, divider, account group.
 export const primaryNav: NavItem[] = [
   { to: '/app/markets', label: 'Markets', icon: MarketsIcon },
+  { to: '/app/practice', label: 'Practice Mode', icon: Dices },
   { to: '/app/radar', label: 'Trend Radar', icon: Radar },
   { to: '/app/battles', label: 'Trend Battles', icon: Swords },
   { to: '/app/portfolio', label: 'Portfolio', icon: Wallet },

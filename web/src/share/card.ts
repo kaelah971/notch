@@ -14,10 +14,10 @@ export interface CallCardSpec {
   kind: 'call'
   title: string
   choice: string
-  stake: string // formatted test-USDC
+  stake: string // formatted test-USDC or practice credits, depending on verification
   confirmedAt: string | null // ISO, only when a confirmation time is actually known
   txRef: string | null // tx hash when known
-  verification: 'tx' | 'contract-read'
+  verification: 'tx' | 'contract-read' | 'practice-local'
   result?: {
     status: PredictionStatus
     outcome: string | null
@@ -34,6 +34,17 @@ const W = 1200, H = 630
 
 export function callCardBadge(spec: CallCardSpec): string {
   const txVerified = spec.verification === 'tx' && Boolean(spec.txRef?.trim())
+  if (spec.verification === 'practice-local') {
+    return spec.result?.status === 'CORRECT'
+      ? 'Practice · correct'
+      : spec.result?.status === 'INCORRECT'
+        ? 'Practice · incorrect'
+        : spec.result?.status === 'VOIDED'
+          ? 'Practice · voided'
+          : spec.result?.status === 'UNKNOWN'
+            ? 'Practice · unknown'
+            : 'Practice · pending'
+  }
   return spec.result?.status === 'CORRECT'
     ? '✓ Prediction correct'
     : spec.result?.status === 'INCORRECT'
@@ -144,17 +155,22 @@ export async function renderCard(spec: CardSpec): Promise<HTMLCanvasElement> {
   y += 24
 
   if (spec.kind === 'call') {
+    const practice = spec.verification === 'practice-local'
     const txVerified = spec.verification === 'tx' && Boolean(spec.txRef?.trim())
     ctx.font = '500 26px "Hanken Grotesk Variable", system-ui, sans-serif'; ctx.fillStyle = 'rgba(235,235,245,.6)'
-    ctx.fillText('My call', 64, y + 20)
+    ctx.fillText(practice ? 'Practice call' : 'My call', 64, y + 20)
     const w = pill(ctx, 64, y + 36, spec.choice, Y, '#0a0a0a', 34)
     ctx.font = '700 34px "Hanken Grotesk Variable", system-ui, sans-serif'; ctx.fillStyle = '#fff'
-    ctx.fillText(`${spec.stake} test-USDC${callCardOutcomeSuffix(spec)}`, 64 + w + 24, y + 36 + 42)
+    ctx.fillText(`${spec.stake} ${practice ? 'practice credits' : 'test-USDC'}${callCardOutcomeSuffix(spec)}`, 64 + w + 24, y + 36 + 42)
     ctx.font = '500 20px "Geist Mono Variable", ui-monospace, monospace'; ctx.fillStyle = 'rgba(235,235,245,.5)'
-    const ref = txVerified ? `tx ${spec.txRef!.slice(0, 10)}…${spec.txRef!.slice(-6)}`
-      : spec.result?.status === 'PENDING' ? 'market not finalized'
-        : spec.result?.status === 'VOIDED' ? 'market voided or refunded'
-          : 'verified by market contract read'
+    const ref = practice
+      ? spec.result?.status === 'PENDING' ? 'practice record · market not finalized'
+        : spec.result?.status === 'UNKNOWN' ? 'practice record · evidence unavailable'
+          : 'practice record · local-only'
+      : txVerified ? `tx ${spec.txRef!.slice(0, 10)}…${spec.txRef!.slice(-6)}`
+        : spec.result?.status === 'PENDING' ? 'market not finalized'
+          : spec.result?.status === 'VOIDED' ? 'market voided or refunded'
+            : 'verified by market contract read'
     const evidence = spec.result?.evidenceHash
       ? ` · evidence ${spec.result.evidenceHash.slice(0, 12)}…${spec.result.evidenceHash.slice(-6)}`
       : ''
@@ -169,7 +185,7 @@ export async function renderCard(spec: CardSpec): Promise<HTMLCanvasElement> {
       }
     }
     ctx.font = '700 28px "Hanken Grotesk Variable", system-ui, sans-serif'; ctx.fillStyle = Y
-    ctx.fillText('Think I’m wrong? Make your call.', 64, H - 44)
+    ctx.fillText(practice ? 'Practice only · no wallet required' : 'Think I’m wrong? Make your call.', 64, H - 44)
   } else {
     let x = 64
     for (const ch of spec.choices) x += pill(ctx, x, y, ch, 'rgba(255,255,255,.1)', '#fff', 30) + 14

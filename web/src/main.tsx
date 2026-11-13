@@ -13,6 +13,7 @@ import { SignalsHub } from './signals/SignalsHub'
 import { Predictor } from './signals/Predictor'
 import { Portfolio } from './pages/Portfolio'
 import { HowItWorks } from './pages/HowItWorks'
+import { Practice } from './pages/Practice'
 
 const router = createBrowserRouter([
   { path: '/', element: <Landing /> },
@@ -24,6 +25,7 @@ const router = createBrowserRouter([
       { index: true, element: <Navigate to="markets" replace /> },
       { path: 'markets', element: <Markets /> },
       { path: 'markets/:id', element: <MarketDetail /> },
+      { path: 'practice', element: <Practice /> },
       { path: 'battles', element: <Markets battlesOnly /> },
       { path: 'radar', element: <Radar /> },
       { path: 'portfolio', element: <Portfolio /> },

@@ -1,3 +1,5 @@
+.market-practice-link { display: inline-flex; margin-top: 12px; }
+
 /* iOS segmented control */
 .seg {
   display: inline-flex; gap: 2px; padding: 3px; margin-bottom: 28px;

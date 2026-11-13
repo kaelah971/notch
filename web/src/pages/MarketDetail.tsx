@@ -70,7 +70,13 @@ export function MarketDetail() {
           </section>
           <BriefPanel brief={br.status === 'ok' ? br.data : null} loading={br.status === 'loading'} errorCode={br.status === 'error' ? br.error.code : null} />
         </div>
-        <aside className="md-side"><EntryPanel d={d} onPositionChange={reload} /></aside>
+        <aside className="md-side">
+          <EntryPanel d={d} onPositionChange={reload} />
+          <Link className="practice-market-cta" to={`/app/practice?market=${encodeURIComponent(d.market_id)}`}>
+            <span><strong>Practice Mode</strong><small>Try this question with 1,000 virtual credits. No wallet or test-USDC.</small></span>
+            <span aria-hidden="true">→</span>
+          </Link>
+        </aside>
       </div>
     </article>
   )

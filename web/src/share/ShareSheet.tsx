@@ -66,8 +66,9 @@ export function ShareSheet({ spec, text, onClose, allowAccount, onToggleAccount 
   }, [spec])
 
   const enc = encodeURIComponent
+  const practiceCard = spec.kind === 'call' && spec.verification === 'practice-local'
   const resultCard = spec.kind === 'call' && spec.result && spec.result.status !== 'PENDING'
-  const fileName = resultCard ? 'notch-result.png' : spec.kind === 'call' ? 'notch-my-call.png' : 'notch-market.png'
+  const fileName = practiceCard ? (resultCard ? 'notch-practice-result.png' : 'notch-practice-call.png') : resultCard ? 'notch-result.png' : spec.kind === 'call' ? 'notch-my-call.png' : 'notch-market.png'
   const file = blob ? new File([blob], fileName, { type: 'image/png' }) : null
   const canNative = typeof navigator.share === 'function'
   const shareUrlReady = Boolean(spec.url)
@@ -86,7 +87,7 @@ export function ShareSheet({ spec, text, onClose, allowAccount, onToggleAccount 
     <dialog ref={dlg} className="share" onClose={onClose} onClick={(e) => { if (e.target === dlg.current) dlg.current?.close() }} aria-label="Share">
       <div className="share-in">
         <div className="share-head">
-          <h2>{spec.kind === 'call' && spec.result && spec.result.status !== 'PENDING' ? 'Share result' : spec.kind === 'call' ? 'Share my call' : 'Share market'}</h2>
+          <h2>{practiceCard ? (resultCard ? 'Share practice result' : 'Share practice call') : spec.kind === 'call' && spec.result && spec.result.status !== 'PENDING' ? 'Share result' : spec.kind === 'call' ? 'Share my call' : 'Share market'}</h2>
           <button className="share-x" onClick={() => dlg.current?.close()} aria-label="Close"><Close size={18} /></button>
         </div>
         {png ? <img className="share-img" src={png} alt="Share card preview" /> : <div className="skeleton share-img" />}
@@ -103,7 +104,7 @@ export function ShareSheet({ spec, text, onClose, allowAccount, onToggleAccount 
             <a className="btn btn-quiet" target="_blank" rel="noreferrer" href={`https://wa.me/?text=${enc(`${text} ${spec.url}`)}`}>WhatsApp</a>
             <button className="btn btn-quiet" onClick={copy}><Link2 size={16} /> {copied ? 'Copied' : 'Copy link'}</button>
           </> : <p className="fine">PNG export is still available below.</p>}
-          {png && <a className="btn btn-quiet" href={png} download={spec.kind === 'call' && spec.result && spec.result.status !== 'PENDING' ? 'notch-result.png' : spec.kind === 'call' ? 'notch-my-call.png' : 'notch-market.png'}><Download size={16} /> PNG</a>}
+          {png && <a className="btn btn-quiet" href={png} download={practiceCard ? (resultCard ? 'notch-practice-result.png' : 'notch-practice-call.png') : spec.kind === 'call' && spec.result && spec.result.status !== 'PENDING' ? 'notch-result.png' : spec.kind === 'call' ? 'notch-my-call.png' : 'notch-market.png'}><Download size={16} /> PNG</a>}
         </div>
       </div>
     </dialog>

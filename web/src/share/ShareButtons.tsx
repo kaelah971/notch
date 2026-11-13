@@ -72,3 +72,37 @@ export function ShareCallButton({ m, choice, stake, confirmedAt, txRef, account,
     </>
   )
 }
+
+/** Share a local-only practice call without implying wallet or transaction verification. */
+export function SharePracticeButton({ m, choice, stake, result, className = 'btn btn-quiet' }: {
+  m: Market
+  choice: string
+  stake: string
+  result?: { status: PredictionStatus; outcome: string | null; evidenceHash?: string | null; marketId?: string }
+  className?: string
+}) {
+  const [open, setOpen] = useState(false)
+  const title = marketTitle(m)
+  const finalized = result && result.status !== 'PENDING'
+  const resultText = result?.status === 'CORRECT' || result?.status === 'INCORRECT'
+    ? ` Final outcome: ${result.outcome ?? 'unavailable'} from the published market state.`
+    : result?.status === 'VOIDED'
+      ? ' The published market was voided; practice credits are refunded by the local score.'
+      : result?.status === 'UNKNOWN'
+        ? ' The published result could not be verified from available evidence.'
+        : ''
+  return (
+    <>
+      <button type="button" className={className} onClick={() => setOpen(true)}><Share2 size={16} /> {finalized ? 'Share practice result' : 'Share practice call'}</button>
+      {open && (
+        <ShareSheet onClose={() => setOpen(false)}
+          text={finalized ? `I practised ${choice} on “${title}”.${resultText} Practice credits only.` : `I practised ${choice} on “${title}” with ${stake} practice credits. No wallet required.`}
+          spec={{
+            kind: 'call', title, choice, stake, confirmedAt: null, txRef: null,
+            verification: 'practice-local', result, account: null,
+            url: marketUrl(m.market_id),
+          }} />
+      )}
+    </>
+  )
+}

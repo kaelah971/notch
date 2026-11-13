@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "test:forecast": "node --experimental-strip-types --test tests/forecast.test.mjs",
+    "test:practice": "node --experimental-strip-types --test tests/practice.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
