@@ -1,0 +1,81 @@
+/* Interactive chart — design ref 05. Shared by attention and participation charts. */
+.achart { min-width: 0; max-width: 100%; }
+.achart-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; min-width: 0; }
+.achart-head > * { min-width: 0; max-width: 100%; }
+.achart-big { display: grid; gap: 4px; }
+.achart-bigrow { display: flex; align-items: baseline; gap: 10px; }
+.achart-bignum { font-size: clamp(34px, 5vw, 44px); font-weight: var(--w-display); letter-spacing: -0.035em; line-height: 1; }
+.achart-bigrow + .achart-bigrow .achart-bignum { font-size: clamp(24px, 3.4vw, 30px); }
+.achart-bigl { font-size: 14px; color: var(--text-2); }
+.achart-swatch { width: 10px; height: 10px; border-radius: 50%; align-self: center; }
+.achart-chg { font-size: 17px; font-weight: var(--w-label); font-variant-numeric: tabular-nums; }
+.achart-chg.up { color: var(--chart-up); }
+.achart-chg.down { color: var(--neg); }
+.achart-sub { font-size: 13px; color: var(--text-3); display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; min-width: 0; max-width: 100%; }
+.achart-sub > span { min-width: 0; overflow-wrap: anywhere; }
+.achart-freshness { display: inline-flex; flex-wrap: wrap; gap: 5px; align-items: baseline; color: var(--text); }
+.achart-freshness-label { color: var(--text-3); font-size: 11.5px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .04em; }
+.achart-freshness time { font-weight: var(--w-strong); font-variant-numeric: tabular-nums; }
+.achart-freshness-note { color: var(--text-2); }
+
+.achart-readout { display: flex; gap: 10px; margin-bottom: 14px; min-height: 42px; min-width: 0; }
+.achart-readout > div { min-width: 0; }
+.achart-rbar { width: 3px; border-radius: 2px; background: var(--chart-a); }
+.achart-rl { display: block; font-size: 13px; color: var(--text-2); }
+.achart-rv { display: flex; flex-wrap: wrap; gap: 8px 16px; min-width: 0; font-size: 18px; font-weight: var(--w-label); }
+.achart-rv span { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+
+.participation-current { display: grid; gap: 3px; margin: 0 0 14px; padding: 12px 14px; border-radius: 12px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--hairline); }
+.participation-current strong { color: var(--text); font-size: 16px; font-variant-numeric: tabular-nums; }
+.participation-current span { color: var(--text-3); font-size: 12.5px; }
+
+.achart-rv span { overflow-wrap: anywhere; }
+.achart-rv i, .achart-legend i, .achart-tip i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+.achart-frame { display: grid; grid-template-columns: 40px 1fr; gap: 8px; }
+.achart-y { position: relative; }
+.achart-y span { position: absolute; right: 0; transform: translateY(-50%); font-family: var(--font-mono); font-size: 11px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.achart-plot { position: relative; height: 260px; padding-top: 0; cursor: crosshair; touch-action: pan-y; outline: none; user-select: none; -webkit-user-select: none; }
+.achart-plot:focus-visible { box-shadow: 0 0 0 2px var(--accent-ring); border-radius: 6px; }
+.achart-plot svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.achart-grid { stroke: rgba(255, 255, 255, .09); stroke-dasharray: 3 5; vector-effect: non-scaling-stroke; }
+.achart-marker { stroke: rgba(255, 255, 255, .28); stroke-dasharray: 2 4; vector-effect: non-scaling-stroke; }
+.achart-level { stroke: var(--sunburst); stroke-opacity: .6; stroke-dasharray: 2 4; vector-effect: non-scaling-stroke; }
+.achart-line { fill: none; stroke: var(--chart-a); stroke-width: 1.6; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
+.achart-line.is-dim { stroke: rgba(255, 255, 255, .26); }
+.achart-cursor { stroke: rgba(255, 255, 255, .55); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.achart-dot { position: absolute; width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; border-radius: 50%; box-shadow: 0 0 0 3px rgba(0, 0, 0, .9); pointer-events: none; }
+.achart-stamp { position: absolute; top: -22px; transform: translateX(-50%); font-family: var(--font-mono); font-size: 11.5px; color: var(--text); white-space: nowrap; pointer-events: none; }
+.achart-x { position: relative; height: 20px; margin: 8px 0 0 48px; font-family: var(--font-mono); font-size: 11px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.achart-x span { position: absolute; white-space: nowrap; }
+.achart-x span:first-child { transform: none; }
+.achart-x-mid { left: 50%; transform: translateX(-50%); }
+.achart-x-end { right: 0; }
+.achart-frame { margin-top: 26px; }
+
+.achart-msg { padding: 32px 0; text-align: center; }
+.seg.seg-sm { margin: 0; }
+.seg.seg-sm .seg-btn { height: 28px; padding: 0 10px; font-size: 12.5px; }
+/* Participation chart (shared tooltip/legend styles). */
+.achart-legend { display: flex; gap: 14px; font-size: 13px; color: var(--text-2); }
+.achart-legend span, .achart-tip span { display: inline-flex; align-items: center; gap: 6px; }
+.achart-tip { position: absolute; top: 4px; transform: translateX(-50%); display: grid; gap: 2px; padding: 8px 10px; border-radius: 10px; background: var(--surface-3); font-size: 12px; pointer-events: none; white-space: nowrap; box-shadow: 0 8px 24px rgba(0, 0, 0, .5); }
+.achart-axis { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11.5px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.achart-plot.is-simple { height: auto; }
+.achart-plot.is-simple svg { height: 200px; }
+@media (max-width: 520px) {
+  .achart-plot { height: 210px; }
+  .achart-frame { grid-template-columns: 34px 1fr; }
+  .achart-x { margin-left: 42px; }
+  .achart-sub { font-size: 12px; }
+  .achart-freshness { gap: 4px; }
+  .achart-rv { font-size: 16px; }
+  .seg.seg-sm .seg-btn { padding-left: 7px; padding-right: 7px; }
+}
+@media (max-width: 360px) {
+  .achart-frame { grid-template-columns: 30px 1fr; gap: 6px; }
+  .achart-x { margin-left: 36px; font-size: 10px; }
+  .achart-y span { font-size: 10px; }
+  .achart-stamp { font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .achart * { transition: none !important; } }

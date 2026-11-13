@@ -1,0 +1,10 @@
+.hiw-nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; }
+.hiw-main { max-width: 720px; margin: 0 auto; padding: 32px 24px 0; }
+.hiw-main h1 { font-size: clamp(40px, 7vw, 64px); font-weight: var(--w-title); letter-spacing: -.04em; }
+.hiw-lede { font-size: 19px; color: var(--text-2); margin-top: 14px; }
+.hiw-main section { margin-top: 48px; scroll-margin-top: 24px; }
+.hiw-main h2 { font-size: 24px; margin-bottom: 12px; }
+.hiw-main h2::before { content: ''; display: block; width: 28px; height: 4px; border-radius: 2px; background: var(--sunburst); margin-bottom: 14px; }
+.hiw-main p, .hiw-main li { color: var(--text-2); margin-top: 10px; }
+.hiw-main strong { color: var(--text); }
+.hiw-main ul { padding-left: 20px; margin: 0; }

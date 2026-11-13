@@ -180,3 +180,6 @@ export interface FundingQuote {
   last_error: string | null
   deposit_submitted: boolean
 }
+
+/** A pool-totals value the S6 API actually read from the contract, at NEAR block time. */
+export interface PoolSnapshot { block_ts_ns: string; observed_at_utc: string; totals: string[]; status: string }

@@ -24,6 +24,11 @@
   --accent-tint: rgba(252, 235, 83, 0.14);
   --accent-ring: rgba(252, 235, 83, 0.55);
 
+  /* Charts (ref 05): soft pink primary line, cool secondary for battles. */
+  --chart-a: #f7a8c0;
+  --chart-b: #8fb8ff;
+  --chart-up: #4ade80;
+
   /* Data states — used only for outcomes, never decoration. */
   --pos: #fceb53;
   --warn: #f49f04;
@@ -35,7 +40,21 @@
   --radius-xl: 32px;
   --radius-pill: 999px;
 
-  --font: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Typography: Hanken Grotesk (text/display) + Geist Mono (labels, data). Both SIL OFL, self-hosted. */
+  --font: 'Hanken Grotesk Variable', 'Hanken Grotesk Fallback', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --w-display: 380;   /* large headings: light, elegant */
+  --w-body: 400;
+  --w-label: 500;     /* nav, buttons, labels */
+  --w-strong: 560;    /* emphasis, figures */
+  --w-title: 520;     /* section and card titles */
+  --w-brand: 640;     /* notch wordmark */
+  --track-display: -0.045em;
+  --track-title: -0.025em;
+  --track-label: 0.06em; /* mono uppercase labels */
+  --lh-display: 1.02;
+  --lh-title: 1.2;
+  --lh-body: 1.55;
   --ease: cubic-bezier(0.32, 0.72, 0, 1); /* iOS-like */
 
   --sidebar-collapsed: 72px;

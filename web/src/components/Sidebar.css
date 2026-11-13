@@ -1,5 +1,5 @@
 /* Ref 04 — floating pill sidebar. Purple → Sunburst. */
-.sidebar {
+.app-sidebar {
   position: fixed; z-index: 40;
   top: 16px; bottom: 16px; left: 16px;
   width: var(--sidebar-collapsed);
@@ -10,11 +10,11 @@
   overflow: hidden;
   transition: width .32s var(--ease), box-shadow .32s var(--ease);
 }
-.sidebar:hover, .sidebar:focus-within, .sidebar.is-pinned {
+.app-sidebar:hover, .app-sidebar:focus-within, .app-sidebar.is-pinned {
   width: var(--sidebar-expanded);
 }
 /* Unpinned hover floats over content; pinned pushes content (see AppShell). */
-.sidebar:not(.is-pinned):hover, .sidebar:not(.is-pinned):focus-within {
+.app-sidebar:not(.is-pinned):hover, .app-sidebar:not(.is-pinned):focus-within {
   box-shadow: 0 24px 60px rgba(0, 0, 0, .6);
 }
 
@@ -26,8 +26,11 @@
   transition: background .15s;
 }
 .sb-logo:hover { background: #343437; }
-.sb-logo[aria-pressed='true'] { color: var(--sunburst); }
-.sb-wordmark { font-size: 20px; font-weight: 700; letter-spacing: -.02em; }
+.sb-pin { margin-left: auto; width: 32px; height: 32px; flex: none; display: grid; place-items: center; border-radius: 10px; color: var(--text-3); opacity: 0; transition: opacity .18s var(--ease), background .15s, color .15s; }
+.sb-pin:hover { background: var(--surface-3); color: var(--text); }
+.sb-pin[aria-pressed='true'] { color: var(--sunburst); }
+.app-sidebar:hover .sb-pin, .app-sidebar:focus-within .sb-pin, .app-sidebar.is-pinned .sb-pin { opacity: 1; }
+.sb-wordmark { font-size: 20px; font-weight: var(--w-title); letter-spacing: -.02em; }
 
 .sb-rule { border: 0; height: 1px; background: var(--hairline); margin: 18px 6px; flex: none; }
 .sb-rule-bottom { margin-top: auto; }
@@ -47,17 +50,17 @@
 .sb-item.is-active .sb-icon { color: var(--sunburst); }
 
 /* Labels fade with the width transition; icons never move. */
-.sb-label, .sb-wordmark { font-size: 16px; font-weight: 500; opacity: 0; transition: opacity .18s var(--ease); }
-.sb-wordmark { font-size: 20px; font-weight: 700; }
-.sidebar:hover .sb-label, .sidebar:focus-within .sb-label, .sidebar.is-pinned .sb-label,
-.sidebar:hover .sb-wordmark, .sidebar:focus-within .sb-wordmark, .sidebar.is-pinned .sb-wordmark { opacity: 1; transition-delay: .06s; }
+.sb-label, .sb-wordmark { font-size: 16px; font-weight: var(--w-label); opacity: 0; transition: opacity .18s var(--ease); }
+.sb-wordmark { font-size: 20px; font-weight: var(--w-title); }
+.app-sidebar:hover .sb-label, .app-sidebar:focus-within .sb-label, .app-sidebar.is-pinned .sb-label,
+.app-sidebar:hover .sb-wordmark, .app-sidebar:focus-within .sb-wordmark, .app-sidebar.is-pinned .sb-wordmark { opacity: 1; transition-delay: .06s; }
 
 /* Collapsed active state: ring like ref 04's circular highlight. */
-.sidebar:not(.is-pinned):not(:hover):not(:focus-within) .sb-item.is-active {
+.app-sidebar:not(.is-pinned):not(:hover):not(:focus-within) .sb-item.is-active {
   box-shadow: inset 0 0 0 1.5px var(--accent-ring);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sidebar, .sb-label, .sb-wordmark { transition: none; }
+  .app-sidebar, .sb-label, .sb-wordmark { transition: none; }
 }
-@media (max-width: 899px) { .sidebar { display: none; } }
+@media (max-width: 899px) { .app-sidebar { display: none; } }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
+import { Pin, PinOff } from 'lucide-react'
 import { NotchMark } from './icons'
 import { accountNav, primaryNav, type NavItem } from './nav'
 import './Sidebar.css'
@@ -30,22 +31,25 @@ function Item({ item }: { item: NavItem }) {
   )
 }
 
-/** Ref 04: tall floating pill. Hover or keyboard focus expands; the logo tile toggles a remembered pin. */
+/** Ref 04: tall floating pill. Hover or keyboard focus expands; the logo links home; the pin button keeps it expanded (remembered). */
 export function Sidebar({ pinned, onTogglePin }: { pinned: boolean; onTogglePin: () => void }) {
   return (
-    <nav className={`sidebar${pinned ? ' is-pinned' : ''}`} aria-label="Primary">
+    <nav className={`app-sidebar${pinned ? ' is-pinned' : ''}`} aria-label="Primary">
       <div className="sb-head">
+        <Link to="/" className="sb-logo" aria-label="Notch home" title="Notch home">
+          <span className="sb-icon"><NotchMark /></span>
+        </Link>
+        <Link to="/" className="sb-wordmark" tabIndex={-1}>notch</Link>
         <button
           type="button"
-          className="sb-logo"
+          className="sb-pin"
           onClick={onTogglePin}
           aria-pressed={pinned}
-          aria-label={pinned ? 'Collapse sidebar' : 'Keep sidebar expanded'}
-          title={pinned ? 'Collapse sidebar' : 'Keep sidebar expanded'}
+          aria-label={pinned ? 'Unpin sidebar' : 'Pin sidebar open'}
+          title={pinned ? 'Unpin sidebar' : 'Pin sidebar open'}
         >
-          <span className="sb-icon"><NotchMark /></span>
+          {pinned ? <PinOff size={16} /> : <Pin size={16} />}
         </button>
-        <span className="sb-wordmark">notch</span>
       </div>
       <hr className="sb-rule" />
       <ul className="sb-list">{primaryNav.map((i) => <Item key={i.to} item={i} />)}</ul>

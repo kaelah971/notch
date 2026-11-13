@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { api, ApiError } from '../api/client'
 import type { EntryIntent, MarketDetail, Readiness } from '../api/types'
 import { formatUnits, parseUnits, relativeTo, USDC_DECIMALS } from '../api/format'
 import { isOpenForEntry } from '../components/market'
+import { ShareCallButton } from '../share/ShareButtons'
 import { explorerTx, useWallet } from '../wallet/WalletProvider'
 import { clearPending, consumeRedirectParams, loadPending, savePending, stakeIn, waitForStakeIncrease } from '../wallet/verify'
 
@@ -13,13 +14,18 @@ type Phase =
   | { k: 'review'; intent: EntryIntent; before: string }
   | { k: 'signing'; intent: EntryIntent }
   | { k: 'verifying'; hash: string | null; choice: string; stake: string }
-  | { k: 'confirmed'; hash: string | null; choice: string; stake: string; total: string }
+  | { k: 'confirmed'; hash: string | null; choice: string; stake: string; total: string; at: string }
   | { k: 'unconfirmed'; hash: string | null }
   | { k: 'error'; message: string }
 
 export function EntryPanel({ d, onPositionChange }: { d: MarketDetail; onPositionChange?: () => void }) {
   const { accountId, connect, ready, signAndSend } = useWallet()
-  const [side, setSide] = useState<number | null>(null)
+  // Notch Signals "Make the same call": ?call=<outcome index>&via=<account>. Preselects only; stake and signature are the user's.
+  const [params] = useSearchParams()
+  const callParam = Number(params.get('call'))
+  const via = params.get('via')
+  const preset = Number.isInteger(callParam) && callParam >= 0 && callParam < d.choices.length ? callParam : null
+  const [side, setSide] = useState<number | null>(preset)
   const [amount, setAmount] = useState('')
   const [phase, setPhase] = useState<Phase>({ k: 'idle' })
   const [readiness, setReadiness] = useState<Readiness | null>(null)
@@ -48,7 +54,7 @@ export function EntryPanel({ d, onPositionChange }: { d: MarketDetail; onPositio
     setPhase({ k: 'verifying', hash, choice: pending.choice, stake: pending.stake })
     waitForStakeIncrease(pending.accountId, d.market_id, pending.before).then((total) => {
       clearPending()
-      if (total) { setPhase({ k: 'confirmed', hash, choice: pending.choice, stake: pending.stake, total }); onPositionChange?.() }
+      if (total) { setPhase({ k: 'confirmed', hash, choice: pending.choice, stake: pending.stake, total, at: new Date().toISOString() }); onPositionChange?.() }
       else setPhase({ k: 'unconfirmed', hash })
     })
   }, [d.market_id]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -95,7 +101,7 @@ export function EntryPanel({ d, onPositionChange }: { d: MarketDetail; onPositio
       setPhase({ k: 'verifying', hash: res.hash, choice: intent.choice, stake: intent.stake })
       const total = await waitForStakeIncrease(accountId, d.market_id, before)
       clearPending()
-      if (total) { setPhase({ k: 'confirmed', hash: res.hash, choice: intent.choice, stake: intent.stake, total }); onPositionChange?.(); loadReadiness() }
+      if (total) { setPhase({ k: 'confirmed', hash: res.hash, choice: intent.choice, stake: intent.stake, total, at: new Date().toISOString() }); onPositionChange?.(); loadReadiness() }
       else setPhase({ k: 'unconfirmed', hash: res.hash })
     } catch (e) {
       clearPending()
@@ -120,15 +126,17 @@ export function EntryPanel({ d, onPositionChange }: { d: MarketDetail; onPositio
     const it = phase.intent
     return (
       <section className="card entry">
-        <h2 className="card-h">Review your call</h2>
+        <h2 className="card-h">Review your position</h2>
         <dl className="kv kv-tight">
           <div><dt>Call</dt><dd><strong className="txt">{it.choice}</strong></dd></div>
-          <div><dt>Stake</dt><dd className="mono">{formatUnits(it.stake, USDC_DECIMALS, 6)} test-USDC</dd></div>
+          <div><dt>Your stake</dt><dd className="mono">{formatUnits(it.stake, USDC_DECIMALS, 6)} test-USDC</dd></div>
           <div><dt>Signer</dt><dd className="mono">{it.signer}</dd></div>
           <div><dt>Contract</dt><dd className="mono">{it.receiver}</dd></div>
           <div><dt>Method</dt><dd className="mono">{it.method} → {it.args.receiver_id}</dd></div>
           <div><dt>Deposit / gas</dt><dd className="mono">{it.attached_deposit_yocto} yocto · {it.gas_tgas} Tgas</dd></div>
+          <div><dt>Protocol fee</dt><dd>{((Number(d.contract_config?.fee_bps ?? 0)) / 100).toFixed(2)}%</dd></div>
         </dl>
+        <Payout d={d} outcome={it.outcome} stake={it.stake} choice={it.choice} />
         <p className="fine">Your wallet will show this exact transaction. Notch cannot sign or move funds for you.</p>
         <button className="btn btn-primary w100" onClick={() => phase.k === 'review' && sign(it, phase.before)} disabled={phase.k === 'signing'}>
           {phase.k === 'signing' ? 'Waiting for wallet…' : 'Sign in wallet'}
@@ -153,7 +161,8 @@ export function EntryPanel({ d, onPositionChange }: { d: MarketDetail; onPositio
         <p>You called <strong>{phase.choice}</strong> with {formatUnits(phase.stake, USDC_DECIMALS, 6)} test-USDC.</p>
         <p className="fine">Your total stake in this market is now {formatUnits(phase.total, USDC_DECIMALS, 6)} test-USDC, as read from the contract.</p>
         {phase.hash && <a className="link" href={explorerTx(phase.hash)} target="_blank" rel="noreferrer">View transaction</a>}
-        <div className="row-gap"><Link to="/app/portfolio" className="btn btn-quiet">Portfolio</Link><button className="btn btn-ghost" onClick={() => setPhase({ k: 'idle' })}>Add more</button></div>
+        {accountId && <div className="row-gap"><ShareCallButton m={d} choice={phase.choice} stake={formatUnits(phase.stake, USDC_DECIMALS, 6)} confirmedAt={phase.at} txRef={phase.hash} account={accountId} /></div>}
+        <div className="row-gap"><Link to="/app/portfolio" className="btn btn-quiet">Your positions</Link><button className="btn btn-ghost" onClick={() => setPhase({ k: 'idle' })}>Stake more</button></div>
       </section>
     )
   }
@@ -172,6 +181,13 @@ export function EntryPanel({ d, onPositionChange }: { d: MarketDetail; onPositio
   return (
     <section className="card entry">
       <h2 className="card-h">Make your call</h2>
+      {preset != null && via && (
+        <div className="notice referral-notice" role="note">
+          <span className="referral-lead">Following <Link className="link referral-account" to={`/app/p/${encodeURIComponent(via)}`}>{via}</Link>&apos;s call</span>
+          <strong className="referral-side">{d.choices[preset]}</strong>
+          <span className="referral-hint">Choose your own stake</span>
+        </div>
+      )}
       <div className="entry-choices" role="radiogroup" aria-label="Choose an outcome">
         {d.choices.map((c, i) => (
           <button key={c} role="radio" aria-checked={side === i} className={`choice${side === i ? ' is-on' : ''}`} onClick={() => setSide(i)}>{c}</button>
@@ -179,7 +195,7 @@ export function EntryPanel({ d, onPositionChange }: { d: MarketDetail; onPositio
       </div>
 
       <label className="field">
-        <span>Stake</span>
+        <span>Stake test-USDC</span>
         <div className="field-in">
           <input inputMode="decimal" autoComplete="off" placeholder={formatUnits(min, USDC_DECIMALS)} value={amount}
             onChange={(e) => setAmount(e.target.value.replace(/[^\d.]/g, ''))} aria-invalid={belowMin || overBalance || (amount !== '' && stake == null)} />
@@ -211,11 +227,25 @@ export function EntryPanel({ d, onPositionChange }: { d: MarketDetail; onPositio
           )}
           {readinessErr && <p className="fine err">{readinessErr}</p>}
           <button className="btn btn-primary w100" onClick={review} disabled={!canReview || phase.k === 'preparing'}>
-            {phase.k === 'preparing' ? 'Preparing…' : 'Review call'}
+            {phase.k === 'preparing' ? 'Preparing…' : 'Take a position'}
           </button>
         </>
       )}
       {phase.k === 'error' && <p className="fine err" role="alert">{phase.message}</p>}
     </section>
+  )
+}
+
+/** Parimutuel payout mechanics from the contract: stake × escrow_total ÷ winning pool. */
+function Payout({ d, outcome, stake, choice }: { d: MarketDetail; outcome: number; stake: string; choice: string }) {
+  const s = BigInt(stake)
+  const total = d.totals.reduce((a, b) => a + BigInt(b), 0n) + s
+  const side = BigInt(d.totals[outcome] ?? '0') + s
+  const now = side > 0n ? (s * total) / side : 0n
+  return (
+    <div className="notice">
+      <p><strong className="txt">If {choice} wins</strong>, your payout is your stake × total pool ÷ {choice} pool, measured when the market resolves. If the market is voided, your stake is refunded. If {choice} loses, you receive nothing.</p>
+      <p>With today’s pools plus your stake that would be <span className="mono txt">{formatUnits(now.toString(), USDC_DECIMALS, 6)}</span> test-USDC. It will change as others enter before entries close — it is not a quote or a guarantee.</p>
+    </div>
   )
 }

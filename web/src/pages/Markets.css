@@ -7,11 +7,35 @@
 .seg::-webkit-scrollbar { display: none; }
 .seg-btn {
   height: 34px; padding: 0 14px; border-radius: 9px;
-  font-size: 13.5px; font-weight: 500; color: var(--text-2); white-space: nowrap;
+  font-size: 13.5px; font-weight: var(--w-label); color: var(--text-2); white-space: nowrap;
   transition: background .15s, color .15s;
 }
 .seg-btn[aria-selected='true'] { background: var(--surface-3); color: var(--text); box-shadow: 0 1px 3px rgba(0, 0, 0, .4); }
 
+.views { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -4px 16px; padding: 2px 4px; }
+.views::-webkit-scrollbar { display: none; }
+.view-chip {
+  flex: none; display: inline-flex; align-items: center; gap: 8px;
+  height: 40px; padding: 0 16px; border-radius: 99px;
+  background: var(--surface-2); color: var(--text-2); font-weight: var(--w-strong); font-size: 14.5px;
+  transition: background .15s, color .15s;
+}
+.view-chip:hover { color: var(--text); }
+.view-chip.is-on { background: var(--sunburst); color: var(--on-accent); }
+.view-n { min-width: 22px; height: 22px; padding: 0 6px; display: grid; place-items: center; border-radius: 99px; background: rgba(255, 255, 255, .08); font-size: 12px; font-variant-numeric: tabular-nums; }
+.view-chip.is-on .view-n { background: rgba(0, 0, 0, .14); }
+.view-rule { font-size: 13px; color: var(--text-3); margin: -12px 0 16px; }
+.seg-btn[aria-pressed='true'] { background: var(--surface-3); color: var(--text); box-shadow: 0 1px 3px rgba(0, 0, 0, .4); }
+.mtools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 28px; }
+.mtools .seg { margin-bottom: 0; }
+.msearch { flex: 1 1 260px; display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 14px; border-radius: 12px; background: var(--surface-2); color: var(--text-3); }
+.msearch:focus-within { box-shadow: inset 0 0 0 1.5px var(--accent-ring); }
+.msearch input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; color: var(--text); font: 15px var(--font); }
+.msort select { height: 40px; padding: 0 12px; border-radius: 12px; border: 0; background: var(--surface-2); color: var(--text); font: var(--w-label) 14px var(--font); cursor: pointer; }
+.msec-hrow { display: flex; align-items: baseline; gap: 12px; margin-bottom: 12px; }
+.msec-hrow .msec-h { margin-bottom: 0; }
+.msec-hint { font-size: 12.5px; color: var(--text-3); }
+.msec-empty { color: var(--text-2); font-size: 14px; padding: 20px; border-radius: var(--radius-lg); box-shadow: inset 0 0 0 1px var(--hairline); }
 .msec { margin-bottom: 36px; }
-.msec-h { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); margin-bottom: 12px; }
+.msec-h { font-size: 13px; font-weight: var(--w-strong); text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); margin-bottom: 12px; }
 .mgrid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); }

@@ -1,10 +1,14 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ChevronLeft, ShieldCheck, ShieldQuestion, ExternalLink } from 'lucide-react'
 import { api } from '../api/client'
 import { useApi } from '../api/useApi'
 import type { Brief, MarketDetail as MD, MarketEvidence } from '../api/types'
 import { cleanQuestion, formatUtc, relativeTo } from '../api/format'
-import { PoolBars, StatusBadge, marketTitle, modeLabel } from '../components/market'
+import { PoolBars, StatusBadge, isOpenForEntry, marketCategory, marketTitle, modeLabel, parseRule } from '../components/market'
+import { AttentionChart } from '../components/AttentionChart'
+import { ParticipationChart } from '../components/ParticipationChart'
+import { ShareMarketButton } from '../share/ShareButtons'
 import { EntryPanel } from './EntryPanel'
 import { ErrorState, SkeletonList } from '../components/States'
 import './MarketDetail.css'
@@ -18,17 +22,27 @@ export function MarketDetail() {
   const [ev] = useApi(() => api.marketEvidence(id).then((r) => r.data), [id])
   const [br] = useApi(() => api.marketBrief(id).then((r) => r.data.brief), [id])
 
+  // Open markets: silently re-read pools from the contract every 20s (no skeleton flash).
+  const [fresh, setFresh] = useState<{ d: MD; at: number } | null>(null)
+  const open = m.status === 'ok' && isOpenForEntry(m.data)
+  useEffect(() => {
+    setFresh(null)
+    if (!open) return
+    const h = window.setInterval(() => { if (!document.hidden) api.market(id).then((r) => setFresh({ d: r.data, at: Date.now() }), () => {}) }, 20_000)
+    return () => clearInterval(h)
+  }, [id, open])
+
   if (m.status === 'loading') return <SkeletonList n={2} h={220} />
   if (m.status === 'error') return <ErrorState error={m.error} onRetry={reload} />
-  const d = m.data
+  const d = fresh?.d ?? m.data
 
   return (
     <article className="md">
       <Link to="/app/markets" className="md-back"><ChevronLeft size={18} /> Markets</Link>
 
       <header className="md-head">
-        <div className="md-tags"><span className="mrow-mode">{modeLabel(d)}</span><StatusBadge m={d} /></div>
-        <h1>{marketTitle(d)}</h1>
+        <div className="md-tags"><span className="mrow-mode">{modeLabel(d)} · {marketCategory(d)}</span><StatusBadge m={d} /></div>
+        <div className="md-titlerow"><h1>{marketTitle(d)}</h1><ShareMarketButton m={d} /></div>
         <p className="md-q">{cleanQuestion(d.question)}</p>
         {d.is_historical_replay && (
           <p className="md-note" role="note">
@@ -39,10 +53,21 @@ export function MarketDetail() {
 
       <div className="md-grid">
         <div className="md-main">
-          <section className="card"><PoolBars m={d} /><p className="fine">Pool totals read from the market contract. They show how stakes are distributed — not odds or expected returns.</p></section>
+          <AttentionCard d={d} />
+          <section className="card">
+            <h2 className="card-h">Stake distribution</h2>
+            <PoolBars m={d} />
+            <div style={{ marginTop: 20 }}><ParticipationChart m={d} /></div>
+            <p className="fine">Read from the market contract{open ? ` · refreshes every 20s${fresh ? `, last ${new Date(fresh.at).toLocaleTimeString()}` : ''}` : ''}. Pooled market: winners share the whole pool pro rata. The split shows stakes, not odds or probabilities.</p>
+          </section>
+          <Measurement d={d} />
           <Timeline d={d} />
           <RulePanel d={d} />
           <EvidencePanel ev={ev.status === 'ok' ? ev.data : null} loading={ev.status === 'loading'} onchainHash={d.evidence_hash} />
+          <section className="card">
+            <h2 className="card-h">Activity</h2>
+            <p className="dim">Per-entry history isn’t available yet: the contract exposes pool totals and per-account positions, not an entry log or participant count. Indexing the market’s <span className="mono">ft_on_transfer</span> receipts would add it without contract changes.</p>
+          </section>
           <BriefPanel brief={br.status === 'ok' ? br.data : null} loading={br.status === 'loading'} errorCode={br.status === 'error' ? br.error.code : null} />
         </div>
         <aside className="md-side"><EntryPanel d={d} onPositionChange={reload} /></aside>
@@ -144,6 +169,49 @@ function BriefPanel({ brief, loading, errorCode }: { brief: Brief | null; loadin
           <p className="fine">The outcome is decided by the frozen rule and evidence, never by this text.</p>
         </>
       )}
+    </section>
+  )
+}
+
+function articlesFor(d: MD): { article: string; label: string }[] {
+  if (d.battle) return [d.battle.topic_a, d.battle.topic_b].map((t) => ({ article: t.article_title.replace(/ /g, '_'), label: t.article_title }))
+  const src = (d.rule as { source?: { article?: string } } | null | undefined)?.source?.article
+  const r = parseRule(d)
+  const article = src ?? r?.topic?.replace(/ /g, '_')
+  return article ? [{ article, label: article.replace(/_/g, ' ') }] : []
+}
+
+function AttentionCard({ d }: { d: MD }) {
+  const arts = articlesFor(d)
+  const r = parseRule(d)
+  if (!arts.length) return null
+  return (
+    <section className="card">
+      <h2 className="card-h">Attention index</h2>
+      <AttentionChart articles={arts}
+        markers={r ? [{ date: r.baseline, label: 'baseline' }, { date: r.target, label: 'target' }] : []}
+        baselineDate={r?.baseline} thresholdPct={d.battle ? undefined : r?.thresholdPct} />
+    </section>
+  )
+}
+
+/** Exact metric, days and decision rule, all from the locked onchain question. */
+function Measurement({ d }: { d: MD }) {
+  const r = parseRule(d)
+  if (!r) return null
+  const arts = articlesFor(d)
+  return (
+    <section className="card">
+      <h2 className="card-h">What’s measured</h2>
+      <dl className="kv">
+        <div><dt>Metric</dt><dd>Daily pageviews · en.wikipedia.org · all-access · user agents · UTC</dd></div>
+        <div><dt>Article{arts.length > 1 ? 's' : ''}</dt><dd>{arts.map((a) => a.label).join(' vs ')}</dd></div>
+        <div><dt>Baseline day</dt><dd>{r.baseline} (full UTC day)</dd></div>
+        <div><dt>Target day</dt><dd>{r.target} (full UTC day)</dd></div>
+        <div><dt>Resolves</dt><dd>{d.battle
+          ? `${d.choices[0]} or ${d.choices[1]} — whichever has higher normalized growth. Within ${(d.battle.tie_tolerance_bps / 100).toFixed(2)}% is a tie and the market is voided (stakes refunded).`
+          : `UP if target-day views ≥ baseline-day views × ${(1 + Number(r.thresholdPct) / 100).toFixed(4)} (growth ≥ ${r.thresholdPct}%); otherwise DOWN.`}</dd></div>
+      </dl>
     </section>
   )
 }

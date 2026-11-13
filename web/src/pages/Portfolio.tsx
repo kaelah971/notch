@@ -7,12 +7,13 @@ import { formatUnits, sumUnits, USDC_DECIMALS } from '../api/format'
 import { ErrorState, SkeletonList, Unavailable } from '../components/States'
 import { explorerAccount, explorerTx, useWallet } from '../wallet/WalletProvider'
 import { Funding } from './Funding'
+import { ShareCallButton } from '../share/ShareButtons'
 import './Portfolio.css'
 
 export const MARKET_CONTRACT = (import.meta.env.VITE_MARKET_CONTRACT as string | undefined) ?? 'market.notch-dev.testnet'
 const FINAL = new Set(['resolved', 'voided'])
 
-interface Row extends Position { replay: boolean }
+interface Row extends Position { replay: boolean; market?: Market }
 
 /** Every figure is derived from contract reads via S6. Nothing is estimated. */
 function summarize(rows: Row[]) {
@@ -51,7 +52,7 @@ function Connected({ accountId }: { accountId: string }) {
   const [bal, reloadBal] = useApi(() => api.balances(accountId).then((r) => r.data), [accountId])
   const [pos, reloadPos] = useApi(() => Promise.all([api.positions(accountId), api.markets()]).then(([p, m]) => {
     const byId = new Map<string, Market>(m.data.map((x) => [x.market_id, x]))
-    return p.data.map((x): Row => ({ ...x, replay: byId.get(x.market_id)?.is_historical_replay ?? false }))
+    return p.data.map((x): Row => ({ ...x, replay: byId.get(x.market_id)?.is_historical_replay ?? false, market: byId.get(x.market_id) }))
   }), [accountId])
   const reload = () => { reloadBal(); reloadPos() }
   const s = useMemo(() => (pos.status === 'ok' ? summarize(pos.data) : null), [pos])
@@ -87,11 +88,11 @@ function Connected({ accountId }: { accountId: string }) {
       )}
 
       <section className="msec" aria-labelledby="pos-h">
-        <h2 id="pos-h" className="msec-h">Positions</h2>
+        <h2 id="pos-h" className="msec-h">Your positions</h2>
         {pos.status === 'loading' && <SkeletonList n={2} h={88} />}
         {pos.status === 'error' && <ErrorState error={pos.error} onRetry={reloadPos} />}
         {pos.status === 'ok' && (pos.data.length === 0
-          ? <div className="state"><h2>No positions yet</h2><p>Make a call on an open market to see it here.</p><Link to="/app/markets?f=open" className="btn btn-quiet" style={{ marginTop: 16 }}>Open markets</Link></div>
+          ? <div className="state"><h2>No positions yet</h2><p>Take a position on an open market to see it here.</p><Link to="/app/markets?f=open" className="btn btn-quiet" style={{ marginTop: 16 }}>Open markets</Link></div>
           : <div className="plist">{pos.data.map((p) => <PositionRow key={p.market_id} p={p} accountId={accountId} onChange={reload} />)}</div>)}
       </section>
 
@@ -155,8 +156,13 @@ function PositionRow({ p, accountId, onChange }: { p: Row; accountId: string; on
         <div><dt>Received</dt><dd className="mono">{formatUnits(p.claimed_total, USDC_DECIMALS)}</dd></div>
         {p.claimable !== '0' && <div><dt>Claimable</dt><dd className="mono ok">{formatUnits(p.claimable, USDC_DECIMALS)}</dd></div>}
       </dl>
+      {p.market && !p.replay && (() => {
+        const i = p.stakes.findIndex((s) => s !== '0')
+        return i >= 0 ? <ShareCallButton className="btn btn-quiet" m={p.market} choice={p.market.choices[i] ?? `Outcome ${i + 1}`}
+          stake={formatUnits(p.stakes[i], USDC_DECIMALS, 6)} confirmedAt={new Date().toISOString()} txRef={null} account={accountId} /> : null
+      })()}
       {p.claim_state === 'claimable' && (
-        <button className="btn btn-primary" onClick={claim} disabled={!!busy}>{busy ? 'Waiting for wallet…' : 'Claim'}</button>
+        <button className="btn btn-primary" onClick={claim} disabled={!!busy}>{busy ? 'Waiting for wallet…' : 'Claim payout'}</button>
       )}
       {msg && (
         <p className={`fine${msg.err ? ' err' : ''}`} role="status" style={{ gridColumn: '1 / -1' }}>

@@ -37,7 +37,7 @@ function Card({ m, i }: { m: Market; i: number }) {
         <strong>{open ? m.choices.join(' / ') : m.winning_choice ?? '—'}</strong>
       </div>
       <div className="fcard-row fcard-pool">
-        <span>Pooled</span><strong className="mono">{formatUnits(sumUnits(m.totals), USDC_DECIMALS)} USDC</strong>
+        <span>Total staked</span><strong className="mono">{formatUnits(sumUnits(m.totals), USDC_DECIMALS)} test-USDC</strong>
       </div>
       {art && <img className="fcard-art" src={art.src} alt="" aria-hidden />}
     </Link>

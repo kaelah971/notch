@@ -1,5 +1,6 @@
 .shell-main {
   min-height: 100%;
+  min-width: 0;
   padding: 24px var(--gutter) calc(var(--tabbar-h) + 32px + env(safe-area-inset-bottom));
   max-width: 1200px; margin: 0 auto;
 }
@@ -16,7 +17,7 @@
 .skip:focus { left: 16px; }
 
 .page-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
-.page-head h1 { font-size: 34px; font-weight: 700; }
+.page-head h1 { font-size: 34px; font-weight: var(--w-title); }
 .page-head p { color: var(--text-2); margin-top: 4px; }
 @media (prefers-reduced-motion: reduce) { .shell-main { transition: none; } }
 .shell-wallet { position: fixed; z-index: 30; top: 20px; right: 24px; }
@@ -26,3 +27,12 @@
   .shell-wallet { top: calc(12px + env(safe-area-inset-top)); right: 12px; }
   .shell-main { padding-top: calc(64px + env(safe-area-inset-top)); }
 }
+
+/* Mobile: brand link back to the landing page (desktop uses the sidebar logo). */
+.shell-home { display: none; }
+@media (max-width: 899px) {
+  .shell-home { position: fixed; z-index: 30; top: calc(12px + env(safe-area-inset-top)); left: 12px; height: 38px; padding: 0 12px 0 8px; display: inline-flex; align-items: center; gap: 8px; border-radius: 99px; background: rgba(28, 28, 30, .94); font-weight: var(--w-title); font-size: 17px; letter-spacing: -.02em; }
+  .shell-home svg { color: var(--sunburst); }
+}
+.shell-legal { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--hairline); font-size: 12.5px; color: var(--text-3); }
+.shell-legal a { color: var(--text-2); }

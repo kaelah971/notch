@@ -10,8 +10,14 @@
 .mrow:hover { background: var(--surface-2); }
 .mrow:active { transform: scale(.99); }
 .mrow-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.mrow-mode { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); }
-.mrow-title { font-size: 22px; font-weight: 700; }
+.mrow.is-open { box-shadow: inset 0 0 0 1px var(--accent-ring); }
+.mrow.is-replay { background: transparent; box-shadow: inset 0 0 0 1px var(--hairline); }
+.mrow.is-replay .mrow-title { color: var(--text-2); }
+.mrow-split { display: flex; gap: 3px; height: 22px; margin-top: 4px; font-size: 11px; font-weight: var(--w-title); }
+.mrow-split > span { display: flex; align-items: center; padding: 0 8px; min-width: 0; overflow: hidden; border-radius: 6px; background: var(--surface-3); color: var(--text-2); }
+.mrow-split > span.is-won { background: var(--sunburst); color: var(--on-accent); }
+.mrow-mode { font-size: 12px; font-weight: var(--w-strong); text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); }
+.mrow-title { font-size: 22px; font-weight: var(--w-title); }
 .mrow-q { color: var(--text-2); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .mrow-foot { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; font-size: 13px; color: var(--text-2); flex-wrap: wrap; }
 .mrow-foot strong { color: var(--text); }
@@ -19,10 +25,15 @@
 .pool { display: flex; flex-direction: column; gap: 10px; }
 .pool-head { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-2); }
 .pool-row { display: grid; grid-template-columns: minmax(80px, 140px) 1fr auto; align-items: center; gap: 12px; font-size: 14px; }
-.pool-choice { display: flex; align-items: center; gap: 8px; font-weight: 600; }
-.pool-win { font-size: 11px; font-weight: 700; color: var(--on-accent); background: var(--sunburst); padding: 2px 8px; border-radius: 99px; }
+.pool-choice { display: flex; align-items: center; gap: 8px; font-weight: var(--w-strong); }
+.pool-win { font-size: 11px; font-weight: var(--w-title); color: var(--on-accent); background: var(--sunburst); padding: 2px 8px; border-radius: 99px; }
 .pool-bar { height: 8px; border-radius: 99px; background: var(--surface-3); overflow: hidden; }
 .pool-bar > span { display: block; height: 100%; background: var(--text-3); border-radius: inherit; }
 .pool-row.is-won .pool-bar > span { background: var(--sunburst); }
 .pool-amt { color: var(--text-2); }
 .pool-empty { font-size: 13px; color: var(--text-3); }
+
+.mrow-wrap { position: relative; }
+.mrow-wrap .mrow-top { padding-right: 40px; }
+.share-icon { position: absolute; top: 14px; right: 14px; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: var(--surface-3); color: var(--text-2); }
+.share-icon:hover { color: var(--text); }

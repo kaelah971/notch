@@ -1,6 +1,7 @@
 import { Link, NavLink } from 'react-router-dom'
 import { NotchMark } from '../components/icons'
 import { Orbit } from './Orbit'
+import { Footer } from '../components/Footer'
 import { FeaturedMarkets } from './FeaturedMarkets'
 import { collectibles } from './collectibles'
 import { useWallet } from '../wallet/WalletProvider'
@@ -33,9 +34,7 @@ export function Landing() {
 
       <FeaturedMarkets />
 
-      <footer className="lfoot">
-        <span>Notch runs on NEAR Testnet. Test assets have no value.</span>
-      </footer>
+      <Footer />
     </div>
   )
 }

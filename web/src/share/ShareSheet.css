@@ -1,0 +1,12 @@
+.share { border: 0; padding: 0; background: transparent; max-width: min(640px, calc(100vw - 24px)); width: 100%; color: var(--text); }
+.share::backdrop { background: rgba(0, 0, 0, .7); }
+.share-in { background: var(--surface-2); border-radius: 28px; padding: 20px; display: grid; gap: 14px; }
+.share-head { display: flex; justify-content: space-between; align-items: center; }
+.share-head h2 { font-size: 20px; }
+.share-x { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: var(--surface-3); }
+.share-img { width: 100%; aspect-ratio: 1200 / 630; border-radius: 16px; display: block; }
+.share-opt { display: flex; gap: 10px; align-items: center; font-size: 14px; color: var(--text-2); }
+.share-opt input { accent-color: #fceb53; width: 18px; height: 18px; }
+.share-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.share-grid .btn { height: 40px; padding: 0 16px; font-size: 14px; }
+@media (max-width: 520px) { .share { margin: auto auto 0; max-width: 100vw; } .share-in { border-radius: 28px 28px 0 0; padding-bottom: calc(20px + env(safe-area-inset-bottom)); } }

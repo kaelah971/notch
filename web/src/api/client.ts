@@ -1,6 +1,6 @@
 import type {
   ApiErrorBody, Brief, EntryIntent, Envelope, FundingInstructions, FundingQuote, FundingTokens, Market, MarketDetail, MarketEvidence,
-  Position, QuoteRequest, Readiness, Trend, WalletBalances,
+  PoolSnapshot, Position, QuoteRequest, Readiness, Trend, WalletBalances,
 } from './types'
 
 const BASE = ((import.meta.env.VITE_API_BASE as string | undefined) ?? '').replace(/\/$/, '')
@@ -44,6 +44,7 @@ export const api = {
   readiness: (accountId: string) => request<Readiness>(`/api/funding/readiness?account_id=${enc(accountId)}`),
   entryIntent: (id: string, body: { account_id: string; side: number | string; stake: string }) =>
     request<EntryIntent>(`/api/markets/${enc(id)}/entry-intent`, { method: 'POST', body: JSON.stringify(body) }),
+  marketHistory: (id: string) => request<PoolSnapshot[], { count: number; source: string; recording: boolean }>(`/api/markets/${enc(id)}/history`),
   balances: (accountId: string) => request<WalletBalances>(`/api/wallets/${enc(accountId)}/balances`),
   positions: (accountId: string) => request<Position[]>(`/api/wallets/${enc(accountId)}/positions`),
   fundingTokens: () => request<FundingTokens>('/api/funding/tokens'),

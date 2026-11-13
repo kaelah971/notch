@@ -8,11 +8,15 @@ import { Landing } from './landing/Landing'
 import { Markets } from './pages/Markets'
 import { MarketDetail } from './pages/MarketDetail'
 import { Radar } from './pages/Radar'
-import { Leaderboard, More, Profile, Settings } from './pages/Simple'
+import { More, Profile, Settings } from './pages/Simple'
+import { SignalsHub } from './signals/SignalsHub'
+import { Predictor } from './signals/Predictor'
 import { Portfolio } from './pages/Portfolio'
+import { HowItWorks } from './pages/HowItWorks'
 
 const router = createBrowserRouter([
   { path: '/', element: <Landing /> },
+  { path: '/how-it-works', element: <HowItWorks /> },
   {
     path: '/app',
     element: <AppShell />,
@@ -23,7 +27,8 @@ const router = createBrowserRouter([
       { path: 'battles', element: <Markets battlesOnly /> },
       { path: 'radar', element: <Radar /> },
       { path: 'portfolio', element: <Portfolio /> },
-      { path: 'leaderboard', element: <Leaderboard /> },
+      { path: 'leaderboard', element: <SignalsHub /> },
+      { path: 'p/:accountId', element: <Predictor /> },
       { path: 'profile', element: <Profile /> },
       { path: 'settings', element: <Settings /> },
       { path: 'more', element: <More /> },
