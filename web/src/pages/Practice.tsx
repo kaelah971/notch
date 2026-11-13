@@ -8,6 +8,13 @@ import { marketCategory, marketTitle, StatusBadge } from '../components/market'
 import { ErrorState, SkeletonList } from '../components/States'
 import { PREDICTION_STATUS_HELP, PREDICTION_STATUS_LABEL, predictionBadgeClass } from '../api/predictions'
 import { SharePracticeButton } from '../share/ShareButtons'
+import { NVIDIA_MOMENTUM_DATASET } from '../practice/fixtures/nvidia-momentum-v1'
+import {
+  DEFAULT_MOMENTUM_THRESHOLD_BPS,
+  MOMENTUM_THRESHOLDS_BPS,
+  runBacktest,
+  type ReplayDecision,
+} from '../practice/backtest'
 import {
   PRACTICE_STORAGE_KEY,
   addPracticePosition,
@@ -84,6 +91,7 @@ export function Practice() {
           <PracticePortfolio ledger={ledger} summary={summary} />
         </>
       )}
+      <PracticeBacktest />
     </>
   )
 }
@@ -221,6 +229,80 @@ function PracticePortfolio({ ledger, summary }: { ledger: PracticeLedger; summar
 
 function PracticeStat({ label, value }: { label: string; value: string }) {
   return <div className="practice-stat"><span>{label}</span><strong>{value}</strong></div>
+}
+
+function formatReplayPercent(value: number | null) {
+  return value == null ? '—' : `${value.toFixed(1)}%`
+}
+
+function formatReplayBps(value: number) {
+  return `${value >= 0 ? '+' : ''}${value.toLocaleString('en-US')} bps`
+}
+
+function formatReplayViews(value: number) {
+  return value.toLocaleString('en-US')
+}
+
+function PracticeBacktest() {
+  const [threshold, setThreshold] = useState(DEFAULT_MOMENTUM_THRESHOLD_BPS)
+  const result = runBacktest(NVIDIA_MOMENTUM_DATASET, { momentum_threshold_bps: threshold })
+  const delta = result.accuracy == null || result.baseline.accuracy == null ? null : result.accuracy - result.baseline.accuracy
+
+  return (
+    <section className="practice-backtest" aria-labelledby="practice-backtest-title">
+      <div className="practice-portfolio-head">
+        <div><p className="eyebrow">Research sandbox</p><h2 id="practice-backtest-title">Historical Replay</h2></div>
+        <span className="practice-replay-label">simulation · no wallet · no chain</span>
+      </div>
+      <p className="practice-backtest-intro">Replay one frozen Wikimedia Pageviews sample with a deliberately simple attention-momentum rule. This is a historical demonstration, not a live market, participant activity, or a promise of predictive performance.</p>
+      <div className="practice-backtest-controls">
+        <label className="practice-backtest-select">
+          <span>Momentum threshold</span>
+          <select value={threshold} onChange={(event) => setThreshold(Number(event.target.value))}>
+            {MOMENTUM_THRESHOLDS_BPS.map((value) => <option key={value} value={value}>{value === 0 ? 'Any non-zero move' : `${value / 100}% or more`}</option>)}
+          </select>
+        </label>
+        <div className="practice-backtest-source"><span>Frozen dataset</span><strong>{NVIDIA_MOMENTUM_DATASET.source.article} · {NVIDIA_MOMENTUM_DATASET.observation_start} → {NVIDIA_MOMENTUM_DATASET.observation_end}</strong></div>
+      </div>
+      <div className="practice-backtest-metrics" aria-label="Historical replay summary">
+        <PracticeStat label="Strategy accuracy" value={formatReplayPercent(result.accuracy)} />
+        <PracticeStat label="Baseline accuracy" value={formatReplayPercent(result.baseline.accuracy)} />
+        <PracticeStat label="Evaluated signals" value={`n=${result.evaluated_signals}`} />
+        <PracticeStat label="Correct / incorrect" value={`${result.correct} / ${result.incorrect}`} />
+      </div>
+      <div className="practice-backtest-compare">
+        <div><span>Strategy</span><strong>{result.accuracy == null ? 'No eligible sample' : `${result.correct} of ${result.evaluated_signals} correct`}</strong><small>{STRATEGY_LABEL} · {result.lookback_days}-day input / {result.forward_days}-day target</small></div>
+        <div><span>Simple baseline</span><strong>{result.baseline.accuracy == null ? 'No eligible sample' : `${result.baseline.correct} of ${result.baseline.evaluated_signals} correct`}</strong><small>{result.baseline.name}</small></div>
+        <div><span>Difference</span><strong>{delta == null ? '—' : `${delta >= 0 ? '+' : ''}${delta.toFixed(1)} pp`}</strong><small>same signal dates only</small></div>
+      </div>
+      <div className="practice-backtest-rule"><strong>How it works:</strong> after each signal date, compare the latest 7-day pageview sum with the prior 7-day sum. Predict UP or DOWN only when momentum clears the selected threshold. Evaluate against the following 7 days. The future target window is never read to create the signal.</div>
+      {(result.no_signal_dates > 0 || result.unavailable_dates > 0) && <p className="practice-backtest-coverage">Coverage: {result.no_signal_dates} dates did not clear the threshold · {result.unavailable_dates} dates were unavailable because required observations were missing. No values are imputed.</p>}
+      {result.decisions.length ? (
+        <div className="practice-replay-list">
+          <div className="practice-replay-list-head"><span>Signal ledger</span><small>each row is one eligible historical signal</small></div>
+          {result.decisions.map((decision) => <ReplayDecisionRow key={decision.signal_date} decision={decision} />)}
+        </div>
+      ) : <div className="practice-backtest-empty"><strong>No eligible signals at this threshold.</strong><p>Lower the threshold to inspect the bounded sample. This result is intentionally reported as an empty sample, not as zero-percent performance.</p></div>}
+      <div className="practice-backtest-provenance"><span>Source: {NVIDIA_MOMENTUM_DATASET.source.provider} · {NVIDIA_MOMENTUM_DATASET.source.project} · {NVIDIA_MOMENTUM_DATASET.source.access} · {NVIDIA_MOMENTUM_DATASET.source.agent}</span><span>Fixture integrity SHA-256: <code className="practice-backtest-hash">{NVIDIA_MOMENTUM_DATASET.content_sha256}</code></span><span>Recorded source bytes: <code className="practice-backtest-hash">{NVIDIA_MOMENTUM_DATASET.retrieval_provenance.source_fixture_sha256}</code></span><span>Replay rows are historical test/demo data and never enter Practice Portfolio, Pulse, Passport, Social Discovery, or rankings.</span></div>
+    </section>
+  )
+}
+
+const STRATEGY_LABEL = '7-day attention momentum'
+
+function ReplayDecisionRow({ decision }: { decision: ReplayDecision }) {
+  return (
+    <details className="practice-replay-row">
+      <summary>
+        <span className="practice-replay-main"><time dateTime={decision.signal_date}>{decision.signal_date}</time><strong className={decision.prediction === 'UP' ? 'practice-replay-up' : 'practice-replay-down'}>{decision.prediction}</strong><span>{formatReplayBps(decision.momentum_bps)}</span></span>
+        <span className={decision.correct ? 'practice-replay-result practice-replay-correct' : 'practice-replay-result practice-replay-incorrect'}>{decision.correct ? 'Correct' : 'Incorrect'}</span>
+      </summary>
+      <div className="practice-replay-detail">
+        <span>Input: {decision.previous_window.start} → {decision.signal_window.end} · {formatReplayViews(decision.previous_window.average_views)} → {formatReplayViews(decision.signal_window.average_views)} avg views</span>
+        <span>Target: {decision.target_window.start} → {decision.target_window.end} · observed outcome <strong>{decision.outcome}</strong> ({formatReplayViews(decision.target_window.average_views)} avg views)</span>
+      </div>
+    </details>
+  )
 }
 
 function PracticePositionRow({ position }: { position: PracticeLedger['positions'][number] }) {
