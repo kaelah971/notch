@@ -185,7 +185,10 @@ class PulseTests(unittest.TestCase):
             self.assertEqual(summary["metrics"]["successful_entries"], 1)
             self.assertEqual(summary["metrics"]["successful_entry_events"], 2)
             self.assertEqual(len(summary["recent_calls"]), 2)
-            self.assertEqual(summary["recent_calls"][0]["tx_hash"], "tx-good")
+            self.assertEqual(summary["participants"][0]["account_id"], "alice.testnet")
+            self.assertEqual(summary["participants"][0]["successful_entries"], 1)
+            self.assertEqual(summary["participants"][0]["successful_entry_events"], 2)
+            self.assertEqual({call["tx_hash"] for call in summary["recent_calls"]}, {"tx-good", "tx-good-2"})
             self.assertEqual(summary["recent_calls"][0]["verification"], "finalized_position_entered_event")
             self.assertEqual(summary["coverage"]["indexed_event_count"], 2)
 

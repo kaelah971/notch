@@ -36,10 +36,13 @@ Supported windows are `24h`, `7d`, `30d`, and `all`. The response contains:
 - `metrics.successful_entries`: unique observed account/market positions (repeated entries in one market count once);
 - `metrics.successful_entry_events`: raw count of accepted `position_entered` events;
 - `hot_markets`: ranked by confirmed indexed volume, then unique successful positions;
+- `participants`: indexed accounts with unique market positions, raw receipt-event count, confirmed volume, and last activity;
 - `recent_calls`: finalized event references with transaction, receipt, block, account, market, outcome, and amount;
 - `coverage`: tracking boundary, cursor, finality source, and limitations.
 
 `refresh=false` reads the durable snapshot without making an RPC scan. If indexing is not configured, the API returns an explicit `not_configured` coverage state and zero metrics rather than a synthetic feed.
+
+Pulse's social layer uses `participants` for Everyone/Following discovery. Account links open the existing public Signals profile. Following is device-local only; no follower counts or server-side social graph are claimed. Passport accuracy and result badges are read separately from public positions and finalized market state. The leaderboard requires at least three finalized Correct/Incorrect market-level predictions per account; Pending, Voided, Unknown, historical demonstrations, and repeated entries in one market do not qualify or improve a rank.
 
 ## Configuration
 

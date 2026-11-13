@@ -39,9 +39,14 @@
 .pulse-value { color: var(--sunburst); font-size: 13px; white-space: nowrap; }
 .pulse-value small { color: var(--text-2); font: inherit; font-size: 10px; }
 .pulse-call-list li { padding: 13px 18px; }
+.pulse-feed-tabs { display: flex; gap: 6px; padding: 0 18px 8px; }
+.pulse-feed-tabs button { padding: 5px 9px; border-radius: 8px; color: var(--text-3); font: 11px var(--font-mono); cursor: pointer; }
+.pulse-feed-tabs button:hover, .pulse-feed-tabs button.is-active { background: var(--accent-tint); color: var(--sunburst); }
+.pulse-feed-note { padding: 0 18px 9px; color: var(--text-3); font-size: 11px; }
 .pulse-call-top, .pulse-call-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .pulse-call-top time { color: var(--text-3); font-size: 11px; white-space: nowrap; }
 .pulse-account, .pulse-tx { display: inline-flex; align-items: center; gap: 4px; color: var(--text-2); font: 12px var(--font-mono); }
+.pulse-account-explorer { margin-left: -4px; }
 .pulse-account:hover, .pulse-tx:hover { color: var(--sunburst); }
 .pulse-call-market { margin: 6px 0 7px; overflow: hidden; color: var(--text); font-size: 14px; font-weight: var(--w-strong); text-overflow: ellipsis; white-space: nowrap; }
 .pulse-call-bottom { color: var(--text-3); font-size: 11px; }
@@ -66,6 +71,7 @@
   .pulse-metric { padding: 12px; }
   .pulse-metric > strong { font-size: 17px; }
   .pulse-panel-head, .pulse-hot-list li, .pulse-call-list li { padding-left: 14px; padding-right: 14px; }
+  .pulse-feed-tabs, .pulse-feed-note { padding-left: 14px; padding-right: 14px; }
   .pulse-call-bottom { align-items: flex-start; flex-direction: column; gap: 4px; }
 }
 @media (max-width: 340px) {

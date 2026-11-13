@@ -1,8 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ChevronRight, Search } from 'lucide-react'
+import { api } from '../api/client'
+import { useApi } from '../api/useApi'
+import { ErrorState, SkeletonList } from '../components/States'
 import { useWallet } from '../wallet/WalletProvider'
 import { getFollowing, isNearAccount } from './follows'
+import { PassportLeaderboard } from './Discovery'
 import './Signals.css'
 
 /**
@@ -15,6 +19,8 @@ export function SignalsHub() {
   const { accountId } = useWallet()
   const [q, setQ] = useState('')
   const following = getFollowing()
+  const [pulseState, reloadPulse] = useApi(() => api.pulse('all', false), [])
+  const [marketsState] = useApi(() => api.markets(), [])
   const valid = isNearAccount(q.trim().toLowerCase())
 
   return (
@@ -45,12 +51,14 @@ export function SignalsHub() {
         </section>
       )}
 
-      <section className="msec" aria-labelledby="lb-h">
-        <div className="msec-hrow"><h2 id="lb-h" className="msec-h">Leaderboard</h2></div>
-        <p className="msec-empty">
-          <strong className="txt">No verified rankings yet.</strong> Rankings need resolved future-outcome markets, an onchain entry index to discover predictors, and opt-in public profiles. Historical demonstrations never count. Forecast passports below each account show the verified sample and accuracy without inventing a rank.
-        </p>
-      </section>
+      {pulseState.status === 'loading' && <SkeletonList n={3} h={72} />}
+      {pulseState.status === 'error' && <ErrorState error={pulseState.error} onRetry={reloadPulse} />}
+      {pulseState.status === 'ok' && marketsState.status === 'ok' && (
+        <PassportLeaderboard participants={pulseState.data.data.participants} markets={marketsState.data.data} coverage={pulseState.data.data.coverage} />
+      )}
+      {pulseState.status === 'ok' && marketsState.status === 'error' && (
+        <section className="msec"><p className="msec-empty">Leaderboard needs the public market catalogue to classify Passport results. Try again when the read-only API is available.</p></section>
+      )}
     </>
   )
 }

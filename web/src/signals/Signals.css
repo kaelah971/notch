@@ -29,3 +29,43 @@
 @media (max-width: 640px) { .call { grid-template-columns: 1fr; } .call-actions { justify-content: flex-start; } .passport-head { display: block; } .passport-head .fine { display: block; margin-top: 8px; } }
 @media (max-width: 390px) { .passport { padding: 14px; } .passport-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .passport-stat { padding: 10px; } }
 @media (max-width: 320px) { .passport-grid { grid-template-columns: 1fr; } }
+
+.discover-section, .leaderboard-section { margin-top: 28px; padding: 18px; background: var(--surface-1); border-radius: var(--radius-lg); box-shadow: inset 0 0 0 1px var(--hairline); }
+.discover-section-head { display: flex; align-items: end; justify-content: space-between; gap: 14px; }
+.discover-section-head h2, .discover-section-head h3 { font-size: 22px; font-weight: var(--w-title); }
+.discover-method { color: var(--text-3); font: 11px var(--font-mono); text-align: right; }
+.discover-intro { margin-top: 6px; color: var(--text-2); font-size: 13px; line-height: 1.45; max-width: 720px; }
+.discover-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+.discover-card { min-width: 0; padding: 15px; background: var(--surface-2); border-radius: var(--radius-md); }
+.discover-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.discover-account { min-width: 0; }
+.discover-account a { display: block; overflow-wrap: anywhere; color: var(--text); font-size: 13px; }
+.discover-account a:hover, .discover-profile-link:hover { color: var(--sunburst); }
+.discover-account span { display: block; margin-top: 4px; color: var(--text-3); font-size: 11px; }
+.discover-follow { flex: 0 0 auto; min-height: 32px; padding: 0 10px; font-size: 12px; }
+.discover-receipt-meta { margin-top: 10px; color: var(--text-2); font: 11px/1.45 var(--font-mono); overflow-wrap: anywhere; }
+.discover-passport { margin-top: 13px; padding-top: 12px; border-top: 1px solid var(--hairline); }
+.discover-passport-label { color: var(--text-3); font: var(--w-label) 10px var(--font-mono); letter-spacing: var(--track-label); text-transform: uppercase; }
+.discover-passport-stats { display: flex; gap: 16px; margin-top: 9px; }
+.discover-passport-stats span { display: flex; flex-direction: column; min-width: 0; }
+.discover-passport-stats strong { font-size: 18px; line-height: 1.1; }
+.discover-passport-stats small { margin-top: 3px; color: var(--text-3); font-size: 11px; }
+.discover-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.discover-badges .badge { height: 22px; padding: 0 7px; font-size: 10px; letter-spacing: 0; text-transform: none; }
+.discover-profile-link { display: inline-block; margin-top: 13px; font-size: 13px; }
+.discover-empty { margin-top: 16px; padding: 18px 0 2px; border-top: 1px solid var(--hairline); }
+.discover-empty strong { font-weight: var(--w-strong); }
+.discover-empty p { margin-top: 4px; color: var(--text-2); font-size: 13px; line-height: 1.45; }
+.leaderboard-section { margin-top: 24px; }
+.leaderboard-list { list-style: none; margin: 16px 0 0; padding: 0; }
+.leaderboard-row { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 12px 0; border-top: 1px solid var(--hairline); }
+.leaderboard-rank { color: var(--text-3); }
+.leaderboard-account { min-width: 0; }
+.leaderboard-account > a { display: block; overflow-wrap: anywhere; color: var(--text); font-size: 13px; }
+.leaderboard-account > a:hover { color: var(--sunburst); }
+.leaderboard-score { display: flex; flex-direction: column; align-items: flex-end; }
+.leaderboard-score strong { color: var(--sunburst); font: var(--w-strong) 18px var(--font-mono); }
+.leaderboard-score small { margin-top: 3px; color: var(--text-3); font: 11px var(--font-mono); }
+@media (max-width: 680px) { .discover-grid { grid-template-columns: 1fr; } }
+@media (max-width: 390px) { .discover-section, .leaderboard-section { padding: 14px; } .discover-section-head { align-items: flex-start; flex-direction: column; } .discover-method { text-align: left; } }
+@media (max-width: 320px) { .discover-passport-stats { gap: 11px; } .discover-passport-stats strong { font-size: 16px; } }

@@ -196,6 +196,9 @@ contract. Failed transactions, rejected entries, balances, charts, popularity,
 and AI output are excluded. `confirmed_volume_base_units` and market volumes are
 USDC base-unit strings; `recent_calls` includes the transaction, receipt, block,
 account, market, outcome, amount, and finalized-event verification label.
+`participants` contains only accounts observed in the selected indexed window;
+account links may open the public Signals profile. Following is device-local and
+must not be presented as a follower count or server-side social graph.
 `successful_entries` is the unique observed account/market position count, so
 repeated entries in one market count once. `successful_entry_events` is the raw
 accepted-event count. Volume remains the confirmed sum of accepted events.

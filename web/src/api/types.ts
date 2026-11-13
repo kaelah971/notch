@@ -132,6 +132,13 @@ export interface PulseHotMarket {
   forecaster_count: number
   last_activity_at_utc: string
 }
+export interface PulseParticipant {
+  account_id: string
+  confirmed_volume_base_units: string
+  successful_entries: number
+  successful_entry_events: number
+  last_activity_at_utc: string
+}
 export interface PulseData {
   coverage: PulseCoverage
   as_of_utc: string | null
@@ -145,6 +152,7 @@ export interface PulseData {
     successful_entry_events: number
   }
   hot_markets: PulseHotMarket[]
+  participants: PulseParticipant[]
   recent_calls: PulseCall[]
 }
 

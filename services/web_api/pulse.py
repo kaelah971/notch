@@ -350,6 +350,7 @@ class PulseStore:
         accounts: set[str] = set()
         market_positions: set[tuple[str, str]] = set()
         markets: dict[str, dict[str, Any]] = {}
+        participants: dict[str, dict[str, Any]] = {}
         total_amount = 0
         for row in rows:
             amount = int(row["amount_base_units"])
@@ -358,6 +359,14 @@ class PulseStore:
             market_id = str(row["market_id"])
             accounts.add(account_id)
             market_positions.add((account_id, market_id))
+            participant = participants.setdefault(
+                account_id,
+                {"account_id": account_id, "amount": 0, "count": 0, "markets": set(), "last": 0},
+            )
+            participant["amount"] += amount
+            participant["count"] += 1
+            participant["markets"].add(market_id)
+            participant["last"] = max(participant["last"], int(row["block_timestamp_ns"]))
             item = markets.setdefault(
                 market_id,
                 {"market_id": market_id, "amount": 0, "count": 0, "positions": set(), "accounts": set(), "last": 0},
@@ -381,6 +390,19 @@ class PulseStore:
                 markets.values(),
                 key=lambda value: (-value["amount"], -value["count"], value["market_id"]),
             )[:10]
+        ]
+        participant_rows = [
+            {
+                "account_id": item["account_id"],
+                "confirmed_volume_base_units": str(item["amount"]),
+                "successful_entries": len(item["markets"]),
+                "successful_entry_events": item["count"],
+                "last_activity_at_utc": _iso_from_ns(item["last"]),
+            }
+            for item in sorted(
+                participants.values(),
+                key=lambda value: (-len(value["markets"]), -value["amount"], -value["last"], value["account_id"]),
+            )[:25]
         ]
         recent_calls = [
             {
@@ -416,6 +438,7 @@ class PulseStore:
                 "successful_entry_events": len(rows),
             },
             "hot_markets": hot_markets,
+            "participants": participant_rows,
             "recent_calls": recent_calls,
         }
 
@@ -757,6 +780,7 @@ def empty_pulse_payload(*, window: str = "7d", reason: str = "not_configured") -
                 "successful_entry_events": 0,
             },
             "hot_markets": [],
+            "participants": [],
             "recent_calls": [],
         },
         "meta": {"network": "testnet", "indexer": "not_configured"},

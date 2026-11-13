@@ -1,11 +1,14 @@
 // Follows are stored on this device only (no social backend exists yet). Nothing is published.
 const KEY = 'notch.signals.following'
+export const FOLLOWING_CHANGED = 'notch-following-changed'
 
 export function getFollowing(): string[] {
   try { const v = JSON.parse(localStorage.getItem(KEY) ?? '[]'); return Array.isArray(v) ? v.filter((x) => typeof x === 'string') : [] } catch { return [] }
 }
 export function setFollowing(ids: string[]) {
-  try { localStorage.setItem(KEY, JSON.stringify([...new Set(ids)].slice(0, 100))) } catch { /* storage unavailable */ }
+  const next = [...new Set(ids)].slice(0, 100)
+  try { localStorage.setItem(KEY, JSON.stringify(next)) } catch { /* storage unavailable */ }
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(FOLLOWING_CHANGED))
 }
 export function toggleFollow(id: string): boolean {
   const cur = getFollowing()
