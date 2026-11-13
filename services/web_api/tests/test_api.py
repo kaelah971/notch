@@ -366,6 +366,15 @@ class APITests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(payload["data"]["title"], "Nvidia")
 
+    def test_pulse_reports_unconfigured_coverage_explicitly(self):
+        status, payload = self.call("GET", "/api/pulse?window=7d&refresh=false")
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["data"]["coverage"]["status"], "not_configured")
+        self.assertEqual(payload["data"]["metrics"]["successful_entries"], 0)
+        status, payload = self.call("GET", "/api/pulse?window=2h")
+        self.assertEqual(status, 400)
+        self.assertEqual(payload["error"]["code"], "INVALID_WINDOW")
+
     def test_trend_brief(self):
         status, payload = self.call("GET", "/api/trends/cand_test_nvidia/brief")
         self.assertEqual(status, 200)

@@ -5,10 +5,12 @@ import { api } from '../api/client'
 import { useApi } from '../api/useApi'
 import { relativeTo } from '../api/format'
 import { ErrorState, SkeletonList } from '../components/States'
+import { Pulse } from '../pulse/Pulse'
 import './Radar.css'
 
 export function Radar() {
   const [state, reload] = useApi(() => api.trends(), [])
+  const [marketsState] = useApi(() => api.markets(), [])
   const [open, setOpen] = useState<string | null>(null)
   /** The en.wikipedia article behind a trend, from its own source URL. Null when the trend has none. */
   const articleOf = (urls: string[]) => {
@@ -53,6 +55,7 @@ export function Radar() {
             ))}
           </ol>
         ))}
+      <Pulse markets={marketsState.status === 'ok' ? marketsState.data.data : []} />
     </>
   )
 }

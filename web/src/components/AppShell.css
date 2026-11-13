@@ -17,6 +17,7 @@
 .skip:focus { left: 16px; }
 
 .page-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+.page-head > div { min-width: 0; }
 .page-head h1 { font-size: 34px; font-weight: var(--w-title); }
 .page-head p { color: var(--text-2); margin-top: 4px; }
 @media (prefers-reduced-motion: reduce) { .shell-main { transition: none; } }

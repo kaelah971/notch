@@ -92,6 +92,62 @@ export interface Trend {
   settlement_coverage?: { window_start: string; window_end: string; latest_views: number; latest_date: string }
 }
 
+export type PulseWindow = '24h' | '7d' | '30d' | 'all'
+export interface PulseCoverage {
+  available: boolean
+  status: 'not_started' | 'tracking' | 'degraded' | 'not_configured' | string
+  source: string
+  scope: string
+  historical_backfill: boolean
+  started_at_utc: string | null
+  start_block_height: number | null
+  last_scanned_block_height: number | null
+  last_scanned_at_utc: string | null
+  latest_final_block_height: number | null
+  latest_final_at_utc: string | null
+  indexed_event_count: number
+  last_error: string | null
+  limitations: string[]
+}
+export interface PulseCall {
+  event_id: string
+  tx_hash: string
+  receipt_id: string
+  log_index: number
+  market_id: string
+  account_id: string
+  outcome: number
+  amount_base_units: string
+  block_height: number
+  block_hash: string
+  observed_at_utc: string
+  source: string
+  verification: string
+}
+export interface PulseHotMarket {
+  market_id: string
+  confirmed_volume_base_units: string
+  successful_entries: number
+  successful_entry_events: number
+  forecaster_count: number
+  last_activity_at_utc: string
+}
+export interface PulseData {
+  coverage: PulseCoverage
+  as_of_utc: string | null
+  window: PulseWindow
+  currency: { symbol: string; decimals: number; unit: string }
+  metrics: {
+    forecaster_count: number
+    new_forecaster_count: number
+    confirmed_volume_base_units: string
+    successful_entries: number
+    successful_entry_events: number
+  }
+  hot_markets: PulseHotMarket[]
+  recent_calls: PulseCall[]
+}
+
 export interface EntryIntent {
   network: string
   signer: string

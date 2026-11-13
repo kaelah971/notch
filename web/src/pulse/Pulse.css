@@ -1,0 +1,75 @@
+.pulse { margin-top: 42px; }
+.pulse-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+.pulse-head > div:first-child, .pulse-coverage > div, .pulse-panel-head > div { min-width: 0; }
+.pulse-head h2 { font-size: 28px; font-weight: var(--w-title); letter-spacing: var(--track-title); }
+.pulse-head p:not(.eyebrow) { margin-top: 5px; color: var(--text-2); max-width: 620px; overflow-wrap: anywhere; }
+.eyebrow { margin-bottom: 5px; color: var(--sunburst); font: 500 11px/1 var(--font-mono); letter-spacing: var(--track-label); text-transform: uppercase; }
+.pulse-controls { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.pulse-window select, .pulse-refresh { min-height: 36px; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface-2); color: var(--text); font: inherit; }
+.pulse-window select { padding: 0 30px 0 11px; }
+.pulse-refresh { display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; color: var(--text-2); cursor: pointer; }
+.pulse-refresh:hover { border-color: var(--accent-ring); color: var(--text); }
+.pulse-coverage { display: flex; align-items: flex-start; gap: 12px; padding: 13px 15px; border: 1px solid var(--hairline); border-radius: var(--radius-md); background: var(--surface-1); }
+.pulse-coverage p { margin-top: 3px; color: var(--text-2); font-size: 13px; line-height: 1.45; }
+.pulse-coverage strong { font-weight: var(--w-strong); }
+.pulse-coverage-tracking { border-color: rgba(74, 222, 128, .25); }
+.pulse-coverage-degraded { border-color: rgba(244, 159, 4, .35); }
+.pulse-coverage-not_configured, .pulse-coverage-not_started { border-color: rgba(255, 255, 255, .12); }
+.pulse-signal { width: 8px; height: 8px; flex: 0 0 8px; margin-top: 5px; border-radius: 50%; background: var(--text-3); }
+.pulse-coverage-tracking .pulse-signal { background: var(--chart-up); box-shadow: 0 0 0 4px rgba(74, 222, 128, .1); }
+.pulse-coverage-degraded .pulse-signal { background: var(--warn); }
+.pulse-error { color: var(--warn) !important; overflow-wrap: anywhere; }
+.pulse-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.pulse-metric { min-width: 0; padding: 14px 15px; border-radius: var(--radius-md); background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--hairline); }
+.pulse-metric > span, .pulse-metric > small { display: block; color: var(--text-3); font-size: 12px; }
+.pulse-metric > strong { display: block; margin: 8px 0 4px; color: var(--text); font-size: 20px; font-weight: var(--w-strong); overflow-wrap: anywhere; }
+.pulse-metric > small { color: var(--text-2); }
+.pulse-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; margin-top: 12px; }
+.pulse-panel { min-width: 0; overflow: hidden; border-radius: var(--radius-lg); background: var(--surface-1); box-shadow: inset 0 0 0 1px var(--hairline); }
+.pulse-panel-head { display: flex; align-items: end; justify-content: space-between; gap: 10px; padding: 18px 18px 12px; }
+.pulse-panel-head h3 { font-size: 18px; font-weight: var(--w-title); }
+.pulse-panel-note { color: var(--text-3); font: 11px var(--font-mono); white-space: nowrap; }
+.pulse-hot-list, .pulse-call-list { list-style: none; margin: 0; padding: 0; }
+.pulse-hot-list li, .pulse-call-list li { border-top: 1px solid var(--hairline); }
+.pulse-hot-list li { display: grid; grid-template-columns: 25px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 13px 18px; }
+.pulse-rank { color: var(--text-3); }
+.pulse-market-copy { min-width: 0; }
+.pulse-market-copy strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: var(--w-strong); }
+.pulse-subline { display: block; margin-top: 3px; overflow: hidden; color: var(--text-3); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.pulse-value { color: var(--sunburst); font-size: 13px; white-space: nowrap; }
+.pulse-value small { color: var(--text-2); font: inherit; font-size: 10px; }
+.pulse-call-list li { padding: 13px 18px; }
+.pulse-call-top, .pulse-call-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pulse-call-top time { color: var(--text-3); font-size: 11px; white-space: nowrap; }
+.pulse-account, .pulse-tx { display: inline-flex; align-items: center; gap: 4px; color: var(--text-2); font: 12px var(--font-mono); }
+.pulse-account:hover, .pulse-tx:hover { color: var(--sunburst); }
+.pulse-call-market { margin: 6px 0 7px; overflow: hidden; color: var(--text); font-size: 14px; font-weight: var(--w-strong); text-overflow: ellipsis; white-space: nowrap; }
+.pulse-call-bottom { color: var(--text-3); font-size: 11px; }
+.pulse-call-bottom .mono { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pulse-tx { flex: 0 0 auto; font-size: 11px; }
+.pulse-empty { padding: 24px 18px 27px; border-top: 1px solid var(--hairline); }
+.pulse-empty strong { font-weight: var(--w-strong); }
+.pulse-empty p { margin-top: 4px; color: var(--text-2); font-size: 13px; line-height: 1.45; }
+.pulse-footnote { margin-top: 12px; color: var(--text-3); font-size: 12px; line-height: 1.5; }
+.pulse-footnote code { color: var(--text-2); font-family: var(--font-mono); font-size: .92em; }
+
+@media (max-width: 760px) {
+  .pulse-head { align-items: flex-start; flex-direction: column; }
+  .pulse-controls { width: 100%; }
+  .pulse-window { flex: 1; }
+  .pulse-window select { width: 100%; }
+  .pulse-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .pulse { margin-top: 34px; }
+  .pulse-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pulse-metric { padding: 12px; }
+  .pulse-metric > strong { font-size: 17px; }
+  .pulse-panel-head, .pulse-hot-list li, .pulse-call-list li { padding-left: 14px; padding-right: 14px; }
+  .pulse-call-bottom { align-items: flex-start; flex-direction: column; gap: 4px; }
+}
+@media (max-width: 340px) {
+  .pulse-metrics { grid-template-columns: 1fr; }
+  .pulse-refresh span { display: none; }
+  .pulse-refresh { padding: 0 10px; }
+}

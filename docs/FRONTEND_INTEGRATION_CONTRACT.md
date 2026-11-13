@@ -184,6 +184,81 @@ Returns a cached S5 brief or deterministic source-only fallback.
 }
 ```
 
+### `GET /api/pulse?window=7d&refresh=true`
+
+Returns a read-only analytics snapshot built from finalized NEAR RPC receipt
+logs. Supported windows are `24h`, `7d`, `30d`, and `all` (the indexed period
+since the cursor was initialized). `refresh=false` reads the durable snapshot
+without scanning new blocks.
+
+Pulse counts only successful `position_entered` events executed by the market
+contract. Failed transactions, rejected entries, balances, charts, popularity,
+and AI output are excluded. `confirmed_volume_base_units` and market volumes are
+USDC base-unit strings; `recent_calls` includes the transaction, receipt, block,
+account, market, outcome, amount, and finalized-event verification label.
+`successful_entries` is the unique observed account/market position count, so
+repeated entries in one market count once. `successful_entry_events` is the raw
+accepted-event count. Volume remains the confirmed sum of accepted events.
+
+The `coverage` object is mandatory UI context. A first run starts at the current
+finalized block unless `PULSE_START_BLOCK` is explicitly configured; no historical
+backfill is implied. `tracking`, `degraded`, `not_started`, and `not_configured`
+are distinct states. An empty feed means no indexed events in the selected window,
+not proof that no one participated.
+
+```json
+{
+  "data": {
+    "coverage": {
+      "available": true,
+      "status": "tracking",
+      "source": "NEAR finalized RPC receipts",
+      "scope": "accepted position_entered events observed after tracking began",
+      "historical_backfill": false,
+      "started_at_utc": "2026-11-13T09:39:17.091Z",
+      "start_block_height": 277492802,
+      "last_scanned_block_height": 277492802,
+      "indexed_event_count": 1,
+      "limitations": ["Coverage begins when this indexer's cursor is initialized.", "Only successful, finalized market position_entered events count."]
+    },
+    "as_of_utc": "2026-11-13T18:02:33.387Z",
+    "window": "all",
+    "currency": {"symbol": "USDC", "decimals": 6, "unit": "base_units"},
+    "metrics": {
+      "forecaster_count": 1,
+      "new_forecaster_count": 1,
+      "confirmed_volume_base_units": "1000000",
+      "successful_entries": 1,
+      "successful_entry_events": 1
+    },
+    "hot_markets": [{
+      "market_id": "s3b-future-btc-20261116-20261123",
+      "confirmed_volume_base_units": "1000000",
+      "successful_entries": 1,
+      "successful_entry_events": 1,
+      "forecaster_count": 1,
+      "last_activity_at_utc": "2026-11-13T09:39:18.334Z"
+    }],
+    "recent_calls": [{
+      "event_id": "FXoTXwF1ueMF2NFpX5EVTcd72vwbFVBHhRybMTaPC2gD:91JwsuZMLjVeaN2Giesop8iejoPnHKKECgcvvhLmx5Q2:0",
+      "tx_hash": "FXoTXwF1ueMF2NFpX5EVTcd72vwbFVBHhRybMTaPC2gD",
+      "receipt_id": "91JwsuZMLjVeaN2Giesop8iejoPnHKKECgcvvhLmx5Q2",
+      "log_index": 0,
+      "market_id": "s3b-future-btc-20261116-20261123",
+      "account_id": "kaelah.testnet",
+      "outcome": 0,
+      "amount_base_units": "1000000",
+      "block_height": 277492804,
+      "block_hash": "BY2gYiZv7q3noWHSmPMdZf8K9vdP14ewJYBVASFH7CKF",
+      "observed_at_utc": "2026-11-13T09:39:18.334Z",
+      "source": "near_final_rpc",
+      "verification": "finalized_position_entered_event"
+    }]
+  },
+  "meta": {"indexer": "local_final_rpc_cursor"}
+}
+```
+
 ### `GET /api/markets`
 
 Reads actual markets from `market.notch-dev.testnet` via `list_markets`.

@@ -19,6 +19,7 @@ from services.web_api.app import WebAPI
 from services.web_api.chain import MarketChainReader
 from services.web_api.config import WebAPIConfig
 from services.web_api.repositories import OracleRepository, RadarRepository
+from services.web_api.pulse import PulseIndexer, PulseStore
 from services.web_api.server import serve
 
 
@@ -67,6 +68,14 @@ def build_default_app(config: WebAPIConfig | None = None) -> WebAPI:
     chain = MarketChainReader(config=intents, reader=chain_reader)
     radar = RadarRepository(config.radar_db)
     oracle = OracleRepository(config.oracle_db_paths)
+    pulse = PulseIndexer(
+        rpc=chain_reader,
+        store=PulseStore(config.pulse_db_path),
+        market_contract=config.market_contract,
+        collateral_token=config.collateral_token,
+        start_block=config.pulse_start_block,
+        max_blocks=config.pulse_max_blocks_per_request,
+    )
     return WebAPI(
         config=config,
         chain=chain,
@@ -74,6 +83,7 @@ def build_default_app(config: WebAPIConfig | None = None) -> WebAPI:
         oracle=oracle,
         brief_service=brief_service,
         funding_service=funding_service,
+        pulse=pulse,
     )
 
 

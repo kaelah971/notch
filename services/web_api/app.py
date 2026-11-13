@@ -25,6 +25,7 @@ from services.oracle.evidence import verify_evidence
 from services.trend_radar.models import iso_utc, now_utc, parse_iso
 from services.web_api.chain import ChainReadError, MarketChainReader
 from services.web_api.config import WebAPIConfig
+from services.web_api.pulse import WINDOW_SECONDS, PulseIndexer, empty_pulse_payload
 from services.web_api.predictions import classify_prediction
 from services.web_api.repositories import OracleRepository, RadarRepository, RepositoryError
 from services.web_api.schemas import (
@@ -69,6 +70,7 @@ class WebAPI:
         brief_service: BriefService,
         funding_service: IntentsFundingService,
         rate_limiter: RateLimiter | None = None,
+        pulse: PulseIndexer | None = None,
     ) -> None:
         self.config = config
         self.chain = chain
@@ -77,8 +79,11 @@ class WebAPI:
         self.brief_service = brief_service
         self.funding_service = funding_service
         self.rate_limiter = rate_limiter or RateLimiter()
+        self.pulse = pulse
 
     def close(self) -> None:
+        if self.pulse is not None:
+            self.pulse.close()
         self.brief_service.store.close()
         self.funding_service.store.close()
 
@@ -128,6 +133,8 @@ class WebAPI:
             return 200, {"data": self.brief_service.status()}
         if parts == ["api", "trends"]:
             return 200, self._trends()
+        if parts == ["api", "pulse"]:
+            return 200, self._pulse(query)
         if len(parts) == 3 and parts[:2] == ["api", "trends"]:
             return 200, {"data": self._trend_detail(parts[2])}
         if len(parts) == 4 and parts[:2] == ["api", "trends"] and parts[3] == "brief":
@@ -207,6 +214,19 @@ class WebAPI:
             "provider": "tidepool-testnet",
             "data_dir": self.funding_service.config.data_dir,
         }
+        if self.pulse is None:
+            checks["pulse"] = {"ok": False, "status": "not_configured"}
+        else:
+            coverage = self.pulse.store.coverage()
+            checks["pulse"] = {
+                "ok": coverage["status"] != "degraded",
+                "status": coverage["status"],
+                "path": self.pulse.store.path,
+                "indexed_event_count": coverage["indexed_event_count"],
+                "last_scanned_block_height": coverage["last_scanned_block_height"],
+            }
+            if coverage["status"] == "degraded":
+                degraded = True
         if not all(
             [
                 checks["radar_db"]["ok"],
@@ -249,6 +269,28 @@ class WebAPI:
                 "ai_call_triggered": False,
             },
         }
+
+    # ------------------------------------------------------------------
+    # Pulse
+    # ------------------------------------------------------------------
+    def _pulse(self, query: dict[str, str]) -> dict[str, Any]:
+        window = query.get("window", "7d")
+        if window not in WINDOW_SECONDS:
+            raise ApiError(
+                "INVALID_WINDOW",
+                "window must be one of 24h, 7d, 30d, or all",
+                status=400,
+            )
+        if self.pulse is None:
+            return empty_pulse_payload(window=window)
+        refresh = query.get("refresh", "false").lower() not in {"0", "false", "no"}
+        max_blocks: int | None = None
+        if query.get("max_blocks"):
+            try:
+                max_blocks = max(1, min(int(query["max_blocks"]), self.config.pulse_max_blocks_per_request))
+            except ValueError as exc:
+                raise ApiError("INVALID_MAX_BLOCKS", "max_blocks must be an integer", status=400) from exc
+        return self.pulse.payload(window=window, refresh=refresh, max_blocks=max_blocks)
 
     # ------------------------------------------------------------------
     # Markets

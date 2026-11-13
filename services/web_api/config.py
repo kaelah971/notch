@@ -37,6 +37,9 @@ class WebAPIConfig:
     oracle_db_paths: tuple[str, ...] = DEFAULT_ORACLE_DBS
     network: str = "testnet"
     request_timeout_seconds: float = 15.0
+    pulse_db_path: str = "var/web_api/pulse.sqlite3"
+    pulse_start_block: int | None = None
+    pulse_max_blocks_per_request: int = 25
 
     @classmethod
     def from_env(cls) -> "WebAPIConfig":
@@ -79,5 +82,16 @@ class WebAPIConfig:
             network=os.environ.get("NEAR_NETWORK", "testnet"),
             request_timeout_seconds=float(
                 os.environ.get("WEB_API_REQUEST_TIMEOUT_SECONDS", "15")
+            ),
+            pulse_db_path=os.environ.get(
+                "PULSE_DB_PATH", "var/web_api/pulse.sqlite3"
+            ),
+            pulse_start_block=(
+                int(os.environ["PULSE_START_BLOCK"])
+                if os.environ.get("PULSE_START_BLOCK")
+                else None
+            ),
+            pulse_max_blocks_per_request=max(
+                1, int(os.environ.get("PULSE_MAX_BLOCKS_PER_REQUEST", "25"))
             ),
         )
