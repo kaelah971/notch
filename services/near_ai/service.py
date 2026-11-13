@@ -133,11 +133,13 @@ class BriefService:
 
         model_info: AIModel | None = None
         model_error: str | None = None
+        model_diagnostics: dict[str, Any] | None = None
         if self.config.key_present:
             try:
                 model_info = self.client.select_model(self.config.model)
             except NearAIError as exc:
                 model_error = str(exc)
+                model_diagnostics = exc.diagnostics
 
         if not self.config.key_present:
             return self._fallback(
@@ -156,6 +158,7 @@ class BriefService:
                 reason=f"NEAR AI model unavailable: {model_error or self.config.model}",
                 model_info=None,
                 model_error=model_error,
+                model_diagnostics=model_diagnostics,
             )
         if self.ai_calls >= self.config.max_calls_per_run:
             return self._fallback(
@@ -201,6 +204,7 @@ class BriefService:
                 reason=f"NEAR AI request failed: {exc}",
                 model_info=model_info,
                 model_error=str(exc),
+                model_diagnostics=exc.diagnostics,
             )
         brief = self._build(
             context,
@@ -210,6 +214,7 @@ class BriefService:
             status=GenerationStatus.AI_GENERATED,
             usage={
                 **completion.usage,
+                "response_diagnostics": completion.diagnostics,
                 "estimated_cost_usd": completion.estimated_cost_usd(model_info),
             },
             fallback_reason=None,
@@ -226,6 +231,7 @@ class BriefService:
         reason: str,
         model_info: AIModel | None,
         model_error: str | None,
+        model_diagnostics: dict[str, Any] | None = None,
     ) -> TrendBrief:
         brief = self._build(
             context,
@@ -241,6 +247,8 @@ class BriefService:
             brief.usage["model"] = model_info.model_id
         if model_error:
             brief.usage["model_error"] = model_error
+        if model_diagnostics:
+            brief.usage["model_diagnostics"] = dict(model_diagnostics)
         self.store.save(cache_key, brief)
         return brief
 

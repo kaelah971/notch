@@ -30,13 +30,17 @@ class NearAIError(RuntimeError):
         retryable: bool = False,
         body_snippet: str | None = None,
         path: str | None = None,
+        diagnostics: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(message)
         self.status = status
         self.code = code
         self.retryable = retryable
+        # Keep the private attribute for compatibility, but never expose
+        # response bodies through the public error payload.
         self.body_snippet = body_snippet
         self.path = path
+        self.diagnostics = dict(diagnostics or {})
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -44,8 +48,9 @@ class NearAIError(RuntimeError):
             "status": self.status,
             "code": self.code,
             "retryable": self.retryable,
-            "body_snippet": self.body_snippet,
+            "body_snippet": None,
             "path": self.path,
+            "diagnostics": dict(self.diagnostics),
         }
 
 
@@ -81,6 +86,7 @@ class AIModel:
     context_length: int | None
     max_output_length: int | None
     supported_features: list[str]
+    supported_sampling_parameters: list[str]
     is_ready: bool | None
     raw: dict[str, Any] = field(default_factory=dict, compare=False)
 
@@ -95,6 +101,7 @@ class AIModel:
             context_length=data.get("context_length"),
             max_output_length=data.get("max_output_length"),
             supported_features=list(data.get("supported_features") or []),
+            supported_sampling_parameters=list(data.get("supported_sampling_parameters") or []),
             is_ready=data.get("is_ready"),
             raw=dict(data),
         )
@@ -107,6 +114,7 @@ class AIModel:
             "context_length": self.context_length,
             "max_output_length": self.max_output_length,
             "supported_features": self.supported_features,
+            "supported_sampling_parameters": self.supported_sampling_parameters,
             "is_ready": self.is_ready,
         }
 
@@ -131,6 +139,7 @@ class AICompletion:
     usage: dict[str, Any]
     request_id: str | None
     raw: dict[str, Any] = field(default_factory=dict, compare=False)
+    diagnostics: dict[str, Any] = field(default_factory=dict)
 
     def estimated_cost_usd(self, model: AIModel) -> float:
         input_price, output_price = model.price_per_million()
@@ -195,6 +204,12 @@ def _default_transport(
         raise NearAIProviderError(
             f"NEAR AI request failed: {type(exc).__name__}",
             retryable=True,
+            diagnostics={
+                "http_status": None,
+                "request_id": None,
+                "request_id_present": False,
+                "transport_error": type(exc).__name__,
+            },
         ) from exc
 
 
@@ -232,7 +247,7 @@ class NearAIClient:
         path: str,
         *,
         body: dict[str, Any] | None = None,
-    ) -> tuple[dict[str, Any], dict[str, str]]:
+    ) -> tuple[dict[str, Any], dict[str, str], int]:
         self.rate_limiter.wait()
         status, headers, text = self.transport(
             method,
@@ -241,13 +256,14 @@ class NearAIClient:
             body,
             self.config.timeout_seconds,
         )
+        response_diagnostics = _request_diagnostics(status, headers, len(text))
         if not (200 <= status < 300):
             message, code = _error_message(text)
             kwargs = {
                 "status": status,
                 "code": code,
-                "body_snippet": text[:500],
                 "path": path,
+                "diagnostics": response_diagnostics,
             }
             if status in {401, 403}:
                 raise NearAIAuthError(message or "NEAR AI authentication failed", **kwargs)
@@ -267,14 +283,19 @@ class NearAIClient:
                 "NEAR AI returned invalid JSON",
                 status=status,
                 path=path,
-                body_snippet=text[:500],
+                diagnostics=response_diagnostics,
             ) from exc
         if not isinstance(payload, dict):
-            raise NearAIResponseError("NEAR AI response is not an object", path=path)
-        return payload, headers
+            raise NearAIResponseError(
+                "NEAR AI response is not an object",
+                status=status,
+                path=path,
+                diagnostics=response_diagnostics,
+            )
+        return payload, headers, status
 
     def list_models(self) -> list[AIModel]:
-        payload, _ = self._request("GET", "/models")
+        payload, _, _ = self._request("GET", "/models")
         data = payload.get("data")
         if not isinstance(data, list):
             raise NearAIResponseError("model catalog missing data array", path="/models")
@@ -316,29 +337,52 @@ class NearAIClient:
             "max_tokens": self.config.max_tokens,
             "response_format": {"type": "json_object"},
         }
-        payload, headers = self._request("POST", "/chat/completions", body=body)
+        payload, headers, status = self._request("POST", "/chat/completions", body=body)
         choices = payload.get("choices")
+        diagnostics = _completion_diagnostics(
+            payload,
+            headers=headers,
+            status=status,
+            choices=choices,
+            system_prompt_chars=len(system_prompt),
+            user_prompt_chars=len(user_prompt),
+            max_tokens=self.config.max_tokens,
+        )
         if not isinstance(choices, list) or not choices:
-            raise NearAIResponseError("NEAR AI response has no choices", path="/chat/completions")
-        message = choices[0].get("message") or {}
+            raise NearAIResponseError(
+                "NEAR AI response has no choices",
+                status=status,
+                path="/chat/completions",
+                diagnostics=diagnostics,
+            )
+        choice = choices[0] if isinstance(choices[0], dict) else {}
+        message = choice.get("message") if isinstance(choice.get("message"), dict) else {}
         content = message.get("content")
         if isinstance(content, dict):
             parsed = content
             text = json.dumps(content, ensure_ascii=False)
         elif isinstance(content, str):
             text = content
+            if not content.strip():
+                raise _empty_content_error(status, diagnostics)
             try:
                 parsed = _parse_json_content(content)
-            except ValueError as exc:
+            except (TypeError, ValueError) as exc:
                 raise NearAIResponseError(
                     "NEAR AI message content is not valid JSON",
+                    status=status,
                     path="/chat/completions",
-                    body_snippet=content[:500],
+                    diagnostics=diagnostics,
                 ) from exc
         else:
-            raise NearAIResponseError("NEAR AI message has no content", path="/chat/completions")
+            raise _empty_content_error(status, diagnostics)
         if not isinstance(parsed, dict):
-            raise NearAIResponseError("NEAR AI content is not a JSON object", path="/chat/completions")
+            raise NearAIResponseError(
+                "NEAR AI content is not a JSON object",
+                status=status,
+                path="/chat/completions",
+                diagnostics=diagnostics,
+            )
         return AICompletion(
             content=parsed,
             text=text,
@@ -346,7 +390,105 @@ class NearAIClient:
             usage=dict(payload.get("usage") or {}),
             request_id=headers.get("x-request-id"),
             raw=payload,
+            diagnostics=diagnostics,
         )
+
+
+def _request_diagnostics(
+    status: int | None,
+    headers: dict[str, str],
+    response_body_chars: int | None = None,
+) -> dict[str, Any]:
+    request_id = next(
+        (value for key, value in headers.items() if key.lower() == "x-request-id"),
+        None,
+    )
+    return {
+        "http_status": status,
+        "request_id": request_id,
+        "request_id_present": bool(request_id),
+        "response_body_chars": response_body_chars,
+    }
+
+
+def _completion_diagnostics(
+    payload: dict[str, Any],
+    *,
+    headers: dict[str, str],
+    status: int,
+    choices: Any,
+    system_prompt_chars: int,
+    user_prompt_chars: int,
+    max_tokens: int,
+) -> dict[str, Any]:
+    choice = choices[0] if isinstance(choices, list) and choices and isinstance(choices[0], dict) else {}
+    message = choice.get("message") if isinstance(choice.get("message"), dict) else {}
+    content_present = "content" in message
+    reasoning_present = "reasoning_content" in message
+    content = message.get("content")
+    reasoning = message.get("reasoning_content")
+    usage = payload.get("usage") if isinstance(payload.get("usage"), dict) else {}
+    diagnostics = _request_diagnostics(status, headers)
+    diagnostics.update(
+        {
+            "response_payload_chars": _value_chars(payload),
+            "choices_count": len(choices) if isinstance(choices, list) else None,
+            "finish_reason": choice.get("finish_reason"),
+            "message_present": bool(message),
+            "message_content_present": content_present,
+            "message_content_type": type(content).__name__ if content_present else None,
+            "message_content_chars": _value_chars(content) if content_present else 0,
+            "message_content_empty": content is None or (isinstance(content, str) and not content.strip()),
+            "reasoning_content_present": reasoning_present,
+            "reasoning_content_type": type(reasoning).__name__ if reasoning_present else None,
+            "reasoning_content_chars": _value_chars(reasoning) if reasoning_present else 0,
+            "usage": _safe_token_usage(usage),
+            "max_tokens_requested": max_tokens,
+            "system_prompt_chars": system_prompt_chars,
+            "user_prompt_chars": user_prompt_chars,
+            "response_format": "json_object",
+        }
+    )
+    return diagnostics
+
+
+def _safe_token_usage(usage: dict[str, Any]) -> dict[str, int | float]:
+    result: dict[str, int | float] = {}
+    for key in ("prompt_tokens", "completion_tokens", "total_tokens", "reasoning_tokens"):
+        value = usage.get(key)
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            result[key] = value
+    details = usage.get("completion_tokens_details")
+    if isinstance(details, dict):
+        value = details.get("reasoning_tokens")
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            result.setdefault("reasoning_tokens", value)
+    return result
+
+
+def _value_chars(value: Any) -> int:
+    if value is None:
+        return 0
+    if isinstance(value, str):
+        return len(value)
+    try:
+        return len(json.dumps(value, ensure_ascii=False, separators=(",", ":")))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _empty_content_error(status: int, diagnostics: dict[str, Any]) -> NearAIResponseError:
+    reason = "NEAR AI message has no content"
+    if diagnostics.get("finish_reason") == "length":
+        reason += "; finish_reason=length may indicate that reasoning exhausted the output-token budget"
+    elif diagnostics.get("reasoning_content_present"):
+        reason += "; reasoning_content was present without a final answer"
+    return NearAIResponseError(
+        reason,
+        status=status,
+        path="/chat/completions",
+        diagnostics=diagnostics,
+    )
 
 
 def _parse_json_content(text: str) -> Any:

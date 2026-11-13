@@ -134,8 +134,19 @@ class ServiceTests(unittest.TestCase):
         self.assertIn("UNSUPPORTED_NUMBER", brief.fallback_reason)
         self.assertEqual(client.chat_calls, 1)
 
-    def test_provider_error_falls_back_without_retry(self):
-        client = FakeClient(error=NearAIProviderError("unavailable", retryable=True))
+    def test_provider_error_falls_back_without_retry_and_preserves_safe_diagnostics(self):
+        client = FakeClient(
+            error=NearAIProviderError(
+                "unavailable",
+                retryable=True,
+                diagnostics={
+                    "http_status": 200,
+                    "finish_reason": "length",
+                    "reasoning_content_present": True,
+                    "reasoning_content_chars": 18,
+                },
+            )
+        )
         service = self.service(client)
         brief = service._generate(self.radar_context, force=False)
         self.assertEqual(
@@ -143,6 +154,8 @@ class ServiceTests(unittest.TestCase):
         )
         self.assertEqual(client.chat_calls, 1)
         self.assertIn("unavailable", brief.fallback_reason)
+        self.assertEqual(brief.usage["model_diagnostics"]["finish_reason"], "length")
+        self.assertEqual(brief.usage["model_diagnostics"]["reasoning_content_chars"], 18)
 
     def test_model_unavailable_falls_back_without_chat(self):
         client = FakeClient(model_error=NearAIModelUnavailable("missing", code="MODEL_NOT_FOUND"))

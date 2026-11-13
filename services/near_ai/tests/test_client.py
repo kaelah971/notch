@@ -56,6 +56,7 @@ MODEL = {
     "context_length": 1048576,
     "max_output_length": 1048576,
     "supported_features": ["structured_outputs", "json_mode"],
+    "supported_sampling_parameters": ["temperature", "max_tokens"],
     "is_ready": True,
 }
 
@@ -71,6 +72,7 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(len(models), 1)
         self.assertEqual(models[0].model_id, "z-ai/glm-5.3-flash")
         self.assertEqual(models[0].price_per_million(), (0.08, 0.5))
+        self.assertEqual(models[0].supported_sampling_parameters, ["temperature", "max_tokens"])
         selected = client.select_model()
         self.assertEqual(selected.model_id, "z-ai/glm-5.3-flash")
         self.assertEqual(len(transport.calls), 2)
@@ -104,12 +106,17 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(completion.content["headline"], "ok")
         self.assertEqual(completion.usage["total_tokens"], 15)
         self.assertEqual(completion.request_id, "req-1")
+        self.assertEqual(completion.diagnostics["http_status"], 200)
+        self.assertEqual(completion.diagnostics["finish_reason"], None)
+        self.assertTrue(completion.diagnostics["message_content_present"])
+        self.assertEqual(completion.diagnostics["message_content_chars"], len('{"headline": "ok"}'))
+        self.assertEqual(completion.diagnostics["usage"]["completion_tokens"], 5)
         call = transport.calls[0]
         self.assertEqual(call["method"], "POST")
         self.assertTrue(call["url"].endswith("/chat/completions"))
         self.assertEqual(call["body"]["model"], "z-ai/glm-5.3-flash")
         self.assertEqual(call["body"]["messages"][0]["role"], "system")
-        self.assertEqual(call["body"]["max_tokens"], 600)
+        self.assertEqual(call["body"]["max_tokens"], 4096)
         self.assertEqual(call["body"]["response_format"], {"type": "json_object"})
         self.assertNotIn("test-key", json.dumps(call["body"]))
 
@@ -157,16 +164,100 @@ class ClientTests(unittest.TestCase):
             [
                 _json(
                     {
-                        "choices": [{"message": {"content": "not-json"}}],
+                        "choices": [{"message": {"content": "not-json"}, "finish_reason": "stop"}],
                         "usage": {},
                     }
                 )
             ]
         )
-        with self.assertRaises(NearAIResponseError):
+        with self.assertRaises(NearAIResponseError) as caught:
             _client(transport).chat_json(
                 model="z-ai/glm-5.3-flash", system_prompt="s", user_prompt="u"
             )
+        self.assertEqual(caught.exception.diagnostics["finish_reason"], "stop")
+        self.assertEqual(caught.exception.diagnostics["message_content_chars"], len("not-json"))
+        self.assertIsNone(caught.exception.as_dict()["body_snippet"])
+
+    def test_empty_content_with_length_finish_reason_reports_reasoning_budget(self):
+        transport = FakeTransport(
+            [
+                _json(
+                    {
+                        "choices": [
+                            {
+                                "message": {"content": "", "reasoning_content": "private reasoning"},
+                                "finish_reason": "length",
+                            }
+                        ],
+                        "usage": {
+                            "prompt_tokens": 40,
+                            "completion_tokens": 4096,
+                            "total_tokens": 4136,
+                            "completion_tokens_details": {"reasoning_tokens": 4090},
+                        },
+                    },
+                    headers={"x-request-id": "req-length"},
+                )
+            ]
+        )
+        with self.assertRaises(NearAIResponseError) as caught:
+            _client(transport).chat_json(
+                model="z-ai/glm-5.3-flash", system_prompt="s", user_prompt="u"
+            )
+        error = caught.exception
+        self.assertIn("finish_reason=length", str(error))
+        self.assertEqual(error.status, 200)
+        self.assertEqual(error.diagnostics["request_id"], "req-length")
+        self.assertTrue(error.diagnostics["reasoning_content_present"])
+        self.assertEqual(error.diagnostics["reasoning_content_chars"], len("private reasoning"))
+        self.assertEqual(error.diagnostics["usage"]["reasoning_tokens"], 4090)
+        self.assertEqual(error.diagnostics["max_tokens_requested"], 4096)
+
+    def test_reasoning_without_final_answer_is_reported_without_exposing_reasoning(self):
+        transport = FakeTransport(
+            [
+                _json(
+                    {
+                        "choices": [
+                            {
+                                "message": {"reasoning_content": "private reasoning"},
+                                "finish_reason": "stop",
+                            }
+                        ],
+                        "usage": {"completion_tokens": 12},
+                    }
+                )
+            ]
+        )
+        with self.assertRaises(NearAIResponseError) as caught:
+            _client(transport).chat_json(
+                model="z-ai/glm-5.3-flash", system_prompt="s", user_prompt="u"
+            )
+        error = caught.exception
+        self.assertIn("reasoning_content was present", str(error))
+        self.assertNotIn("private reasoning", repr(error.as_dict()))
+        self.assertEqual(error.diagnostics["finish_reason"], "stop")
+
+    def test_missing_content_is_reported(self):
+        transport = FakeTransport(
+            [_json({"choices": [{"message": {}, "finish_reason": "stop"}], "usage": {}})]
+        )
+        with self.assertRaises(NearAIResponseError) as caught:
+            _client(transport).chat_json(
+                model="z-ai/glm-5.3-flash", system_prompt="s", user_prompt="u"
+            )
+        self.assertTrue(caught.exception.diagnostics["message_content_empty"])
+        self.assertFalse(caught.exception.diagnostics["reasoning_content_present"])
+
+    def test_dict_content_is_accepted_as_structured_json(self):
+        transport = FakeTransport(
+            [_json({"choices": [{"message": {"content": {"headline": "ok"}}}], "usage": {}})]
+        )
+        completion = _client(transport).chat_json(
+            model="z-ai/glm-5.3-flash", system_prompt="s", user_prompt="u"
+        )
+        self.assertEqual(completion.content, {"headline": "ok"})
+        self.assertEqual(completion.diagnostics["message_content_type"], "dict")
 
     def test_no_key_does_not_add_authorization(self):
         transport = FakeTransport([_json({"object": "list", "data": [MODEL]})])

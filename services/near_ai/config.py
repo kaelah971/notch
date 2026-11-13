@@ -17,8 +17,9 @@ class NearAIConfig:
     base_url: str = DEFAULT_BASE_URL
     api_key: str | None = None
     model: str = DEFAULT_MODEL
-    timeout_seconds: float = 20.0
-    max_tokens: int = 600
+    # GLM reasoning tokens count toward the completion budget before final JSON.
+    timeout_seconds: float = 45.0
+    max_tokens: int = 4096
     temperature: float = 0.2
     rate_limit_seconds: float = 2.0
     max_input_chars: int = 12_000
