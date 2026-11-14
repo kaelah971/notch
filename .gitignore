@@ -13,3 +13,17 @@ var/
 # Python bytecode
 __pycache__/
 *.py[cod]
+
+# Local agent/session state and runtime databases
+.fast-build/
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+
+# Browser traces and frontend build output
+browser-profile/
+**/browser-profile/
+dist/
+web/dist/
