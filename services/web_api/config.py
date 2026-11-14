@@ -25,6 +25,8 @@ class WebAPIConfig:
         "http://127.0.0.1:3000",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:5178",
+        "http://127.0.0.1:5178",
     )
     max_body_bytes: int = 65_536
     general_rate_limit_per_minute: int = 120
@@ -39,6 +41,7 @@ class WebAPIConfig:
     request_timeout_seconds: float = 15.0
     pulse_db_path: str = "var/web_api/pulse.sqlite3"
     council_db_path: str = "var/web_api/research_council.sqlite3"
+    creator_notes_db_path: str = "var/web_api/creator_notes.sqlite3"
     pulse_start_block: int | None = None
     pulse_max_blocks_per_request: int = 25
 
@@ -49,7 +52,8 @@ class WebAPIConfig:
             for item in os.environ.get(
                 "WEB_API_CORS_ORIGINS",
                 "http://localhost:3000,http://127.0.0.1:3000,"
-                "http://localhost:5173,http://127.0.0.1:5173",
+                "http://localhost:5173,http://127.0.0.1:5173,"
+                "http://localhost:5178,http://127.0.0.1:5178",
             ).split(",")
             if item.strip()
         )
@@ -89,6 +93,9 @@ class WebAPIConfig:
             ),
             council_db_path=os.environ.get(
                 "RESEARCH_COUNCIL_DB_PATH", "var/web_api/research_council.sqlite3"
+            ),
+            creator_notes_db_path=os.environ.get(
+                "CREATOR_NOTES_DB_PATH", "var/web_api/creator_notes.sqlite3"
             ),
             pulse_start_block=(
                 int(os.environ["PULSE_START_BLOCK"])

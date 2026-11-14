@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 import threading
 import unittest
+from datetime import datetime, timezone
+from unittest.mock import patch
 import urllib.error
 import urllib.request
 from http.client import HTTPConnection
@@ -427,7 +429,8 @@ class APITests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(payload["data"]["title"], "Nvidia")
 
-    def test_scout_is_source_backed_and_bounded(self):
+    @patch("services.web_api.app.now_utc", return_value=datetime(2026, 11, 13, tzinfo=timezone.utc))
+    def test_scout_is_source_backed_and_bounded(self, _frozen_now):
         status, payload = self.call("GET", "/api/scout?direction=rising&limit=99")
         self.assertEqual(status, 200)
         self.assertEqual(payload["meta"]["direction"], "RISING")

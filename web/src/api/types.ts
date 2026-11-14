@@ -498,6 +498,70 @@ export interface FundingQuoteResult {
   validation: FundingQuoteValidation
   instructions?: FundingInstructions | null
 }
+
+export type CreatorNoteStatus = 'DRAFT' | 'PUBLISHED' | 'WITHDRAWN'
+export type CreatorNotePosition = 'UP' | 'DOWN' | 'NEUTRAL'
+export interface CreatorNoteEvidence {
+  source_id: string
+  url: string
+  observed_at: string
+  claim: string
+}
+export interface CreatorNoteReference { kind: 'market' | 'topic'; id: string; label: string }
+export interface CreatorNoteStrategyReference { id: string; revision_hash: string; integrity: 'as_supplied' | string }
+export interface CreatorNoteEvaluationReference { id: string; result_digest: string; integrity: 'as_supplied' | string }
+export interface CreatorNoteRevision {
+  revision: number
+  status: CreatorNoteStatus
+  content_digest: string
+  evidence_digest: string
+  created_at: string
+}
+export interface CreatorResearchNote {
+  schema: string
+  note_id: string
+  creator_account: string
+  creator_verified: boolean
+  status: CreatorNoteStatus
+  revision: number
+  title: string
+  thesis: string
+  reference: CreatorNoteReference
+  position: CreatorNotePosition
+  supporting_evidence: CreatorNoteEvidence[]
+  contradictory_evidence: CreatorNoteEvidence[]
+  observation_cutoff: string
+  source_ids: string[]
+  source_urls: string[]
+  strategy_reference: CreatorNoteStrategyReference | null
+  evaluation_reference: CreatorNoteEvaluationReference | null
+  content_digest: string
+  evidence_digest: string
+  created_at: string
+  updated_at: string
+  published_at: string | null
+  withdrawn_at: string | null
+  withdrawal_reason: string | null
+  revision_history?: CreatorNoteRevision[]
+}
+export interface CreatorNoteChallenge {
+  challenge_id: string
+  account_id: string
+  nonce_b64: string
+  message: string
+  recipient: string
+  created_at: string
+  expires_at: string
+}
+export interface CreatorIdentitySession {
+  account_id: string
+  public_key: string
+  verified: boolean
+  verification_method: string
+  session_token: string
+  session_expires_at: string
+}
+export interface CreatorNotesMeta { count: number; status?: string; private?: boolean; creator_account?: string }
 export type FundingStatusResult = FundingQuote & {
   provider_result?: string | null
   settlement_evidence?: FundingSettlementEvidence

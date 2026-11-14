@@ -110,6 +110,17 @@ class NearRpcClient:
             {"request_type": "view_account", "finality": "final", "account_id": account_id},
         )
 
+    def view_access_key(self, account_id: str, public_key: str) -> dict[str, Any]:
+        return self._rpc(
+            "query",
+            {
+                "request_type": "view_access_key",
+                "finality": "final",
+                "account_id": account_id,
+                "public_key": public_key,
+            },
+        )
+
     def latest_block_timestamp_ns(self) -> int:
         result = self._rpc("block", {"finality": "final"})
         return int(result["header"]["timestamp"])

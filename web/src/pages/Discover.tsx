@@ -7,6 +7,7 @@ import { api } from '../api/client'
 import type { ScoutCandidate, ScoutDirection } from '../api/types'
 import { useApi } from '../api/useApi'
 import { Pulse } from '../pulse/Pulse'
+import { PublicResearchNotes } from './ResearchNote'
 import './Discover.css'
 
 const nf = new Intl.NumberFormat('en-US')
@@ -170,6 +171,7 @@ export function Discover() {
         )
       )}
       <Pulse markets={marketsState.status === 'ok' ? marketsState.data.data : []} />
+      <PublicResearchNotes />
     </>
   )
 }

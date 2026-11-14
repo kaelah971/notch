@@ -180,6 +180,19 @@ def quote_hash(response: QuoteResponse) -> str:
     return _base58_encode(hashlib.sha256(stable).digest())
 
 
+def verify_ed25519_signature_bytes(
+    public_key: str,
+    signature: bytes,
+    message: bytes,
+) -> bool:
+    """Verify raw Ed25519 bytes for protocols that transport signatures as base64."""
+    try:
+        public_key_bytes = _base58_decode(public_key.removeprefix("ed25519:"))
+        return _verify_ed25519(public_key_bytes, bytes(signature), message)
+    except (ValueError, IndexError, TypeError):
+        return False
+
+
 def verify_ed25519_signature(public_key: str, signature: str, message: bytes) -> bool:
     try:
         public_key_bytes = _base58_decode(public_key.removeprefix("ed25519:"))

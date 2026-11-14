@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Buffer } from 'buffer'
 import type { WalletSelector } from '@near-wallet-selector/core'
 import type { WalletSelectorModal } from '@near-wallet-selector/modal-ui'
 import './wallet-modal.css'
@@ -16,6 +17,8 @@ export interface TxResult {
   redirected: boolean
 }
 
+export interface SignedMessageResult { accountId: string; publicKey: string; signature: string }
+
 interface WalletCtx {
   ready: boolean
   /** Set when the wallet SDK failed to initialise; shown to the user with a retry. */
@@ -26,6 +29,8 @@ interface WalletCtx {
   disconnect: () => Promise<void>
   /** Asks the user's wallet to sign and send. Notch never signs. */
   signAndSend: (tx: FunctionCallTx) => Promise<TxResult>
+  /** Signs a NEP-413 ownership challenge in the user's wallet. Notch never sees keys. */
+  signMessage: (params: { message: string; recipient: string; nonce: Uint8Array }) => Promise<SignedMessageResult>
 }
 
 const Ctx = createContext<WalletCtx | null>(null)
@@ -72,6 +77,23 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     await w.signOut()
   }, [selector])
 
+  const signMessage = useCallback(async (params: { message: string; recipient: string; nonce: Uint8Array }): Promise<SignedMessageResult> => {
+    if (!selector || !accountId) throw new Error('Connect a wallet first.')
+    const w = await selector.wallet()
+    if (!w.signMessage) throw new Error('This wallet does not support secure message signing.')
+    try {
+      const signed = await w.signMessage({
+        message: params.message,
+        recipient: params.recipient,
+        nonce: Buffer.from(params.nonce),
+      })
+      if (!signed) throw new Error('The wallet did not return a signature.')
+      return { accountId: signed.accountId, publicKey: signed.publicKey, signature: signed.signature }
+    } catch (e) {
+      throw new Error(explainWalletError(e))
+    }
+  }, [selector, accountId])
+
   const signAndSend = useCallback(async (tx: FunctionCallTx): Promise<TxResult> => {
     if (!selector || !accountId) throw new Error('Connect a wallet first.')
     const { actionCreators } = await loadSdk()
@@ -92,7 +114,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     return { hash: outcome.transaction_outcome?.id ?? outcome.transaction?.hash ?? null, redirected: false }
   }, [selector, accountId])
 
-  const value = useMemo(() => ({ ready: !!selector, initError, retryInit, accountId, connect, disconnect, signAndSend }), [selector, initError, retryInit, accountId, connect, disconnect, signAndSend])
+  const value = useMemo(() => ({ ready: !!selector, initError, retryInit, accountId, connect, disconnect, signAndSend, signMessage }), [selector, initError, retryInit, accountId, connect, disconnect, signAndSend, signMessage])
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 

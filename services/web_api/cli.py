@@ -12,6 +12,8 @@ from services.intents.config import IntentsConfig
 from services.intents.service import IntentsFundingService
 from services.intents.official import OfficialMainnetFundingService
 from services.intents.store import FundingStore
+from services.creator_notes.service import CreatorNotesService
+from services.creator_notes.store import CreatorNotesStore
 from services.near_ai.client import NearAIClient
 from services.near_ai.config import NearAIConfig
 from services.near_ai.service import BriefService
@@ -85,6 +87,12 @@ def build_default_app(config: WebAPIConfig | None = None) -> WebAPI:
         timeout_seconds=config.request_timeout_seconds,
         max_retries=1,
     )
+    creator_notes = CreatorNotesService(
+        store=CreatorNotesStore(config.creator_notes_db_path),
+        reader=chain_reader,
+        chain=chain,
+        radar=radar,
+    )
     pulse = PulseIndexer(
         rpc=chain_reader,
         store=PulseStore(config.pulse_db_path),
@@ -102,6 +110,7 @@ def build_default_app(config: WebAPIConfig | None = None) -> WebAPI:
         brief_service=brief_service,
         funding_service=funding_service,
         official_funding_service=official_funding_service,
+        creator_notes_service=creator_notes,
         council_service=council_service,
         pulse=pulse,
     )

@@ -23,6 +23,8 @@ from services.near_ai.observations import fetch_market_observations
 from services.near_ai.service import BriefService
 from services.near_ai.store import BriefStore
 from services.oracle.evidence import verify_evidence
+from services.creator_notes.identity import CreatorIdentityError
+from services.creator_notes.service import CreatorNotesError, CreatorNotesService
 from services.research_council.service import ResearchCouncilService
 from services.trend_radar.models import iso_utc, now_utc, parse_iso
 from services.trend_radar.scout import build_scout_feed, scout_metadata
@@ -73,6 +75,7 @@ class WebAPI:
         brief_service: BriefService,
         funding_service: IntentsFundingService,
         official_funding_service: Any = None,
+        creator_notes_service: CreatorNotesService | None = None,
         rate_limiter: RateLimiter | None = None,
         attention_fetcher: Any = None,
         pulse: PulseIndexer | None = None,
@@ -86,6 +89,7 @@ class WebAPI:
         self.brief_service = brief_service
         self.funding_service = funding_service
         self.official_funding_service = official_funding_service
+        self.creator_notes_service = creator_notes_service
         self.rate_limiter = rate_limiter or RateLimiter()
         self.pulse = pulse
         self.council_service = council_service
@@ -95,6 +99,8 @@ class WebAPI:
             self.pulse.close()
         if self.council_service is not None:
             self.council_service.close()
+        if self.creator_notes_service is not None:
+            self.creator_notes_service.close()
         self.brief_service.store.close()
         self.funding_service.store.close()
 
@@ -108,6 +114,7 @@ class WebAPI:
         query: dict[str, str],
         body: Any,
         client: str = "local",
+        headers: dict[str, str] | None = None,
     ) -> tuple[int, dict[str, Any]]:
         try:
             self.rate_limiter.check(
@@ -116,15 +123,21 @@ class WebAPI:
             path = raw_path.rstrip("/") or "/"
             parts = [unquote(item) for item in path.split("/") if item]
             if method == "GET":
-                return self._get(parts, query)
+                return self._get(parts, query, headers or {})
             if method == "POST":
-                return self._post(parts, query, body)
+                return self._post(parts, query, body, headers or {})
             raise ApiError("METHOD_NOT_ALLOWED", "method not allowed", status=405)
         except ApiError as exc:
             return exc.status, exc.to_dict()
         except ValidationError as exc:
             return 400, ApiError(
                 exc.code, str(exc), status=400, details={"field": exc.field}
+            ).to_dict()
+        except CreatorIdentityError as exc:
+            return exc.status, ApiError(exc.code, str(exc), status=exc.status).to_dict()
+        except CreatorNotesError as exc:
+            return exc.status, ApiError(
+                exc.code, str(exc), status=exc.status, details=exc.details
             ).to_dict()
         except NearAIError as exc:
             status = exc.status if exc.status in {401, 403, 429} else 503
@@ -148,7 +161,12 @@ class WebAPI:
                 "INTERNAL_ERROR", "the API could not complete the request", status=500
             ).to_dict()
 
-    def _get(self, parts: list[str], query: dict[str, str]) -> tuple[int, dict[str, Any]]:
+    def _get(
+        self,
+        parts: list[str],
+        query: dict[str, str],
+        headers: dict[str, str],
+    ) -> tuple[int, dict[str, Any]]:
         if parts == ["api", "health"]:
             return 200, {"data": self.health()}
         if parts == ["api", "briefs", "status"]:
@@ -175,6 +193,16 @@ class WebAPI:
             return 200, self._market_brief(parts[2])
         if len(parts) == 4 and parts[:2] == ["api", "markets"] and parts[3] == "council":
             return 200, self._market_council_latest(parts[2])
+        if parts == ["api", "research", "notes"]:
+            return 200, self._creator_public_notes(query)
+        if parts == ["api", "research", "notes", "mine"]:
+            return 200, self._creator_mine(query, headers)
+        if len(parts) == 4 and parts[:3] == ["api", "research", "notes"]:
+            return 200, self._creator_public_note(parts[3])
+        if len(parts) == 4 and parts[:2] == ["api", "creators"] and parts[3] == "notes":
+            return 200, self._creator_profile(parts[2], query)
+        if parts == ["api", "research", "me"]:
+            return 200, self._creator_me(headers)
         if parts == ["api", "funding", "tokens"]:
             return 200, self._funding_tokens()
         if parts == ["api", "funding", "mainnet", "tokens"]:
@@ -190,10 +218,26 @@ class WebAPI:
         raise ApiError("NOT_FOUND", "endpoint not found", status=404)
 
     def _post(
-        self, parts: list[str], query: dict[str, str], body: Any
+        self,
+        parts: list[str],
+        query: dict[str, str],
+        body: Any,
+        headers: dict[str, str],
     ) -> tuple[int, dict[str, Any]]:
         if not isinstance(body, dict):
             raise ApiError("INVALID_BODY", "JSON object body is required", status=400)
+        if parts == ["api", "research", "identity", "challenge"]:
+            return 200, {"data": self._creator_challenge(body)}
+        if parts == ["api", "research", "identity", "verify"]:
+            return 200, {"data": self._creator_verify(body)}
+        if parts == ["api", "research", "notes"]:
+            return 201, {"data": self._creator_create(body, headers)}
+        if len(parts) == 5 and parts[:3] == ["api", "research", "notes"] and parts[4] == "update":
+            return 200, {"data": self._creator_update(parts[3], body, headers)}
+        if len(parts) == 5 and parts[:3] == ["api", "research", "notes"] and parts[4] == "publish":
+            return 200, {"data": self._creator_publish(parts[3], headers)}
+        if len(parts) == 5 and parts[:3] == ["api", "research", "notes"] and parts[4] == "withdraw":
+            return 200, {"data": self._creator_withdraw(parts[3], body, headers)}
         if parts == ["api", "funding", "quote"]:
             return 200, self._funding_quote(body)
         if parts == ["api", "funding", "live-quote"]:
@@ -209,6 +253,79 @@ class WebAPI:
         if len(parts) == 4 and parts[:2] == ["api", "markets"] and parts[3] == "council":
             return 200, self._market_council(parts[2], body)
         raise ApiError("NOT_FOUND", "endpoint not found", status=404)
+
+    # ------------------------------------------------------------------
+    # Creator Studio / verifiable research publishing
+    # ------------------------------------------------------------------
+    def _creator_service(self) -> CreatorNotesService:
+        if self.creator_notes_service is None:
+            raise ApiError(
+                "CREATOR_STUDIO_UNAVAILABLE",
+                "Creator Studio is not configured on this API",
+                status=503,
+            )
+        return self.creator_notes_service
+
+    @staticmethod
+    def _authorization(headers: dict[str, str]) -> str | None:
+        value = next((item for key, item in headers.items() if key.lower() == "authorization"), "")
+        scheme, _, token = value.partition(" ")
+        if scheme.lower() != "bearer" or not token.strip():
+            return None
+        return token.strip()
+
+    @staticmethod
+    def _limit(query: dict[str, str], default: int = 20) -> int:
+        try:
+            return max(1, min(int(query.get("limit", str(default))), 50))
+        except ValueError as exc:
+            raise ApiError("INVALID_LIMIT", "limit must be an integer", status=400) from exc
+
+    def _creator_challenge(self, body: dict[str, Any]) -> dict[str, Any]:
+        return self._creator_service().challenge(str(body.get("account_id") or ""))
+
+    def _creator_verify(self, body: dict[str, Any]) -> dict[str, Any]:
+        return self._creator_service().verify_identity(body)
+
+    def _creator_create(self, body: dict[str, Any], headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().create_draft(self._authorization(headers), body).to_dict()
+
+    def _creator_update(self, note_id: str, body: dict[str, Any], headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().update(self._authorization(headers), note_id, body).to_dict()
+
+    def _creator_publish(self, note_id: str, headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().publish(self._authorization(headers), note_id).to_dict()
+
+    def _creator_withdraw(self, note_id: str, body: dict[str, Any], headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().withdraw(
+            self._authorization(headers), note_id, body.get("reason")
+        ).to_dict()
+
+    def _creator_public_notes(self, query: dict[str, str]) -> dict[str, Any]:
+        data = self._creator_service().public_list(self._limit(query))
+        return {"data": data, "meta": {"count": len(data), "status": "PUBLISHED"}}
+
+    def _creator_public_note(self, note_id: str) -> dict[str, Any]:
+        return {"data": self._creator_service().public_detail(note_id)}
+
+    def _creator_profile(self, account_id: str, query: dict[str, str]) -> dict[str, Any]:
+        data = self._creator_service().creator_public(account_id, self._limit(query))
+        return {"data": data, "meta": {"count": len(data), "creator_account": account_id}}
+
+    def _creator_mine(self, query: dict[str, str], headers: dict[str, str]) -> dict[str, Any]:
+        data = self._creator_service().mine(self._authorization(headers), self._limit(query))
+        return {"data": data, "meta": {"count": len(data), "private": True}}
+
+    def _creator_me(self, headers: dict[str, str]) -> dict[str, Any]:
+        row = self._creator_service().identity.session(self._authorization(headers))
+        return {
+            "data": {
+                "account_id": row["account_id"],
+                "public_key": row["public_key"],
+                "expires_at": row["expires_at"],
+                "verified": True,
+            }
+        }
 
     # ------------------------------------------------------------------
     # Health

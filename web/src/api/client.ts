@@ -1,6 +1,6 @@
 import type {
   ApiErrorBody, Brief, EntryIntent, Envelope, FundingTokens, MainnetFundingDiscovery, Market, MarketDetail, MarketEvidence,
-  FundingQuoteResult, FundingStatusResult, PoolSnapshot, Position, PulseData, PulseWindow, QuoteRequest, Readiness, ResearchCouncil, ScoutCandidate, ScoutDirection, ScoutMeta, Trend, WalletBalances,
+  CreatorIdentitySession, CreatorNoteChallenge, CreatorResearchNote, CreatorNotesMeta, FundingQuoteResult, FundingStatusResult, PoolSnapshot, Position, PulseData, PulseWindow, QuoteRequest, Readiness, ResearchCouncil, ScoutCandidate, ScoutDirection, ScoutMeta, Trend, WalletBalances,
 } from './types'
 
 const BASE = ((import.meta.env.VITE_API_BASE as string | undefined) ?? '').replace(/\/$/, '')
@@ -20,7 +20,10 @@ export class ApiError extends Error {
 async function request<T, M = Record<string, unknown>>(path: string, init?: RequestInit): Promise<Envelope<T, M>> {
   let res: Response
   try {
-    res = await fetch(`${BASE}${path}`, { headers: { Accept: 'application/json', 'Content-Type': 'application/json' }, ...init })
+    const headers = new Headers(init?.headers)
+    headers.set('Accept', 'application/json')
+    headers.set('Content-Type', 'application/json')
+    res = await fetch(`${BASE}${path}`, { ...init, headers })
   } catch {
     throw new ApiError(0, 'NETWORK', 'The Notch API is unreachable.')
   }
@@ -33,6 +36,7 @@ async function request<T, M = Record<string, unknown>>(path: string, init?: Requ
 }
 
 const enc = encodeURIComponent
+const bearer = (token: string): HeadersInit => ({ Authorization: `Bearer ${token}` })
 
 export const api = {
   health: () => request<{ status: string; network: string; checks: Record<string, unknown> }>('/api/health'),
@@ -67,4 +71,17 @@ export const api = {
     request<FundingStatusResult>('/api/funding/deposit', { method: 'POST', body: JSON.stringify(body) }),
   fundingStatus: (quoteId: string, refresh = false) =>
     request<FundingStatusResult>(`/api/funding/status/${enc(quoteId)}${refresh ? '?refresh=true' : ''}`),
+  creatorChallenge: (accountId: string) =>
+    request<CreatorNoteChallenge>('/api/research/identity/challenge', { method: 'POST', body: JSON.stringify({ account_id: accountId }) }),
+  creatorVerify: (body: { challenge_id: string; account_id: string; public_key: string; signature: string }) =>
+    request<CreatorIdentitySession>('/api/research/identity/verify', { method: 'POST', body: JSON.stringify(body) }),
+  creatorMe: (token: string) => request<{ account_id: string; public_key: string; expires_at: string; verified: boolean }>('/api/research/me', { headers: bearer(token) }),
+  creatorPublicNotes: (limit = 12) => request<CreatorResearchNote[], CreatorNotesMeta>(`/api/research/notes?limit=${limit}`),
+  creatorPublicNote: (noteId: string) => request<CreatorResearchNote>(`/api/research/notes/${enc(noteId)}`),
+  creatorProfile: (accountId: string, limit = 20) => request<CreatorResearchNote[], CreatorNotesMeta>(`/api/creators/${enc(accountId)}/notes?limit=${limit}`),
+  creatorMine: (token: string, limit = 20) => request<CreatorResearchNote[], CreatorNotesMeta>(`/api/research/notes/mine?limit=${limit}`, { headers: bearer(token) }),
+  creatorCreate: (token: string, body: Record<string, unknown>) => request<CreatorResearchNote>('/api/research/notes', { method: 'POST', headers: bearer(token), body: JSON.stringify(body) }),
+  creatorUpdate: (token: string, noteId: string, body: Record<string, unknown>) => request<CreatorResearchNote>(`/api/research/notes/${enc(noteId)}/update`, { method: 'POST', headers: bearer(token), body: JSON.stringify(body) }),
+  creatorPublish: (token: string, noteId: string) => request<CreatorResearchNote>(`/api/research/notes/${enc(noteId)}/publish`, { method: 'POST', headers: bearer(token), body: '{}' }),
+  creatorWithdraw: (token: string, noteId: string, reason?: string) => request<CreatorResearchNote>(`/api/research/notes/${enc(noteId)}/withdraw`, { method: 'POST', headers: bearer(token), body: JSON.stringify({ reason }) }),
 }

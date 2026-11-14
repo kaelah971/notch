@@ -38,7 +38,7 @@ def make_handler(app: WebAPI) -> type[BaseHTTPRequestHandler]:
                 self.send_header("Vary", "Origin")
                 self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
                 self.send_header(
-                    "Access-Control-Allow-Headers", "Content-Type, Accept"
+                    "Access-Control-Allow-Headers", "Content-Type, Accept, Authorization"
                 )
                 self.send_header("Access-Control-Max-Age", "600")
 
@@ -104,6 +104,7 @@ def make_handler(app: WebAPI) -> type[BaseHTTPRequestHandler]:
                 query,
                 body,
                 client=self.client_address[0],
+                headers={key: value for key, value in self.headers.items()},
             )
             self._write(status, payload)
 
