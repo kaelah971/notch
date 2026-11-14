@@ -1,0 +1,182 @@
+{
+  "schema_version": "notch.phase6.agent-arena-autopilot-browser-proof/1",
+  "recorded_at_utc": "2026-11-14T16:17:42.143Z",
+  "commit": "98939c5",
+  "status": "PAPER_ONLY_WORKFLOW_VERIFIED",
+  "network_scope": "NEAR Testnet UI and browser-local paper state; no chain state change",
+  "browser_verification": {
+    "browser": "Chrome 157 headless via Chrome DevTools Protocol",
+    "origin": "http://127.0.0.1:5180",
+    "paths_exercised": [
+      "/app/arena",
+      "/app/autopilot?agent=bot_attention_momentum_v1"
+    ],
+    "arena": {
+      "selected_agent": {
+        "agent_id": "bot_attention_momentum_v1",
+        "name": "Attention Momentum",
+        "kind": "DETERMINISTIC_BOT",
+        "behavior": "ATTENTION_MOMENTUM"
+      },
+      "strategy_id": "strategy_d7382362",
+      "strategy_hash": "fnv1a32:7d6d7c32",
+      "dataset_id": "wikimedia-nvidia-2026-10-01-2026-11-10",
+      "dataset_content_sha256": "4661cc83a880931a392d3745fe234869bae3f191b4bff4229cb6ad2682175cfd",
+      "source_fixture_sha256": "f372687814e75ca213ef31e014a2a9a8dc204340f249a44922ae9e1401e436f2",
+      "source_url": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia.org/all-access/user/Nvidia/daily/20261001/20261110",
+      "match_id": "arena_match_935505c1",
+      "result_digest": "fnv1a32:dfb6611a",
+      "evidence_cutoff_utc": "2026-11-10T23:59:59Z",
+      "selected_signal_window": {
+        "signal_date": "2026-11-03",
+        "signal_cutoff_utc": "2026-11-03T23:59:59Z",
+        "prediction": "DOWN",
+        "outcome": "UP",
+        "signal_evidence_refs": [
+          "wikimedia:en.wikipedia.org:Nvidia:2026-10-21",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-10-22",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-10-23",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-10-24",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-10-25",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-10-26",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-10-27",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-10-28",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-10-29",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-10-30",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-10-31",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-11-01",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-11-02",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-11-03"
+        ],
+        "outcome_evidence_refs": [
+          "wikimedia:en.wikipedia.org:Nvidia:2026-11-04",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-11-05",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-11-06",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-11-07",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-11-08",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-11-09",
+          "wikimedia:en.wikipedia.org:Nvidia:2026-11-10"
+        ]
+      },
+      "read_only_boundary_visible": true
+    },
+    "handoff": {
+      "link": "/app/autopilot?agent=bot_attention_momentum_v1",
+      "agent_identity_preserved": true,
+      "paper_only_label_visible": true,
+      "deterministic_label_visible": true
+    },
+    "browser_policy_activation": {
+      "mode": "PAPER_AUTO",
+      "policy_id": "autopilot_cd51a888",
+      "policy_version": 1,
+      "risk": {
+        "budget_credits": 1000,
+        "stake_mode": "PERCENTAGE",
+        "stake_value": 10,
+        "max_exposure_credits": 250,
+        "max_positions": 1,
+        "daily_loss_limit_credits": 100,
+        "cooldown_seconds": 900
+      },
+      "persisted_storage_key": "notch.autopilot.v1"
+    },
+    "browser_blocked_evaluation": {
+      "run_id": "autopilot_run_ad5a0e27",
+      "market_count": 3,
+      "eligible_market_count": 0,
+      "visible_result": "No eligible market",
+      "actions": [
+        {
+          "market_id": "s3b-future-btc-20261116-20261123",
+          "paper_result": "BLOCKED",
+          "status": "MARKET_INELIGIBLE",
+          "reason_code": "TOPIC_MISMATCH",
+          "audit_id": "paper_audit_7ea14654",
+          "freshness": "STALE",
+          "direction": "DOWN"
+        },
+        {
+          "market_id": "s3b-short-trend-nvidia-20261112T040029Z",
+          "paper_result": "BLOCKED",
+          "status": "MARKET_INELIGIBLE",
+          "reason_code": "HISTORICAL_REPLAY",
+          "audit_id": "paper_audit_d32071fe",
+          "freshness": "STALE",
+          "direction": "DOWN"
+        },
+        {
+          "market_id": "s3b-short-battle-btc-chatgpt-20261112T040029Z",
+          "paper_result": "BLOCKED",
+          "status": "MARKET_INELIGIBLE",
+          "reason_code": "HISTORICAL_REPLAY",
+          "audit_id": "paper_audit_75586b76",
+          "freshness": "STALE",
+          "direction": "DOWN"
+        }
+      ],
+      "no_target_fabricated": true
+    },
+    "persistence_after_reload": {
+      "reloaded_url": "/app/autopilot?agent=bot_attention_momentum_v1",
+      "stored_policy_agent_id": "bot_attention_momentum_v1",
+      "stored_action_count": 3,
+      "stored_audit_ids": [
+        "paper_audit_d32071fe",
+        "paper_audit_75586b76",
+        "paper_audit_7ea14654"
+      ],
+      "latest_audit_visible_after_reload": "paper_audit_7ea14654"
+    }
+  },
+  "paper_executed_fixture": {
+    "source": "web/tests/autopilot.test.mjs",
+    "test": "Arena participant handoff produces a deterministic paper recommendation and persisted audit",
+    "run_mode": "HISTORICAL_SIMULATION",
+    "market_id": "published-nvidia-paper-test",
+    "agent_id": "bot_attention_momentum_v1",
+    "recommendation": "DOWN",
+    "momentum_bps": -1194,
+    "evidence_snapshot_id": "wikimedia_snapshot_58ae1cb8",
+    "evidence_digest": "fnv1a32:30b114c8",
+    "decision_timestamp_utc": "2026-11-03T23:59:59Z",
+    "freshness": "FROZEN_HISTORICAL",
+    "eligibility": "ELIGIBLE",
+    "paper_result": "PAPER_EXECUTED",
+    "requested_stake_credits": 100,
+    "exposure_after_credits": 100,
+    "audit_id": "paper_audit_8c98e58b",
+    "simulated_position_id": "paper_position_e3351487",
+    "action_id": "paper_action_6cac5162"
+  },
+  "api_proof": {
+    "base_url": "http://127.0.0.1:8020",
+    "health_status": "degraded",
+    "health_blocker": "NEAR RPC check unavailable; market reads still returned 3 published markets",
+    "unauthenticated_vault_get": {
+      "path": "/api/research/vault",
+      "status": 401,
+      "code": "AUTH_REQUIRED"
+    }
+  },
+  "privacy_boundary": {
+    "browser_api_requests_observed": [
+      "/api/markets",
+      "/api/markets"
+    ],
+    "vault_or_inference_requests_observed": [],
+    "private_vault_tests": {
+      "python_unittest": "4 passed",
+      "web_tests": "5 passed"
+    },
+    "private_theses_sent_to_provider": false,
+    "vault_records_enumerated_by_autopilot": false
+  },
+  "limitations": [
+    "PAPER_EXECUTED is proven by the deterministic historical fixture and domain integration test; the current browser-visible published market set correctly produced only BLOCKED results.",
+    "Audits are browser-local in notch.autopilot.v1 and are not server-verified or scheduled.",
+    "Historical replay results are not forecasts and do not establish improved accuracy or future performance.",
+    "No NEAR AI inference, wallet signing, token transfer, market entry, contract write or deployment was performed."
+  ],
+  "demo_readiness": "READY_FOR_HACKATHON_PAPER_ONLY_DEMO"
+}
