@@ -72,7 +72,7 @@ class ServiceTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.store = FundingStore(Path(self.tmp.name) / "funding.sqlite3")
-        self.config = IntentsConfig(data_dir=self.tmp.name)
+        self.config = IntentsConfig(data_dir=self.tmp.name, verify_quote_signatures=False)
         self.client = FakeClient()
         self.reader = FakeReader()
         self.now = fixtures.NOW
@@ -168,7 +168,7 @@ class ServiceTests(unittest.TestCase):
         self.service.record_deposit(prepared2.quote.quote_id, "tx-b")
         self.client.statuses = [
             StatusResponse.from_provider(
-                fixtures.status_payload("FAILED", refund_reason="SWAP_FAILED")
+                fixtures.status_payload("FAILED", refund_reason="SWAP_FAILED", correlation_id=prepared2.quote.quote_id)
             )
         ]
         quote2 = self.service.refresh_status(prepared2.quote.quote_id, max_attempts=1)

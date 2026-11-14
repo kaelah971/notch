@@ -11,6 +11,7 @@ from typing import Any
 from services.trend_radar.models import iso_utc, parse_iso
 
 from .config import IntentsConfig
+from .signature import verify_quote_signature
 from .models import (
     DESTINATION_ASSET,
     DepositMode,
@@ -64,6 +65,7 @@ class QuoteValidation:
     expires_at: datetime
     implied_fee_usd: str
     warnings: list[str]
+    signature_verified: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -71,6 +73,7 @@ class QuoteValidation:
             "expires_at": iso_utc(self.expires_at),
             "implied_fee_usd": self.implied_fee_usd,
             "warnings": self.warnings,
+            "signature_verified": self.signature_verified,
         }
 
 
@@ -98,6 +101,28 @@ def is_valid_refund_address(value: str, blockchain: str) -> bool:
         return bool(XRP_ADDRESS_RE.fullmatch(value or ""))
     if blockchain == "btc":
         return bool(BITCOIN_ADDRESS_RE.fullmatch(value or ""))
+    return False
+
+
+def is_valid_deposit_address(value: str, blockchain: str) -> bool:
+    """Validate the provider address on the selected origin chain."""
+    return is_valid_refund_address(value, blockchain)
+
+
+def is_valid_deposit_tx_hash(value: str, blockchain: str) -> bool:
+    """Validate a user-submitted transaction reference without accepting a route mismatch."""
+    if blockchain == "near":
+        return bool(value and len(value) >= 2)
+    if blockchain in {"base", "arb", "eth", "bsc", "aurora", "hypercore"}:
+        return bool(re.fullmatch(r"0x[0-9a-fA-F]{64}", value or ""))
+    if blockchain == "sol":
+        return bool(SOLANA_ADDRESS_RE.fullmatch(value or ""))
+    if blockchain == "stellar":
+        return bool(re.fullmatch(r"[0-9a-fA-F]{64}", value or ""))
+    if blockchain == "sui":
+        return bool(re.fullmatch(r"0x[0-9a-fA-F]{64}", value or ""))
+    if blockchain == "btc":
+        return bool(re.fullmatch(r"[0-9a-fA-F]{64}", value or ""))
     return False
 
 
@@ -321,6 +346,7 @@ def validate_quote_response(
     config: IntentsConfig,
     *,
     now: datetime,
+    verify_signature: bool = False,
 ) -> QuoteValidation:
     echoed = response.quote_request
     checks = {
@@ -349,6 +375,15 @@ def validate_quote_response(
             "provider quote signature is not ed25519 base58",
             field="signature",
         )
+    signature_verified = False
+    if verify_signature:
+        if not verify_quote_signature(response):
+            raise ValidationError(
+                "INVALID_QUOTE_SIGNATURE",
+                "provider quote signature does not verify against Tidepool's maker key",
+                field="signature",
+            )
+        signature_verified = True
     quote = response.quote
     amount_in = parse_base_units(quote.amount_in, field="amountIn")
     request_amount = parse_base_units(request.amount)
@@ -388,10 +423,10 @@ def validate_quote_response(
                 "live quote has no deposit address",
                 field="depositAddress",
             )
-        if not is_near_account(quote.deposit_address):
+        if not is_valid_deposit_address(quote.deposit_address, route.source.blockchain):
             raise ValidationError(
                 "INVALID_DEPOSIT_ADDRESS",
-                "live NEAR quote deposit address is not a NEAR account",
+                f"live quote deposit address is not a valid {route.source.blockchain} address",
                 field="depositAddress",
             )
         expires_at = parse_iso(quote.deadline) or parse_iso(request.deadline)
@@ -426,6 +461,7 @@ def validate_quote_response(
         expires_at=expires_at,
         implied_fee_usd=format(implied_fee, "f"),
         warnings=warnings,
+        signature_verified=signature_verified,
     )
 
 

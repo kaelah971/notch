@@ -50,6 +50,19 @@
 .fund-quote-meta { margin: 0; }
 .fund-quote-meta dd { max-width: 48ch; overflow-wrap: anywhere; text-align: right; }
 .fund-warning { margin: 0; padding: 12px 14px; border-radius: 12px; color: var(--sunburst); background: color-mix(in srgb, var(--sunburst) 7%, var(--surface-2)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sunburst) 25%, transparent); font-size: 12px; line-height: 1.45; }
+.fund-live-handoff, .fund-submit { display: grid; gap: 12px; margin-top: 14px; }
+.fund-confirm { display: flex; gap: 10px; align-items: flex-start; color: var(--text-2); font-size: 12px; line-height: 1.45; }
+.fund-confirm input { margin-top: 2px; flex: none; }
+.fund-instructions { margin: 0; padding-left: 20px; color: var(--text-2); font-size: 12px; line-height: 1.5; }
+.fund-instructions li + li { margin-top: 4px; }
+.fund-status-card { display: grid; gap: 12px; padding: 14px; border-radius: 14px; background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--hairline); }
+.fund-status-card[data-state="SUCCESS"] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pos) 35%, transparent); }
+.fund-status-card[data-state="REFUNDED"], .fund-status-card[data-state="FAILED"] { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sunburst) 35%, transparent); }
+.fund-status-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+.fund-status { margin: 0; padding: 10px 12px; border-radius: 10px; color: var(--text-2); background: var(--surface-2); font-size: 12px; }
+.fund-success { margin: 0; padding: 12px 14px; border-radius: 12px; color: var(--pos); background: color-mix(in srgb, var(--pos) 8%, var(--surface-2)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pos) 28%, transparent); font-size: 12px; line-height: 1.45; }
+.fund-evidence { display: grid; gap: 6px; font-size: 12px; }
+.fund-evidence a { overflow-wrap: anywhere; }
 .sel { appearance: none; color: var(--text); font: var(--w-strong) 16px var(--font); border: 0; cursor: pointer; }
 .steps { margin: 12px 0; padding-left: 20px; display: grid; gap: 4px; font-size: 13px; }
 @media (max-width: 760px) {

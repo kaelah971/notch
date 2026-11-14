@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, ApiError } from '../api/client'
 import { useApi } from '../api/useApi'
-import type { FundingQuoteResult } from '../api/types'
+import type { FundingQuoteResult, FundingStatusResult } from '../api/types'
 import { formatUnits, formatUtc, parseUnits, relativeTo } from '../api/format'
 
 const CHAIN_LABELS: Record<string, string> = {
@@ -19,6 +19,8 @@ const CHAIN_LABELS: Record<string, string> = {
   hypercore: 'Hypercore testnet',
 }
 
+const FUNDING_STORAGE_KEY = 'notch.funding.v1'
+const TERMINAL_STATES = new Set(['SUCCESS', 'REFUNDED', 'FAILED', 'EXPIRED'])
 const chainLabel = (chain: string) => CHAIN_LABELS[chain] ?? `${chain} testnet`
 const inputHint = (chain: string) => {
   if (['base', 'arb', 'eth', 'bsc', 'aurora', 'hypercore'].includes(chain)) return '0x… EVM address'
@@ -30,18 +32,54 @@ const inputHint = (chain: string) => {
   return 'Refund address on the source chain'
 }
 
-interface StoredQuote { key: string; result: FundingQuoteResult }
+interface PersistedFunding {
+  accountId: string
+  liveResult: FundingQuoteResult
+  txHash: string
+}
 
-/** Read-only Tidepool discovery and dry-quote flow. Phase 7B deposit actions are intentionally absent. */
-export function Funding({ accountId }: { accountId: string }) {
+function errorText(reason: unknown) {
+  return reason instanceof ApiError
+    ? `${reason.code}: ${reason.message}`
+    : reason instanceof Error
+      ? reason.message
+      : String(reason)
+}
+
+function explorerTx(hash: string) {
+  return `https://sepolia.basescan.org/tx/${encodeURIComponent(hash)}`
+}
+
+function statusLabel(status: string | null | undefined) {
+  switch (status) {
+    case 'PENDING_DEPOSIT': return 'Waiting for your deposit'
+    case 'KNOWN_DEPOSIT_TX': return 'Deposit transaction submitted'
+    case 'INCOMPLETE_DEPOSIT': return 'Partial deposit detected'
+    case 'PROCESSING': return 'Provider processing'
+    case 'SUCCESS': return 'Provider reports success'
+    case 'REFUNDED': return 'Deposit refunded'
+    case 'FAILED': return 'Provider reports failure'
+    default: return status || 'Awaiting deposit'
+  }
+}
+
+/** Base Sepolia manual-deposit funding flow. Notch never signs or broadcasts the source transaction. */
+export function Funding({ accountId, onVerified }: { accountId: string; onVerified?: () => void }) {
   const [tokens] = useApi(() => api.fundingTokens().then((response) => response.data), [])
   const [chain, setChain] = useState('')
   const [sourceAsset, setSourceAsset] = useState('')
   const [amount, setAmount] = useState('')
   const [refundTo, setRefundTo] = useState('')
-  const [storedQuote, setStoredQuote] = useState<StoredQuote | null>(null)
+  const [dryResult, setDryResult] = useState<FundingQuoteResult | null>(null)
+  const [liveResult, setLiveResult] = useState<FundingQuoteResult | null>(null)
+  const [status, setStatus] = useState<FundingStatusResult | null>(null)
+  const [txHash, setTxHash] = useState('')
+  const [liveConfirmed, setLiveConfirmed] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [statusBusy, setStatusBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [pollCount, setPollCount] = useState(0)
+  const [verifiedNotified, setVerifiedNotified] = useState(false)
 
   const data = tokens.status === 'ok' ? tokens.data : null
   const activeChain = chain || data?.source_chains[0] || ''
@@ -51,20 +89,80 @@ export function Funding({ accountId }: { accountId: string }) {
   )
   const activeAsset = sourceTokens.find((token) => token.asset_id === sourceAsset) ?? sourceTokens[0] ?? null
   const rawAmount = activeAsset ? parseUnits(amount, activeAsset.decimals) : null
-  const quoteKey = `${activeAsset?.asset_id ?? ''}|${amount}|${refundTo.trim()}|${accountId}`
-  const quote = storedQuote?.key === quoteKey ? storedQuote.result : null
+  const quote = dryResult?.quote
+  const invalidAmount = amount.trim() !== '' && !rawAmount
+  const txValid = /^0x[0-9a-fA-F]{64}$/.test(txHash.trim())
+  const liveQuote = liveResult?.quote
+  const liveInstructions = liveResult?.instructions
+  const currentStatus = status?.provider_status ?? liveQuote?.state
+  const destinationState = status?.destination_verification?.state
+  const isTerminal = !!status && TERMINAL_STATES.has(status.state)
+  const liveExpired = !!liveQuote?.expires_at && new Date(liveQuote.expires_at).getTime() <= Date.now()
   const canQuote = !!activeAsset && !!rawAmount && !!refundTo.trim() && !busy
+  const canLiveQuote = activeChain === 'base' && !!dryResult && !liveExpired && !busy && liveConfirmed
+  const canSubmitDeposit = !!liveResult && !!txHash.trim() && txValid && !statusBusy && !isTerminal && !liveExpired
+
+  useEffect(() => {
+    if (!accountId || typeof window === 'undefined') return
+    const stored = window.localStorage.getItem(FUNDING_STORAGE_KEY)
+    if (!stored) return
+    try {
+      const parsed = JSON.parse(stored) as PersistedFunding
+      if (parsed.accountId !== accountId || !parsed.liveResult?.quote?.quote_id) return
+      setLiveResult(parsed.liveResult)
+      setTxHash(parsed.txHash || '')
+      api.fundingStatus(parsed.liveResult.quote.quote_id, true)
+        .then((response) => setStatus(response.data))
+        .catch(() => undefined)
+    } catch {
+      window.localStorage.removeItem(FUNDING_STORAGE_KEY)
+    }
+  }, [accountId])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!liveResult) {
+      window.localStorage.removeItem(FUNDING_STORAGE_KEY)
+      return
+    }
+    const persisted: PersistedFunding = { accountId, liveResult, txHash }
+    window.localStorage.setItem(FUNDING_STORAGE_KEY, JSON.stringify(persisted))
+  }, [accountId, liveResult, txHash])
+
+  useEffect(() => {
+    if (!status?.deposit_submitted || isTerminal || pollCount >= 12) return
+    const timer = window.setTimeout(async () => {
+      try {
+        setStatusBusy(true)
+        const response = await api.fundingStatus(status.quote_id, true)
+        setStatus(response.data)
+        setPollCount((count) => count + 1)
+      } catch (reason) {
+        setError(errorText(reason))
+      } finally {
+        setStatusBusy(false)
+      }
+    }, 8000)
+    return () => window.clearTimeout(timer)
+  }, [status, isTerminal, pollCount])
+
+  useEffect(() => {
+    if (destinationState === 'DESTINATION_VERIFIED' && !verifiedNotified) {
+      onVerified?.()
+      setVerifiedNotified(true)
+    }
+  }, [destinationState, verifiedNotified, onVerified])
 
   function chooseChain(next: string) {
     setChain(next)
     setSourceAsset('')
-    setStoredQuote(null)
+    setDryResult(null)
     setError(null)
   }
 
   function chooseAsset(next: string) {
     setSourceAsset(next)
-    setStoredQuote(null)
+    setDryResult(null)
     setError(null)
   }
 
@@ -72,6 +170,7 @@ export function Funding({ accountId }: { accountId: string }) {
     if (!activeAsset || !rawAmount || !refundTo.trim()) return
     setBusy(true)
     setError(null)
+    setDryResult(null)
     try {
       const result = await api.fundingQuote({
         source_asset: activeAsset.asset_id,
@@ -84,12 +183,88 @@ export function Funding({ accountId }: { accountId: string }) {
         deadline_minutes: 30,
         dry: true,
       })
-      setStoredQuote({ key: quoteKey, result: result.data })
+      setDryResult(result.data)
+      setLiveConfirmed(false)
     } catch (reason) {
-      setError(reason instanceof ApiError ? `${reason.code}: ${reason.message}` : reason instanceof Error ? reason.message : String(reason))
+      setError(errorText(reason))
     } finally {
       setBusy(false)
     }
+  }
+
+  async function requestLiveQuote() {
+    if (!activeAsset || !rawAmount || !refundTo.trim() || activeChain !== 'base') return
+    setBusy(true)
+    setError(null)
+    setLiveResult(null)
+    setStatus(null)
+    setTxHash('')
+    setPollCount(0)
+    try {
+      const result = await api.fundingLiveQuote({
+        source_asset: activeAsset.asset_id,
+        source_chain: activeAsset.blockchain,
+        amount: rawAmount,
+        recipient: accountId,
+        refund_to: refundTo.trim(),
+        deposit_type: 'ORIGIN_CHAIN',
+        slippage_bps: 100,
+        deadline_minutes: 15,
+        dry: false,
+        confirm_live_quote: true,
+        confirm_testnet: true,
+      })
+      setLiveResult(result.data)
+    } catch (reason) {
+      setError(errorText(reason))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function submitDepositHash() {
+    if (!liveResult || !txValid) return
+    setStatusBusy(true)
+    setError(null)
+    try {
+      const response = await api.fundingDeposit({
+        quote_id: liveResult.quote.quote_id,
+        tx_hash: txHash.trim(),
+        submit: true,
+        user_confirmed: true,
+      })
+      setStatus(response.data)
+      setPollCount(0)
+    } catch (reason) {
+      setError(errorText(reason))
+    } finally {
+      setStatusBusy(false)
+    }
+  }
+
+  async function refreshStatus() {
+    if (!liveResult) return
+    setStatusBusy(true)
+    setError(null)
+    try {
+      const response = await api.fundingStatus(liveResult.quote.quote_id, true)
+      setStatus(response.data)
+      setPollCount((count) => Math.min(12, count + 1))
+    } catch (reason) {
+      setError(errorText(reason))
+    } finally {
+      setStatusBusy(false)
+    }
+  }
+
+  function clearLiveFlow() {
+    setLiveResult(null)
+    setStatus(null)
+    setTxHash('')
+    setLiveConfirmed(false)
+    setPollCount(0)
+    setVerifiedNotified(false)
+    if (typeof window !== 'undefined') window.localStorage.removeItem(FUNDING_STORAGE_KEY)
   }
 
   if (tokens.status === 'loading') return <div className="skeleton" style={{ height: 260 }} />
@@ -98,25 +273,24 @@ export function Funding({ accountId }: { accountId: string }) {
     return <p className="dim">No external testnet funding route is currently offered to the NEAR Testnet collateral.</p>
   }
 
-  const providerQuote = quote?.provider_quote.quote
-  const q = quote?.quote
-  const validation = quote?.validation
-  const invalidAmount = amount.trim() !== '' && !rawAmount
+  const providerQuote = dryResult?.provider_quote.quote
+  const liveProviderQuote = liveResult?.provider_quote.quote
+  const settlement = status?.settlement_evidence
 
   return (
     <div className="card fund" aria-label="Fund Notch Wallet">
       <div className="fund-intro">
         <div>
-          <p className="eyebrow">Read-only discovery · 1Click-compatible</p>
+          <p className="eyebrow">Testnet bridge · manual approval</p>
           <h3>Fund Notch Wallet</h3>
-          <p className="dim">Discover a supported external testnet route into your connected NEAR Testnet wallet. This requests a genuine dry quote only.</p>
+          <p className="dim">Prepare one verified Base Sepolia route into your connected NEAR Testnet wallet. Notch never signs or broadcasts the source-chain transaction.</p>
         </div>
         <span className="badge">TESTNET ONLY</span>
       </div>
 
       <div className="fund-boundary" role="note">
         <strong>{data.network}</strong>
-        <span>{data.provider}. Test tokens have no monetary value. A dry quote does not move funds, create a deposit address, or authorize a wallet.</span>
+        <span>{data.provider}. Tidepool is a community-operated testnet sandbox, not the production NEAR Intents service. Test tokens have no value.</span>
       </div>
 
       <div className="fund-row fund-row-three">
@@ -135,10 +309,10 @@ export function Funding({ accountId }: { accountId: string }) {
         <label className="field" style={{ marginTop: 0 }}>
           <span>Amount</span>
           <div className="field-in" data-invalid={invalidAmount || undefined}>
-            <input inputMode="decimal" placeholder="0.0" value={amount} aria-invalid={invalidAmount || undefined} onChange={(event) => { setAmount(event.target.value.replace(/[^\d.]/g, '')); setStoredQuote(null) }} />
+            <input id="fund-amount" inputMode="decimal" placeholder="0.0" value={amount} aria-invalid={invalidAmount || undefined} aria-describedby={invalidAmount ? 'fund-amount-error' : undefined} onChange={(event) => { setAmount(event.target.value.replace(/[^\d.]/g, '')); setDryResult(null); setLiveResult(null); setStatus(null) }} />
             <span className="dim">{activeAsset?.symbol}</span>
           </div>
-          {invalidAmount && <small className="err">Use up to {activeAsset?.decimals} decimal places.</small>}
+          {invalidAmount && <small id="fund-amount-error" className="err">Use up to {activeAsset?.decimals} decimal places.</small>}
         </label>
       </div>
 
@@ -150,49 +324,116 @@ export function Funding({ accountId }: { accountId: string }) {
         </div>
         <label className="field" style={{ marginTop: 0 }}>
           <span>Refund destination on {chainLabel(activeChain)}</span>
-          <input className="field-in fund-refund" value={refundTo} placeholder={inputHint(activeChain)} aria-describedby="fund-refund-help" onChange={(event) => { setRefundTo(event.target.value); setStoredQuote(null) }} />
-          <small id="fund-refund-help">Required and validated by the server for the selected source chain. Use an address you control.</small>
+          <input id="fund-refund" className="field-in fund-refund" value={refundTo} placeholder={inputHint(activeChain)} aria-describedby="fund-refund-help" onChange={(event) => { setRefundTo(event.target.value); setDryResult(null); setLiveResult(null); setStatus(null) }} />
+          <small id="fund-refund-help">Required and validated for the selected source chain. Use an address you control.</small>
         </label>
       </div>
 
       <div className="fund-review-line">
         <span>Route: <strong>{activeAsset?.symbol} · {chainLabel(activeChain)}</strong> → <strong>test-USDC · NEAR Testnet</strong></span>
-        <span>Slippage cap: <strong>1%</strong> · Quote window: <strong>30 min</strong></span>
+        <span>Slippage cap: <strong>1%</strong> · Dry quote window: <strong>30 min</strong></span>
       </div>
 
       <div className="row-gap fund-actions">
-        <button className="btn btn-primary" onClick={requestDryQuote} disabled={!canQuote}>{busy ? 'Requesting dry quote…' : 'Inspect genuine dry quote'}</button>
+        <button className="btn btn-primary" onClick={requestDryQuote} disabled={!canQuote}>{busy ? 'Requesting quote…' : 'Inspect genuine dry quote'}</button>
         <a className="btn btn-quiet" href="https://www.usetidepool.tech/docs/quickstart" target="_blank" rel="noreferrer">Provider docs <span aria-hidden="true">↗</span></a>
       </div>
 
-      {error && <p className="fine err" role="alert">{error}</p>}
+      {error && <p className="fine err" role="alert" aria-live="assertive">{error}</p>}
 
-      {quote && q && providerQuote && validation && (
-        <section className="fund-quote" aria-labelledby="fund-quote-heading" aria-live="polite">
+      {dryResult && quote && providerQuote && (
+        <section className="fund-quote" aria-labelledby="fund-dry-heading" aria-live="polite">
           <div className="fund-quote-head">
             <div>
               <p className="eyebrow">Genuine provider response · dry=true</p>
-              <h4 id="fund-quote-heading">Quote is available</h4>
+              <h4 id="fund-dry-heading">Route review</h4>
             </div>
             <span className="badge badge-replay">NO TRANSFER</span>
           </div>
           <div className="fund-quote-grid">
-            <div><span>You would send</span><strong className="mono">{formatUnits(q.amount_in, q.source_decimals, 8)} {q.source_symbol}</strong><small>{providerQuote.amount_in_formatted} source units · {providerQuote.amount_in_usd} USD estimate</small></div>
-            <div><span>Estimated output</span><strong className="mono">{formatUnits(q.amount_out, q.destination_decimals, 8)} {q.destination_symbol}</strong><small>{providerQuote.amount_out_formatted} destination units · {providerQuote.amount_out_usd} USD estimate</small></div>
-            <div><span>Minimum output</span><strong className="mono">{formatUnits(q.min_amount_out, q.destination_decimals, 8)} {q.destination_symbol}</strong><small>After {((q.slippage_bps ?? 100) / 100).toFixed(2)}% configured slippage</small></div>
-            <div><span>Estimated time</span><strong>{providerQuote.time_estimate}s</strong><small>Returned by provider</small></div>
+            <div><span>You would send</span><strong className="mono">{formatUnits(quote.amount_in, quote.source_decimals, 8)} {quote.source_symbol}</strong><small>{providerQuote.amount_in_formatted} source units</small></div>
+            <div><span>Estimated output</span><strong className="mono">{formatUnits(quote.amount_out, quote.destination_decimals, 8)} {quote.destination_symbol}</strong><small>{providerQuote.amount_out_formatted} destination units</small></div>
+            <div><span>Minimum output</span><strong className="mono">{formatUnits(quote.min_amount_out, quote.destination_decimals, 8)} {quote.destination_symbol}</strong><small>After {((quote.slippage_bps ?? 100) / 100).toFixed(2)}% slippage</small></div>
+            <div><span>Provider signature</span><strong>{dryResult.validation.signature_verified ? 'Verified' : 'Shape checked'}</strong><small>Maker signature retained with the quote</small></div>
           </div>
           <dl className="kv kv-tight fund-quote-meta">
-            <div><dt>Supported route</dt><dd>{validation.route.label}</dd></div>
-            <div><dt>Recipient</dt><dd className="mono hash">{q.recipient}</dd></div>
-            <div><dt>Refund destination</dt><dd className="mono hash">{q.refund_to}</dd></div>
-            <div><dt>Provider</dt><dd>Tidepool · community-operated testnet sandbox</dd></div>
-            <div><dt>Quote timestamp</dt><dd>{q.quote_timestamp ? formatUtc(q.quote_timestamp) : '—'}</dd></div>
-            <div><dt>Freshness</dt><dd>{q.expires_at ? `${relativeTo(q.expires_at)} · expires ${formatUtc(q.expires_at)}` : 'No expiry returned'}</dd></div>
-            <div><dt>Provider fee fields</dt><dd>{providerQuote.withdraw_fee || providerQuote.refund_fee ? `withdraw ${providerQuote.withdraw_fee ?? '—'} · refund ${providerQuote.refund_fee ?? '—'} base units` : `No explicit fee fields · implied spread ${validation.implied_fee_usd} USD estimate`}</dd></div>
+            <div><dt>Origin asset</dt><dd className="mono hash">{quote.source_asset}</dd></div>
+            <div><dt>Destination asset</dt><dd className="mono hash">{quote.destination_asset}</dd></div>
+            <div><dt>Recipient</dt><dd className="mono hash">{quote.recipient}</dd></div>
+            <div><dt>Refund destination</dt><dd className="mono hash">{quote.refund_to}</dd></div>
+            <div><dt>Quote freshness</dt><dd>{quote.expires_at ? `${relativeTo(quote.expires_at)} · expires ${formatUtc(quote.expires_at)}` : 'No expiry returned'}</dd></div>
           </dl>
-          <p className="fund-warning" role="note">This quote has not funded the wallet. No deposit address was returned, no transaction was signed, and no swap was executed. Future deposits may require source-chain gas.</p>
-          <Link className="btn btn-quiet" to="/app/markets?f=open">Continue to open prediction markets <span aria-hidden="true">→</span></Link>
+          <p className="fund-warning" role="note">This is a price preview only. It did not create a deposit address, authorize a wallet, or move funds.</p>
+          {activeChain === 'base' ? (
+            <div className="fund-live-handoff">
+              <label className="fund-confirm">
+                <input type="checkbox" checked={liveConfirmed} onChange={(event) => setLiveConfirmed(event.target.checked)} />
+                <span>I reviewed the Base Sepolia → NEAR Testnet route and authorize Notch to request one live quote with a single-use deposit address. I understand no transfer will be sent automatically.</span>
+              </label>
+              <button className="btn btn-primary" onClick={requestLiveQuote} disabled={!canLiveQuote}>{busy ? 'Preparing live quote…' : 'Request live deposit instructions'}</button>
+            </div>
+          ) : (
+            <p className="fund-warning" role="note">Live deposits are not enabled for this source chain in Phase 7B V1. Select Base Sepolia for the first supported route.</p>
+          )}
+        </section>
+      )}
+
+      {liveResult && liveQuote && liveProviderQuote && liveInstructions && (
+        <section className="fund-quote fund-live" aria-labelledby="fund-live-heading" aria-live="polite">
+          <div className="fund-quote-head">
+            <div>
+              <p className="eyebrow">Live quote · dry=false</p>
+              <h4 id="fund-live-heading">Deposit instructions ready</h4>
+            </div>
+            <span className="badge">USER APPROVAL REQUIRED</span>
+          </div>
+          <div className="fund-quote-grid">
+            <div><span>Send exactly</span><strong className="mono">{formatUnits(liveQuote.amount_in, liveQuote.source_decimals, 8)} {liveQuote.source_symbol}</strong><small>{liveQuote.amount_in} base units</small></div>
+            <div><span>Minimum output</span><strong className="mono">{formatUnits(liveQuote.min_amount_out, liveQuote.destination_decimals, 8)} {liveQuote.destination_symbol}</strong><small>{liveQuote.min_amount_out} base units</small></div>
+            <div><span>Provider status</span><strong>{statusLabel(currentStatus)}</strong><small>{liveQuote.signature_verified ? 'Quote signature verified' : 'Signature shape checked'}</small></div>
+            <div><span>Deadline</span><strong>{liveQuote.expires_at ? relativeTo(liveQuote.expires_at) : '—'}</strong><small>{liveQuote.expires_at ? formatUtc(liveQuote.expires_at) : 'No deadline returned'}</small></div>
+          </div>
+          <dl className="kv kv-tight fund-quote-meta">
+            <div><dt>Base Sepolia chain ID</dt><dd>84532</dd></div>
+            <div><dt>Token contract</dt><dd className="mono hash">{activeAsset?.contract_address ?? liveQuote.source_asset}</dd></div>
+            <div><dt>Provider deposit address</dt><dd className="mono hash">{liveInstructions.provider_deposit_address} <a href={`https://sepolia.basescan.org/address/${liveInstructions.provider_deposit_address}`} target="_blank" rel="noreferrer">explorer ↗</a></dd></div>
+            <div><dt>Deposit memo</dt><dd className="mono hash">{liveInstructions.deposit_memo || 'None returned; do not invent one.'}</dd></div>
+            <div><dt>NEAR recipient</dt><dd className="mono hash">{liveQuote.recipient}</dd></div>
+            <div><dt>Refund destination</dt><dd className="mono hash">{liveQuote.refund_to}</dd></div>
+          </dl>
+          <ul className="fund-instructions">
+            {liveInstructions.warnings.map((warning) => <li key={warning}>{warning}</li>)}
+          </ul>
+          <p className="fund-warning" role="note">Notch has not signed or broadcast a Base transaction. Use a wallet you control on Base Sepolia, verify the contract and amount, and approve exactly one ERC-20 transfer to the provider address above. Never send Mainnet assets.</p>
+          {!status?.deposit_submitted && !isTerminal && (
+            <div className="fund-submit">
+              <label className="field" style={{ marginTop: 0 }}>
+                <span>Source transaction hash</span>
+                <input id="fund-tx-hash" className="field-in mono" inputMode="text" placeholder="0x… 64 hex characters" value={txHash} aria-describedby="fund-tx-help" onChange={(event) => setTxHash(event.target.value.trim())} />
+                <small id="fund-tx-help">After you approve the exact transfer in your external Base Sepolia wallet, paste the transaction hash here. Notch only submits this reference to Tidepool.</small>
+              </label>
+              <button className="btn btn-primary" onClick={submitDepositHash} disabled={!canSubmitDeposit}>{statusBusy ? 'Submitting reference…' : 'Submit transaction hash to Tidepool'}</button>
+            </div>
+          )}
+          {status?.deposit_submitted && !isTerminal && <p className="fund-status" role="status">Tidepool has the transaction reference. Status polling is bounded to 12 checks; you can refresh manually.</p>}
+          {status && (
+            <div className="fund-status-card" data-state={status.state}>
+              <div className="fund-status-head"><strong>{statusLabel(status.provider_status)}</strong><button className="btn btn-quiet" onClick={refreshStatus} disabled={statusBusy}>{statusBusy ? 'Checking…' : 'Check status now'}</button></div>
+              <dl className="kv kv-tight fund-quote-meta">
+                <div><dt>Provider state</dt><dd className="mono">{status.provider_status || 'Not submitted'}</dd></div>
+                <div><dt>Destination verification</dt><dd className="mono">{destinationState || 'Not started'}</dd></div>
+                <div><dt>Balance delta</dt><dd className="mono">{status.destination_verification?.balance_delta ?? '—'} base units</dd></div>
+                <div><dt>Deposit transaction</dt><dd className="mono hash">{status.deposit_tx_hash ? <a href={explorerTx(status.deposit_tx_hash)} target="_blank" rel="noreferrer">{status.deposit_tx_hash} ↗</a> : '—'}</dd></div>
+                <div><dt>Last error</dt><dd>{status.last_error || '—'}</dd></div>
+              </dl>
+              {status.provider_status === 'SUCCESS' && destinationState === 'DESTINATION_VERIFICATION_PENDING' && <p className="fund-warning">Provider SUCCESS is not enough yet. Notch is waiting for an independent NEP-141 balance increase on {status.recipient}; it will not display funded until that check passes.</p>}
+              {destinationState === 'DESTINATION_VERIFIED' && <p className="fund-success" role="status">Destination verified: {status.destination_symbol} arrived at the requested NEAR Testnet wallet.</p>}
+              {status.provider_status === 'REFUNDED' && <p className="fund-warning" role="alert">Tidepool reports REFUNDED. Do not treat this as funded; check the refund destination and provider evidence.</p>}
+              {status.provider_status === 'FAILED' && <p className="fund-warning" role="alert">Tidepool reports FAILED. No funded balance is claimed. Review the provider reason before retrying with a fresh quote.</p>}
+              {settlement && (settlement.near_tx_hashes.length > 0 || settlement.destination_chain_tx_hashes.length > 0) && <div className="fund-evidence"><strong>Settlement evidence</strong>{settlement.near_tx_hashes.map((hash) => <a key={hash} href={`https://testnet.nearblocks.io/txns/${hash}`} target="_blank" rel="noreferrer">NEAR transaction {hash} ↗</a>)}{settlement.destination_chain_tx_hashes.map((tx) => <a key={tx.hash} href={tx.explorer_url || `https://testnet.nearblocks.io/txns/${tx.hash}`} target="_blank" rel="noreferrer">Destination transaction {tx.hash} ↗</a>)}</div>}
+            </div>
+          )}
+          <div className="row-gap fund-actions"><Link className="btn btn-quiet" to="/app/markets?f=open">Continue to open prediction markets <span aria-hidden="true">→</span></Link><button className="btn btn-quiet" onClick={clearLiveFlow}>Start a new quote</button></div>
         </section>
       )}
     </div>

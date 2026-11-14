@@ -1,6 +1,6 @@
 import type {
-  ApiErrorBody, Brief, EntryIntent, Envelope, FundingQuote, FundingTokens, Market, MarketDetail, MarketEvidence,
-  FundingQuoteResult, PoolSnapshot, Position, PulseData, PulseWindow, QuoteRequest, Readiness, ResearchCouncil, ScoutCandidate, ScoutDirection, ScoutMeta, Trend, WalletBalances,
+  ApiErrorBody, Brief, EntryIntent, Envelope, FundingTokens, Market, MarketDetail, MarketEvidence,
+  FundingQuoteResult, FundingStatusResult, PoolSnapshot, Position, PulseData, PulseWindow, QuoteRequest, Readiness, ResearchCouncil, ScoutCandidate, ScoutDirection, ScoutMeta, Trend, WalletBalances,
 } from './types'
 
 const BASE = ((import.meta.env.VITE_API_BASE as string | undefined) ?? '').replace(/\/$/, '')
@@ -58,6 +58,10 @@ export const api = {
   positions: (accountId: string) => request<Position[]>(`/api/wallets/${enc(accountId)}/positions`),
   fundingTokens: () => request<FundingTokens>('/api/funding/tokens'),
   fundingQuote: (body: QuoteRequest) => request<FundingQuoteResult>('/api/funding/quote', { method: 'POST', body: JSON.stringify(body) }),
+  fundingLiveQuote: (body: QuoteRequest & { confirm_live_quote: true; confirm_testnet: true }) =>
+    request<FundingQuoteResult>('/api/funding/live-quote', { method: 'POST', body: JSON.stringify(body) }),
+  fundingDeposit: (body: { quote_id: string; tx_hash: string; submit: true; user_confirmed: true }) =>
+    request<FundingStatusResult>('/api/funding/deposit', { method: 'POST', body: JSON.stringify(body) }),
   fundingStatus: (quoteId: string, refresh = false) =>
-    request<{ quote: FundingQuote; [k: string]: unknown }>(`/api/funding/status/${enc(quoteId)}${refresh ? '?refresh=true' : ''}`),
+    request<FundingStatusResult>(`/api/funding/status/${enc(quoteId)}${refresh ? '?refresh=true' : ''}`),
 }

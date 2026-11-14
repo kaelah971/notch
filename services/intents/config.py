@@ -40,6 +40,7 @@ class IntentsConfig:
     poll_interval_seconds: float = 2.0
     min_market_entry_base_units: int = 1_000_000
     storage_deposit_yocto: str = "1250000000000000000000"  # 0.00125 NEAR
+    verify_quote_signatures: bool = True
 
     def __post_init__(self) -> None:
         host = (urlparse(self.base_url).hostname or "").lower()

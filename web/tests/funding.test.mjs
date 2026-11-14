@@ -10,16 +10,22 @@ test('funding input preserves exact source-token decimals', () => {
   assert.equal(parseUnits('0', 6), '0')
 })
 
-test('funding surface is dry-quote only and returns to prediction markets', () => {
+test('funding flow requires review before a Base live quote and returns to prediction markets', () => {
   const source = readFileSync(new URL('../src/pages/Funding.tsx', import.meta.url), 'utf8')
   assert.match(source, /dry: true/)
+  assert.match(source, /dry: false/)
+  assert.match(source, /confirm_live_quote: true/)
+  assert.match(source, /confirm_testnet: true/)
   assert.match(source, /source_chain: activeAsset\.blockchain/)
   assert.match(source, /refund_to: refundTo\.trim\(\)/)
+  assert.match(source, /Submit transaction hash to Tidepool/)
   assert.match(source, /\/app\/markets\?f=open/)
-  assert.doesNotMatch(source, /dry: false|signAndSend|fundingStatus|deposit-instructions|deposit_address.*sign/i)
+  assert.doesNotMatch(source, /signAndSend|private key|seed phrase|unlimited allowance/i)
 })
 
-test('public funding API is not a second wallet or entry signer', () => {
+test('public funding API separates dry and confirmed live quote boundaries', () => {
   const api = readFileSync(new URL('../src/api/client.ts', import.meta.url), 'utf8')
-  assert.doesNotMatch(api, /signAndSend|fundingQuote[^\n]*dry:\s*false/i)
+  assert.match(api, /fundingLiveQuote/)
+  assert.match(api, /fundingDeposit/)
+  assert.doesNotMatch(api, /signAndSend|privateKey|seedPhrase/i)
 })

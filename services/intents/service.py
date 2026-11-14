@@ -45,6 +45,7 @@ from .validation import (
     Route,
     ValidationError,
     format_base_units,
+    is_valid_deposit_tx_hash,
     select_route,
     supported_routes,
     validate_quote_response,
@@ -239,6 +240,7 @@ class IntentsFundingService:
             route,
             self.config,
             now=self.now_fn(),
+            verify_signature=self.config.verify_quote_signatures,
         )
         instructions = build_deposit_instructions(
             response,
@@ -316,6 +318,7 @@ class IntentsFundingService:
             balance_before=balance_before,
             last_error=balance_error,
             expires_at=iso_utc(validation.expires_at),
+            signature_verified=validation.signature_verified,
             raw_quote=response.raw,
         )
         self.store.save_quote(quote)
@@ -382,6 +385,14 @@ class IntentsFundingService:
         submit: bool = False,
     ) -> FundingQuote:
         quote = self.store.require_quote(quote_id)
+        if not is_valid_deposit_tx_hash(tx_hash.strip(), quote.source_chain):
+            raise ValidationError(
+                "INVALID_DEPOSIT_TX_HASH",
+                f"transaction hash is not valid for source chain {quote.source_chain}",
+                field="tx_hash",
+            )
+        if quote.deposit_tx_hash == tx_hash.strip() and quote.deposit_submitted and submit:
+            return quote
         if quote.dry:
             raise ValidationError("DRY_QUOTE", "dry quotes cannot receive deposits")
         if quote.state in TERMINAL_STATES:
@@ -407,7 +418,7 @@ class IntentsFundingService:
                 status = self.client.submit_deposit(
                     tx_hash=tx_hash,
                     deposit_address=quote.deposit_address or "",
-                    near_sender_account=quote.recipient,
+                    near_sender_account=quote.recipient if quote.source_chain == "near" else None,
                     memo=quote.deposit_memo,
                 )
                 quote = self._apply_status(quote, status, now=self.now_fn())
@@ -492,6 +503,18 @@ class IntentsFundingService:
     ) -> FundingQuote:
         if quote.state in TERMINAL_STATES:
             return quote
+        identity_error = self._status_identity_error(quote, status)
+        if identity_error:
+            quote.last_error = identity_error
+            quote.updated_at = iso_utc(now) or ""
+            self.store.save_quote(quote)
+            self.store.append_event(
+                quote.quote_id,
+                "status_identity_mismatch",
+                {"error": identity_error},
+                created_at=quote.updated_at,
+            )
+            return quote
         quote.poll_count += 1
         quote.provider_status = status.status
         quote.raw_status = status.raw
@@ -560,6 +583,26 @@ class IntentsFundingService:
         )
         return quote
 
+    def _status_identity_error(
+        self,
+        quote: FundingQuote,
+        status: StatusResponse,
+    ) -> str | None:
+        request = status.quote_response.quote_request
+        response_quote = status.quote_response.quote
+        checks = (
+            ("correlationId", status.correlation_id, quote.correlation_id),
+            ("originAsset", request.origin_asset, quote.source_asset),
+            ("destinationAsset", request.destination_asset, quote.destination_asset),
+            ("recipient", request.recipient, quote.recipient),
+            ("amount", request.amount, quote.amount_in),
+            ("depositAddress", response_quote.deposit_address, quote.deposit_address),
+        )
+        for field, actual, expected in checks:
+            if actual != expected:
+                return f"provider status {field}={actual!r} does not match the stored quote"
+        return None
+
     def verify_balance(self, quote_id: str) -> FundingQuote:
         quote = self.store.require_quote(quote_id)
         if quote.dry:
@@ -625,6 +668,41 @@ class IntentsFundingService:
         return self.store.list_quotes(limit=limit)
 
     def quote_summary(self, quote: FundingQuote) -> dict[str, Any]:
+        provider_result = "PROVIDER_SUCCESS" if quote.provider_status == ProviderStatus.SUCCESS.value else quote.provider_status
+        destination_state = None
+        if quote.provider_status == ProviderStatus.SUCCESS.value:
+            destination_state = (
+                "DESTINATION_VERIFIED"
+                if quote.balance_verified
+                else "DESTINATION_VERIFICATION_PENDING"
+            )
+        settlement: dict[str, Any] = {
+            "provider_status": quote.provider_status,
+            "updated_at": None,
+            "intent_hashes": [],
+            "near_tx_hashes": [],
+            "origin_chain_tx_hashes": [],
+            "destination_chain_tx_hashes": [],
+            "refund_reason": quote.refund_reason,
+            "refunded_amount": quote.refunded_amount,
+        }
+        if quote.raw_status:
+            try:
+                status = StatusResponse.from_provider(quote.raw_status)
+                settlement.update(
+                    {
+                        "updated_at": status.updated_at,
+                        "intent_hashes": status.swap_details.intent_hashes,
+                        "near_tx_hashes": status.swap_details.near_tx_hashes,
+                        "origin_chain_tx_hashes": status.swap_details.origin_chain_tx_hashes,
+                        "destination_chain_tx_hashes": status.swap_details.destination_chain_tx_hashes,
+                        "refund_reason": status.swap_details.refund_reason or quote.refund_reason,
+                        "refunded_amount": status.swap_details.refunded_amount or quote.refunded_amount,
+                        "amount_out": status.swap_details.amount_out,
+                    }
+                )
+            except (TypeError, ValueError):
+                pass
         return {
             **quote.to_dict(),
             "amount_in_display": format_base_units(quote.amount_in, quote.source_decimals),
@@ -632,5 +710,18 @@ class IntentsFundingService:
             "min_amount_out_display": format_base_units(
                 quote.min_amount_out, quote.destination_decimals
             ),
+            "provider_result": provider_result,
+            "destination_verification": {
+                "state": destination_state,
+                "account": quote.recipient,
+                "asset_id": quote.destination_asset,
+                "balance_before": quote.balance_before,
+                "balance_after": quote.balance_after,
+                "balance_delta": quote.balance_delta,
+                "required_min_amount_out": quote.min_amount_out,
+                "verified": quote.balance_verified,
+                "error": quote.last_error if destination_state else None,
+            },
+            "settlement_evidence": settlement,
             "events": self.store.list_events(quote.quote_id),
         }

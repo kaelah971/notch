@@ -126,6 +126,7 @@ def status_payload(
     status: str,
     *,
     amount_out: str = "996968",
+    correlation_id: str = "quote-test-1",
     refunded_amount: str | None = None,
     refund_reason: str | None = None,
     near_tx_hashes: list[str] | None = None,
@@ -147,7 +148,7 @@ def status_payload(
     if refund_reason is not None:
         swap["refundReason"] = refund_reason
     return {
-        "correlationId": "quote-test-1",
+        "correlationId": correlation_id,
         "quoteResponse": response,
         "status": status,
         "updatedAt": "2026-11-12T07:01:00Z",

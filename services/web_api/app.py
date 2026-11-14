@@ -14,7 +14,7 @@ from services.intents.client import TidepoolClient, TidepoolError
 from services.intents.config import IntentsConfig
 from services.intents.models import DepositType
 from services.intents.service import IntentsFundingService
-from services.intents.store import FundingStore, FundingStoreError
+from services.intents.store import DuplicateDepositError, FundingStore, FundingStoreError
 from services.intents.validation import ValidationError, is_near_account, parse_base_units
 from services.near_ai.client import NearAIClient, NearAIError
 from services.near_ai.config import NearAIConfig
@@ -137,6 +137,8 @@ class WebAPI:
             return 503, ApiError(
                 "DEPENDENCY_UNAVAILABLE", str(exc), status=503
             ).to_dict()
+        except DuplicateDepositError as exc:
+            return 409, ApiError("DUPLICATE_DEPOSIT", str(exc), status=409).to_dict()
         except FundingStoreError as exc:
             return 404, ApiError("QUOTE_NOT_FOUND", str(exc), status=404).to_dict()
         except Exception:
@@ -190,6 +192,10 @@ class WebAPI:
             raise ApiError("INVALID_BODY", "JSON object body is required", status=400)
         if parts == ["api", "funding", "quote"]:
             return 200, self._funding_quote(body)
+        if parts == ["api", "funding", "live-quote"]:
+            return 200, self._funding_live_quote(body)
+        if parts == ["api", "funding", "deposit"]:
+            return 200, self._funding_deposit(body)
         if len(parts) == 4 and parts[:2] == ["api", "markets"] and parts[3] == "entry-intent":
             return 200, self._entry_intent(parts[2], body)
         if len(parts) == 4 and parts[:2] == ["api", "markets"] and parts[3] == "research":
@@ -766,6 +772,132 @@ class WebAPI:
                 "provider": "tidepool-testnet",
                 "network": "NEAR Testnet",
                 "quote_only": True,
+            },
+        }
+
+    def _funding_live_quote(self, body: dict[str, Any]) -> dict[str, Any]:
+        self.rate_limiter.check(
+            "funding", "funding-live-quote", self.config.quote_rate_limit_per_minute
+        )
+        allowed = {
+            "source_asset",
+            "amount",
+            "recipient",
+            "refund_to",
+            "source_chain",
+            "deposit_type",
+            "slippage_bps",
+            "deadline_minutes",
+            "dry",
+            "confirm_live_quote",
+            "confirm_testnet",
+        }
+        unknown = set(body) - allowed
+        if unknown:
+            raise ApiError(
+                "INVALID_BODY",
+                f"unsupported fields: {', '.join(sorted(unknown))}",
+                status=400,
+            )
+        if body.get("dry") is not False:
+            raise ApiError(
+                "LIVE_QUOTE_REQUIRES_DRY_FALSE",
+                "live quote preparation must explicitly request dry=false",
+                status=400,
+            )
+        if body.get("confirm_live_quote") is not True or body.get("confirm_testnet") is not True:
+            raise ApiError(
+                "LIVE_QUOTE_NOT_CONFIRMED",
+                "review the route and explicitly confirm the Testnet live-quote handoff",
+                status=409,
+            )
+        if body.get("source_chain") != "base":
+            raise ApiError(
+                "ROUTE_NOT_ENABLED",
+                "Phase 7B V1 enables the verified Base Sepolia route only",
+                status=409,
+            )
+        if body.get("deposit_type") not in {None, DepositType.ORIGIN_CHAIN.value}:
+            raise ApiError(
+                "UNSUPPORTED_DEPOSIT_TYPE",
+                "Phase 7B V1 requires ORIGIN_CHAIN for the Base Sepolia route",
+                status=400,
+            )
+        for field in ("source_asset", "amount", "recipient", "refund_to", "source_chain"):
+            if not isinstance(body.get(field), str) or not body[field]:
+                raise ApiError("INVALID_BODY", f"{field} is required", status=400)
+        try:
+            deadline_minutes = int(body.get("deadline_minutes") or 15)
+        except (TypeError, ValueError) as exc:
+            raise ApiError("INVALID_BODY", "deadline_minutes must be an integer", status=400) from exc
+        if deadline_minutes < 1 or deadline_minutes > 60:
+            raise ApiError("INVALID_BODY", "deadline_minutes must be 1-60", status=400)
+        try:
+            slippage = int(body.get("slippage_bps") or 100)
+        except (TypeError, ValueError) as exc:
+            raise ApiError("INVALID_BODY", "slippage_bps must be an integer", status=400) from exc
+        prepared = self.funding_service.prepare_swap(
+            source_asset=body["source_asset"],
+            amount=body["amount"],
+            recipient=body["recipient"],
+            refund_to=body["refund_to"],
+            source_chain=body["source_chain"],
+            deposit_type=DepositType.ORIGIN_CHAIN.value,
+            slippage_bps=slippage,
+            deadline_minutes=deadline_minutes,
+        )
+        return {
+            "data": prepared.to_dict(),
+            "meta": {
+                "signed": False,
+                "broadcast": False,
+                "dry": False,
+                "live_quote": True,
+                "deposit_address_created": True,
+                "manual_deposit_required": bool(prepared.instructions and prepared.instructions.manual_only),
+                "provider": "tidepool-testnet",
+                "network": "Base Sepolia → NEAR Testnet",
+                "user_approval_required": True,
+            },
+        }
+
+    def _funding_deposit(self, body: dict[str, Any]) -> dict[str, Any]:
+        self.rate_limiter.check(
+            "funding", "funding-deposit", self.config.quote_rate_limit_per_minute
+        )
+        allowed = {"quote_id", "tx_hash", "submit", "user_confirmed"}
+        unknown = set(body) - allowed
+        if unknown:
+            raise ApiError(
+                "INVALID_BODY",
+                f"unsupported fields: {', '.join(sorted(unknown))}",
+                status=400,
+            )
+        if body.get("user_confirmed") is not True or body.get("submit") is not True:
+            raise ApiError(
+                "DEPOSIT_NOT_CONFIRMED",
+                "confirm that you sent the exact quoted testnet transfer before submitting its hash",
+                status=409,
+            )
+        if not isinstance(body.get("quote_id"), str) or not body["quote_id"]:
+            raise ApiError("INVALID_BODY", "quote_id is required", status=400)
+        if not isinstance(body.get("tx_hash"), str) or not body["tx_hash"].strip():
+            raise ApiError("INVALID_BODY", "tx_hash is required", status=400)
+        quote = self.funding_service.get_quote(body["quote_id"])
+        if quote.source_chain != "base":
+            raise ApiError("ROUTE_NOT_ENABLED", "only Base Sepolia deposits are enabled in Phase 7B V1", status=409)
+        updated = self.funding_service.record_deposit(
+            body["quote_id"],
+            body["tx_hash"],
+            submit=True,
+        )
+        return {
+            "data": self.funding_service.quote_summary(updated),
+            "meta": {
+                "signed": False,
+                "broadcast": False,
+                "provider_submitted": updated.deposit_submitted,
+                "user_transaction_required": True,
             },
         }
 

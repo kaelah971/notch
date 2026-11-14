@@ -421,8 +421,12 @@ export interface FundingStep {
   args: Record<string, unknown>; attached_deposit_yocto: string; gas_tgas: number; note?: string
 }
 export interface FundingInstructions {
-  supported: boolean; blocker: string | null; deposit_type: string
-  provider_deposit_address: string | null; deadline: string
+  supported: boolean; blocker: string | null; manual_only?: boolean; deposit_type: string
+  source_chain?: string; source_asset?: string; source_symbol?: string; source_decimals?: number
+  destination_asset?: string; destination_symbol?: string; destination_decimals?: number
+  amount_in?: string; min_amount_out?: string; deposit_memo?: string | null
+  recipient?: string; refund_to?: string; deadline: string | null
+  provider_deposit_address: string | null
   steps: FundingStep[]; warnings: string[]
 }
 export interface FundingQuote {
@@ -445,24 +449,52 @@ export interface FundingQuote {
   balance_delta: string | null
   last_error: string | null
   deposit_submitted: boolean
+  deposit_tx_hash?: string | null
+  signature_verified?: boolean
+  provider_result?: string | null
+  settlement_evidence?: FundingSettlementEvidence
+  destination_verification?: FundingDestinationVerification
 }
 export interface ProviderQuoteDetails {
   amount_in: string; amount_in_formatted: string; amount_in_usd: string
   min_amount_in: string; amount_out: string; amount_out_formatted: string; amount_out_usd: string
   min_amount_out: string; time_estimate: number
+  deposit_address?: string | null; deposit_memo?: string | null
   refund_fee?: string | null; withdraw_fee?: string | null
-  deadline?: string | null
+  time_when_inactive?: string | null; deadline?: string | null
 }
 export interface FundingQuoteValidation {
   route: FundingRoute
   expires_at: string
   implied_fee_usd: string
   warnings: string[]
+  signature_verified?: boolean
+}
+export interface FundingTransactionReference { hash: string; explorer_url?: string }
+export interface FundingSettlementEvidence {
+  provider_status: string | null; updated_at: string | null
+  intent_hashes: string[]; near_tx_hashes: string[]
+  origin_chain_tx_hashes: FundingTransactionReference[]
+  destination_chain_tx_hashes: FundingTransactionReference[]
+  refund_reason: string | null; refunded_amount: string | null; amount_out?: string | null
+}
+export interface FundingDestinationVerification {
+  state: 'PROVIDER_SUCCESS' | 'DESTINATION_VERIFIED' | 'DESTINATION_VERIFICATION_PENDING' | string | null
+  account: string; asset_id: string; balance_before: string | null; balance_after: string | null
+  balance_delta: string | null; required_min_amount_out: string; verified: boolean; error: string | null
 }
 export interface FundingQuoteResult {
   quote: FundingQuote
-  provider_quote: { correlation_id: string; timestamp: string; quote_request: Record<string, unknown>; quote: ProviderQuoteDetails }
+  provider_quote: { correlation_id: string; timestamp: string; signature?: string; quote_request: Record<string, unknown>; quote: ProviderQuoteDetails }
   validation: FundingQuoteValidation
+  instructions?: FundingInstructions | null
+}
+export type FundingStatusResult = FundingQuote & {
+  provider_result?: string | null
+  settlement_evidence?: FundingSettlementEvidence
+  destination_verification?: FundingDestinationVerification
+  events?: Array<{ event: string; created_at: string; data: Record<string, unknown> }>
+  amount_in_display?: string; amount_out_display?: string; min_amount_out_display?: string
 }
 
 /** A pool-totals value the S6 API actually read from the contract, at NEAR block time. */

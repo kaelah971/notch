@@ -87,9 +87,14 @@ def build_deposit_instructions(
             refund_to=request.refund_to,
             deadline=quote.deadline or request.deadline,
             steps=[],
-            warnings=warnings,
-            supported=False,
-            blocker=f"deposit instructions for source chain {source.blockchain} are not implemented yet",
+            warnings=[
+                *warnings,
+                "Manual external-chain deposit only: Notch does not connect to or sign an EVM wallet.",
+                "Approve exactly one token transfer to this provider address from your own Base Sepolia wallet.",
+            ],
+            supported=True,
+            blocker=None,
+            manual_only=True,
         )
 
     steps: list[DepositStep] = []
@@ -181,4 +186,5 @@ def build_deposit_instructions(
         steps=steps,
         warnings=warnings,
         supported=True,
+        manual_only=False,
     )

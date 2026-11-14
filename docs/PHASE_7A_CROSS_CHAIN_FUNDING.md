@@ -99,21 +99,9 @@ The USD values returned by the provider are display estimates only. The UI does 
 - `web/package.json` — `npm run test:funding`.
 - `web/tests/funding.test.mjs` — frontend quote-only and exact-unit regression coverage.
 
-## Phase 7B handoff — deliberately not implemented
+## Phase 7B handoff
 
-A complete testnet swap still requires a separate, explicitly approved milestone for:
-
-- user-approved quote commitment;
-- unique deposit address and optional memo;
-- deadline/expiration handling and quote refresh;
-- external wallet authorization;
-- deposit transaction reference and provider submission;
-- status polling and recovery;
-- `SUCCESS`, `REFUNDED`, `FAILED` and `INCOMPLETE_DEPOSIT` handling;
-- independent destination balance verification;
-- clear return to Notch's prediction-entry flow after verified collateral arrival.
-
-No Phase 7B state-changing operation is initiated by the Phase 7A UI or `/api/funding/quote`.
+Phase 7B now lives in `docs/PHASE_7B_REAL_TESTNET_FUNDING.md`. The Phase 7A `/api/funding/quote` endpoint remains dry-only and still rejects `dry=false`; the separate Phase 7B live-quote endpoint requires explicit Testnet and live-quote confirmation. The first route is Base Sepolia with manual user-submitted deposit hashes, bounded provider status polling, and independent NEP-141 balance verification. No source-chain transaction is signed or broadcast by Notch.
 
 ## Limitations
 

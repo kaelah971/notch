@@ -451,6 +451,7 @@ class DepositInstructions:
     warnings: list[str]
     supported: bool = True
     blocker: str | None = None
+    manual_only: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -472,6 +473,7 @@ class DepositInstructions:
             "deadline": self.deadline,
             "supported": self.supported,
             "blocker": self.blocker,
+            "manual_only": self.manual_only,
             "steps": [
                 {
                     "step": step.step,
@@ -557,6 +559,7 @@ class FundingQuote:
     refunded_amount: str | None = None
     poll_count: int = 0
     expires_at: str | None = None
+    signature_verified: bool = False
     raw_quote: dict[str, Any] = field(default_factory=dict)
     raw_status: dict[str, Any] = field(default_factory=dict)
 
@@ -603,6 +606,7 @@ class FundingQuote:
             "refunded_amount": self.refunded_amount,
             "poll_count": self.poll_count,
             "expires_at": self.expires_at,
+            "signature_verified": self.signature_verified,
         }
 
     def to_storage_dict(self) -> dict[str, Any]:
@@ -656,6 +660,7 @@ class FundingQuote:
             refunded_amount=data.get("refunded_amount"),
             poll_count=int(data.get("poll_count", 0)),
             expires_at=data.get("expires_at"),
+            signature_verified=bool(data.get("signature_verified")),
             raw_quote=dict(data.get("raw_quote") or {}),
             raw_status=dict(data.get("raw_status") or {}),
         )

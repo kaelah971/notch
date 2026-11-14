@@ -89,7 +89,7 @@ class InstructionTests(unittest.TestCase):
             )
         self.assertEqual(ctx.exception.code, "DRY_QUOTE")
 
-    def test_non_near_chain_is_explicitly_unsupported(self):
+    def test_external_chain_is_manual_only(self):
         source = token(
             "nep141:base-0x38d81431b9f76d9699af7517040d5221d9dea252.tp-omft.testnet"
         )
@@ -97,8 +97,9 @@ class InstructionTests(unittest.TestCase):
         instructions = build_deposit_instructions(
             response, source, self.usdc, self.config, now=fixtures.NOW
         )
-        self.assertFalse(instructions.supported)
-        self.assertIn("not implemented", instructions.blocker)
+        self.assertTrue(instructions.supported)
+        self.assertTrue(instructions.manual_only)
+        self.assertIsNone(instructions.blocker)
         self.assertEqual(instructions.steps, [])
 
 
