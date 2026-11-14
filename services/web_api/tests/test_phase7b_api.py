@@ -36,6 +36,7 @@ class FakeLiveFunding:
         self.store = SimpleNamespace(close=lambda: None)
         self.quote = SimpleNamespace(source_chain="base", quote_id="base-quote-test")
         self.live_calls = 0
+        self.pre_transfer_calls = 0
         self.deposit_calls = 0
 
     def discover_tokens(self):
@@ -50,6 +51,17 @@ class FakeLiveFunding:
 
     def get_quote(self, quote_id):
         return self.quote
+
+    def capture_pre_transfer_balance(self, quote_id):
+        self.pre_transfer_calls += 1
+        return SimpleNamespace(
+            to_dict=lambda: {
+                "observation_id": f"{quote_id}:pre-transfer",
+                "quote_id": quote_id,
+                "balance": "99000000",
+                "finality": "final",
+            }
+        )
 
     def record_deposit(self, quote_id, tx_hash, *, submit=False):
         self.deposit_calls += 1
@@ -108,6 +120,23 @@ class Phase7BApiTests(unittest.TestCase):
         self.assertTrue(payload["meta"]["live_quote"])
         self.assertFalse(payload["meta"]["signed"])
         self.assertEqual(self.funding.live_calls, 1)
+
+    def test_pre_transfer_balance_capture_accepts_only_quote_id(self):
+        status, payload = self.call(
+            "POST",
+            "/api/funding/pre-transfer-balance",
+            {"quote_id": "base-quote-test", "balance": "99000000"},
+        )
+        self.assertEqual(status, 400)
+        self.assertEqual(payload["error"]["code"], "INVALID_BODY")
+        status, payload = self.call(
+            "POST",
+            "/api/funding/pre-transfer-balance",
+            {"quote_id": "base-quote-test"},
+        )
+        self.assertEqual(status, 200)
+        self.assertTrue(payload["meta"]["read_only_chain_operation"])
+        self.assertEqual(self.funding.pre_transfer_calls, 1)
 
     def test_deposit_requires_user_submitted_hash_and_confirmation(self):
         body = {

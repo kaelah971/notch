@@ -285,6 +285,8 @@ class WebAPI:
             return 200, self._funding_quote(body)
         if parts == ["api", "funding", "live-quote"]:
             return 200, self._funding_live_quote(body)
+        if parts == ["api", "funding", "pre-transfer-balance"]:
+            return 200, self._funding_pre_transfer_balance(body)
         if parts == ["api", "funding", "deposit"]:
             return 200, self._funding_deposit(body)
         if parts == ["api", "funding", "mainnet", "quote"]:
@@ -1206,6 +1208,29 @@ class WebAPI:
                 "provider": "tidepool-testnet",
                 "network": "Base Sepolia → NEAR Testnet",
                 "user_approval_required": True,
+            },
+        }
+
+    def _funding_pre_transfer_balance(self, body: dict[str, Any]) -> dict[str, Any]:
+        allowed = {"quote_id"}
+        unknown = set(body) - allowed
+        if unknown:
+            raise ApiError(
+                "INVALID_BODY",
+                f"unsupported fields: {', '.join(sorted(unknown))}",
+                status=400,
+            )
+        quote_id = body.get("quote_id")
+        if not isinstance(quote_id, str) or not quote_id:
+            raise ApiError("INVALID_BODY", "quote_id is required", status=400)
+        observation = self.funding_service.capture_pre_transfer_balance(quote_id)
+        return {
+            "data": observation.to_dict(),
+            "meta": {
+                "read_only_chain_operation": True,
+                "signed": False,
+                "broadcast": False,
+                "deposit_submitted": False,
             },
         }
 
