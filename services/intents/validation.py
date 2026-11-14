@@ -81,6 +81,14 @@ def is_near_account(value: str) -> bool:
     return bool(NEAR_ACCOUNT_RE.fullmatch(value or ""))
 
 
+def _is_mainnet_asset(value: str | None) -> bool:
+    return bool(value) and ".testnet" not in value.lower()
+
+
+def _is_testnet_asset(value: str | None) -> bool:
+    return bool(value) and ".testnet" in value.lower()
+
+
 def is_valid_signature_shape(value: str) -> bool:
     return bool(BASE58_SIGNATURE_RE.fullmatch(value or ""))
 
@@ -162,10 +170,13 @@ def select_route(
     config: IntentsConfig,
     *,
     source_chain: str | None = None,
+    destination_asset: str | None = None,
+    require_testnet: bool = True,
 ) -> Route:
     by_id = {token.asset_id: token for token in tokens}
+    expected_destination = destination_asset or config.destination_asset
     source = by_id.get(source_asset)
-    destination = by_id.get(config.destination_asset)
+    destination = by_id.get(expected_destination)
     if source is None:
         raise ValidationError(
             "UNSUPPORTED_SOURCE_ASSET",
@@ -175,13 +186,28 @@ def select_route(
     if destination is None:
         raise ValidationError(
             "DESTINATION_ASSET_UNAVAILABLE",
-            f"destination asset is not in the live /v0/tokens list: {config.destination_asset}",
+            f"destination asset is not in the live /v0/tokens list: {expected_destination}",
             field="destinationAsset",
         )
-    if destination.asset_id != DESTINATION_ASSET:
+    if require_testnet and destination.asset_id != DESTINATION_ASSET:
         raise ValidationError(
             "WRONG_DESTINATION",
             f"destination must be {DESTINATION_ASSET}",
+            field="destinationAsset",
+        )
+    if require_testnet and not _is_testnet_asset(source.asset_id):
+        raise ValidationError(
+            "TESTNET_MAINNET_MISMATCH",
+            "Testnet funding cannot use a Mainnet source asset",
+            field="originAsset",
+        )
+    if not require_testnet and (
+        not _is_mainnet_asset(source.asset_id)
+        or not _is_mainnet_asset(destination.asset_id)
+    ):
+        raise ValidationError(
+            "MAINNET_TESTNET_MISMATCH",
+            "official Mainnet routes cannot contain Testnet asset identifiers",
             field="destinationAsset",
         )
     if source.asset_id == destination.asset_id:
@@ -238,11 +264,14 @@ def validate_request(
     *,
     now: datetime,
     source_chain: str | None = None,
+    destination_asset: str | None = None,
+    require_testnet: bool = True,
 ) -> Route:
-    if request.destination_asset != config.destination_asset:
+    expected_destination = destination_asset or config.destination_asset
+    if request.destination_asset != expected_destination:
         raise ValidationError(
             "WRONG_DESTINATION",
-            f"destination must be {config.destination_asset}",
+            f"destination must be {expected_destination}",
             field="destinationAsset",
         )
     if request.swap_type != SwapType.EXACT_INPUT.value:
@@ -287,13 +316,24 @@ def validate_request(
             "depositMode must be SIMPLE or MEMO",
             field="depositMode",
         )
-    if not is_near_account(request.recipient):
+    if not is_near_account(request.recipient) or (
+        require_testnet is False and request.recipient.lower().endswith(".testnet")
+    ):
         raise ValidationError(
             "INVALID_RECIPIENT",
-            "recipient must be a NEAR testnet account",
+            "recipient must be a NEAR Mainnet account"
+            if not require_testnet
+            else "recipient must be a NEAR Testnet account",
             field="recipient",
         )
-    route = select_route(tokens, request.origin_asset, config, source_chain=source_chain)
+    route = select_route(
+        tokens,
+        request.origin_asset,
+        config,
+        source_chain=source_chain,
+        destination_asset=expected_destination,
+        require_testnet=require_testnet,
+    )
     expected_refund_type = (
         RefundType.ORIGIN_CHAIN.value
         if request.deposit_type == DepositType.ORIGIN_CHAIN.value
@@ -308,7 +348,8 @@ def validate_request(
     if not is_valid_refund_address(request.refund_to, route.source.blockchain):
         raise ValidationError(
             "INVALID_REFUND_TO",
-            f"refundTo is not a valid {route.source.blockchain} testnet address",
+            f"refundTo is not a valid {route.source.blockchain} "
+            f"{'testnet ' if require_testnet else ''}address",
             field="refundTo",
         )
     amount = parse_base_units(request.amount)
@@ -347,6 +388,8 @@ def validate_quote_response(
     *,
     now: datetime,
     verify_signature: bool = False,
+    signature_public_key: str | None = None,
+    require_testnet: bool = True,
 ) -> QuoteValidation:
     echoed = response.quote_request
     checks = {
@@ -377,7 +420,7 @@ def validate_quote_response(
         )
     signature_verified = False
     if verify_signature:
-        if not verify_quote_signature(response):
+        if not verify_quote_signature(response, public_key=signature_public_key):
             raise ValidationError(
                 "INVALID_QUOTE_SIGNATURE",
                 "provider quote signature does not verify against Tidepool's maker key",
@@ -453,7 +496,11 @@ def validate_quote_response(
     if quote.deposit_memo:
         warnings.append("Provider requires deposit memo; preserve it exactly.")
     if route.source.asset_id != route.destination.asset_id:
-        warnings.append("Testnet-only swap; tokens have no value.")
+        warnings.append(
+            "Testnet-only swap; tokens have no value."
+            if require_testnet
+            else "Mainnet dry quote only; Notch execution is disabled."
+        )
     if expires_at is None:
         raise ValidationError("INVALID_DEADLINE", "quote has no usable expiry", field="deadline")
     return QuoteValidation(

@@ -10,6 +10,7 @@ from services.intents.balance import NearRpcClient
 from services.intents.client import RateLimiter as FundingRateLimiter, TidepoolClient
 from services.intents.config import IntentsConfig
 from services.intents.service import IntentsFundingService
+from services.intents.official import OfficialMainnetFundingService
 from services.intents.store import FundingStore
 from services.near_ai.client import NearAIClient
 from services.near_ai.config import NearAIConfig
@@ -53,6 +54,8 @@ def build_default_app(config: WebAPIConfig | None = None) -> WebAPI:
         config=intents,
         reader=chain_reader,
     )
+
+    official_funding_service = OfficialMainnetFundingService.from_env()
 
     ai = NearAIConfig.from_env()
     ai = replace(
@@ -98,6 +101,7 @@ def build_default_app(config: WebAPIConfig | None = None) -> WebAPI:
         oracle=oracle,
         brief_service=brief_service,
         funding_service=funding_service,
+        official_funding_service=official_funding_service,
         council_service=council_service,
         pulse=pulse,
     )

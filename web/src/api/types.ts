@@ -412,6 +412,15 @@ export interface FundingTokens {
   provider: string
   observed_at: string | null
 }
+export interface MainnetFundingDiscovery {
+  provider: string; provider_id: string; network: string; environment: string
+  tokens: FundingAsset[]; source_tokens: FundingAsset[]; destination_candidates: FundingAsset[]
+  routes: FundingRoute[]; source_chains: string[]; destination_asset: string | null
+  recipient: string | null; quote_enabled: boolean; quote_mode: 'dry_only' | 'unavailable' | string
+  auth_mode: string; auth_configured: boolean; credentials_exposed: false
+  fee_notice: string; execution_supported: false; execution_reasons: string[]
+  unavailable_reasons: string[]; signature_public_key_id: string; observed_at: string | null
+}
 export interface QuoteRequest {
   source_asset: string; source_chain?: string; amount: string; recipient: string; refund_to: string
   deposit_type: 'INTENTS' | 'ORIGIN_CHAIN'; slippage_bps: number; deadline_minutes: number; dry: boolean

@@ -1,0 +1,33 @@
+{
+  "phase": "7C",
+  "provider": "Official NEAR Intents 1Click API",
+  "provider_base_url": "https://1click.chaindefuser.com",
+  "observation_date": "2026-11-14",
+  "network": "Mainnet",
+  "catalog_endpoint": "/v0/tokens",
+  "quote_endpoint": "/v0/quote",
+  "catalog_token_count": 231,
+  "source_asset": "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
+  "destination_asset": "nep141:17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1",
+  "source_chain": "base",
+  "destination_chain": "near",
+  "amount_in": "1000000",
+  "amount_out": "995596",
+  "min_amount_out": "985640",
+  "refund_fee": "2400",
+  "withdraw_fee": "4202",
+  "time_estimate_seconds": 35,
+  "signature_public_key": "ed25519:reYaWhvwu8Jzo3WUM3zhn6VrhuMEF4eADL17qtRVifc",
+  "signature_verified": true,
+  "dry": true,
+  "deposit_address": null,
+  "deposit_submitted": false,
+  "source_transaction_hash": null,
+  "destination_balance_verified": false,
+  "execution_supported": false,
+  "notes": [
+    "Provider values are volatile and are evidence of an observed response only.",
+    "No Mainnet transaction or wallet authorization was performed.",
+    "No Mainnet asset was mapped to Tidepool Testnet collateral."
+  ]
+}

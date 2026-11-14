@@ -23,6 +23,19 @@ test('funding flow requires review before a Base live quote and returns to predi
   assert.doesNotMatch(source, /signAndSend|private key|seed phrase|unlimited allowance/i)
 })
 
+test('official Mainnet funding is discovery plus dry quote only', () => {
+  const source = readFileSync(new URL('../src/pages/Funding.tsx', import.meta.url), 'utf8')
+  const api = readFileSync(new URL('../src/api/client.ts', import.meta.url), 'utf8')
+  assert.match(source, /Official provider · future production access/)
+  assert.match(source, /READ-ONLY \/ FUTURE/)
+  assert.match(source, /Inspect official Mainnet dry quote/)
+  assert.match(source, /Mainnet preview/i)
+  assert.match(source, /dry: true/)
+  assert.match(api, /fundingMainnetTokens/)
+  assert.match(api, /fundingMainnetQuote/)
+  assert.doesNotMatch(source, /mainnet.*signAndSend|mainnet.*private key/i)
+})
+
 test('public funding API separates dry and confirmed live quote boundaries', () => {
   const api = readFileSync(new URL('../src/api/client.ts', import.meta.url), 'utf8')
   assert.match(api, /fundingLiveQuote/)

@@ -72,6 +72,7 @@ class WebAPI:
         oracle: OracleRepository,
         brief_service: BriefService,
         funding_service: IntentsFundingService,
+        official_funding_service: Any = None,
         rate_limiter: RateLimiter | None = None,
         attention_fetcher: Any = None,
         pulse: PulseIndexer | None = None,
@@ -84,6 +85,7 @@ class WebAPI:
         self.oracle = oracle
         self.brief_service = brief_service
         self.funding_service = funding_service
+        self.official_funding_service = official_funding_service
         self.rate_limiter = rate_limiter or RateLimiter()
         self.pulse = pulse
         self.council_service = council_service
@@ -175,6 +177,8 @@ class WebAPI:
             return 200, self._market_council_latest(parts[2])
         if parts == ["api", "funding", "tokens"]:
             return 200, self._funding_tokens()
+        if parts == ["api", "funding", "mainnet", "tokens"]:
+            return 200, self._funding_mainnet_tokens()
         if len(parts) == 4 and parts[:2] == ["api", "funding"] and parts[2] == "status":
             return 200, self._funding_status(parts[3], query)
         if parts == ["api", "funding", "readiness"]:
@@ -196,6 +200,8 @@ class WebAPI:
             return 200, self._funding_live_quote(body)
         if parts == ["api", "funding", "deposit"]:
             return 200, self._funding_deposit(body)
+        if parts == ["api", "funding", "mainnet", "quote"]:
+            return 200, self._funding_mainnet_quote(body)
         if len(parts) == 4 and parts[:2] == ["api", "markets"] and parts[3] == "entry-intent":
             return 200, self._entry_intent(parts[2], body)
         if len(parts) == 4 and parts[:2] == ["api", "markets"] and parts[3] == "research":
@@ -662,6 +668,125 @@ class WebAPI:
     # ------------------------------------------------------------------
     # Funding
     # ------------------------------------------------------------------
+    def _funding_mainnet_tokens(self) -> dict[str, Any]:
+        self.rate_limiter.check(
+            "funding", "funding-mainnet-tokens", self.config.quote_rate_limit_per_minute
+        )
+        if self.official_funding_service is None:
+            data = {
+                "provider": "Official NEAR Intents 1Click API",
+                "provider_id": "near-intents-1click-mainnet",
+                "network": "Mainnet",
+                "environment": "NOTCH_MAINNET_FUTURE",
+                "tokens": [],
+                "source_tokens": [],
+                "destination_candidates": [],
+                "routes": [],
+                "source_chains": [],
+                "destination_asset": None,
+                "recipient": None,
+                "quote_enabled": False,
+                "quote_mode": "unavailable",
+                "auth_mode": "unavailable",
+                "auth_configured": False,
+                "credentials_exposed": False,
+                "fee_notice": "Official Mainnet provider is not configured on this server.",
+                "execution_supported": False,
+                "execution_reasons": [
+                    "Notch's operational prediction market and collateral are NEAR Testnet-only.",
+                    "Official Mainnet provider wiring is unavailable.",
+                ],
+                "unavailable_reasons": ["Official Mainnet provider is not configured."],
+                "signature_public_key_id": "official-oneclick-manager-ed25519",
+                "observed_at": None,
+            }
+        else:
+            data = self.official_funding_service.discovery()
+        return {
+            "data": data,
+            "meta": {
+                "signed": False,
+                "broadcast": False,
+                "execution_supported": False,
+                "credentials_exposed": False,
+            },
+        }
+
+    def _funding_mainnet_quote(self, body: dict[str, Any]) -> dict[str, Any]:
+        self.rate_limiter.check(
+            "funding", "funding-mainnet-quote", self.config.quote_rate_limit_per_minute
+        )
+        allowed = {
+            "source_asset",
+            "destination_asset",
+            "amount",
+            "recipient",
+            "refund_to",
+            "deposit_type",
+            "source_chain",
+            "slippage_bps",
+            "deadline_minutes",
+            "dry",
+        }
+        unknown = set(body) - allowed
+        if unknown:
+            raise ApiError(
+                "INVALID_BODY",
+                f"unsupported fields: {', '.join(sorted(unknown))}",
+                status=400,
+            )
+        if body.get("dry") is not True:
+            raise ApiError(
+                "OFFICIAL_MAINNET_DRY_ONLY",
+                "official Mainnet integration exposes dry=true quotes only",
+                status=409,
+            )
+        if body.get("deposit_type") not in {None, "ORIGIN_CHAIN"}:
+            raise ApiError(
+                "UNSUPPORTED_DEPOSIT_TYPE",
+                "official Mainnet dry quotes require ORIGIN_CHAIN",
+                status=400,
+            )
+        if self.official_funding_service is None:
+            raise ApiError(
+                "OFFICIAL_PROVIDER_UNAVAILABLE",
+                "official Mainnet provider is not configured",
+                status=503,
+            )
+        for field in ("source_asset", "amount"):
+            if not isinstance(body.get(field), str) or not body[field]:
+                raise ApiError("INVALID_BODY", f"{field} is required", status=400)
+        try:
+            slippage = int(body.get("slippage_bps") or 100)
+            deadline_minutes = int(body.get("deadline_minutes") or 15)
+        except (TypeError, ValueError) as exc:
+            raise ApiError("INVALID_BODY", "slippage_bps and deadline_minutes must be integers", status=400) from exc
+        if deadline_minutes < 1 or deadline_minutes > 60:
+            raise ApiError("INVALID_BODY", "deadline_minutes must be 1-60", status=400)
+        prepared = self.official_funding_service.dry_quote(
+            source_asset=body["source_asset"],
+            destination_asset=body.get("destination_asset"),
+            amount=body["amount"],
+            recipient=body.get("recipient"),
+            refund_to=body.get("refund_to"),
+            source_chain=body.get("source_chain"),
+            slippage_bps=slippage,
+            deadline_minutes=deadline_minutes,
+        )
+        return {
+            "data": prepared.to_dict(),
+            "meta": {
+                "signed": False,
+                "broadcast": False,
+                "dry": True,
+                "provider": "near-intents-1click-mainnet",
+                "network": "Mainnet",
+                "execution_supported": False,
+                "auth_mode": self.official_funding_service.auth_mode,
+                "credentials_exposed": False,
+            },
+        }
+
     def _funding_tokens(self) -> dict[str, Any]:
         self.rate_limiter.check(
             "funding", "funding-tokens", self.config.quote_rate_limit_per_minute

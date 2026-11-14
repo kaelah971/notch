@@ -15,6 +15,7 @@ from typing import Any
 from .models import QuoteResponse
 
 TIDEPOOL_MAKER_PUBLIC_KEY = "ed25519:U1Mu4u1nHnHmgABpCkfDGXt2FZj8k29UGqhkMAu4iWY"
+OFFICIAL_ONE_CLICK_MANAGER_PUBLIC_KEY = "ed25519:reYaWhvwu8Jzo3WUM3zhn6VrhuMEF4eADL17qtRVifc"
 _BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 _Q = 2**255 - 19
 _L = 2**252 + 27742317777372353535851937790883648493
@@ -190,10 +191,10 @@ def verify_ed25519_signature(public_key: str, signature: str, message: bytes) ->
 
 def verify_quote_signature(
     response: QuoteResponse,
-    public_key: str = TIDEPOOL_MAKER_PUBLIC_KEY,
+    public_key: str | None = None,
 ) -> bool:
     return verify_ed25519_signature(
-        public_key,
+        public_key or TIDEPOOL_MAKER_PUBLIC_KEY,
         response.signature,
         quote_hash(response).encode("utf-8"),
     )

@@ -1,5 +1,5 @@
 import type {
-  ApiErrorBody, Brief, EntryIntent, Envelope, FundingTokens, Market, MarketDetail, MarketEvidence,
+  ApiErrorBody, Brief, EntryIntent, Envelope, FundingTokens, MainnetFundingDiscovery, Market, MarketDetail, MarketEvidence,
   FundingQuoteResult, FundingStatusResult, PoolSnapshot, Position, PulseData, PulseWindow, QuoteRequest, Readiness, ResearchCouncil, ScoutCandidate, ScoutDirection, ScoutMeta, Trend, WalletBalances,
 } from './types'
 
@@ -57,7 +57,10 @@ export const api = {
   balances: (accountId: string) => request<WalletBalances>(`/api/wallets/${enc(accountId)}/balances`),
   positions: (accountId: string) => request<Position[]>(`/api/wallets/${enc(accountId)}/positions`),
   fundingTokens: () => request<FundingTokens>('/api/funding/tokens'),
+  fundingMainnetTokens: () => request<MainnetFundingDiscovery>('/api/funding/mainnet/tokens'),
   fundingQuote: (body: QuoteRequest) => request<FundingQuoteResult>('/api/funding/quote', { method: 'POST', body: JSON.stringify(body) }),
+  fundingMainnetQuote: (body: QuoteRequest & { destination_asset?: string; dry: true }) =>
+    request<FundingQuoteResult>('/api/funding/mainnet/quote', { method: 'POST', body: JSON.stringify(body) }),
   fundingLiveQuote: (body: QuoteRequest & { confirm_live_quote: true; confirm_testnet: true }) =>
     request<FundingQuoteResult>('/api/funding/live-quote', { method: 'POST', body: JSON.stringify(body) }),
   fundingDeposit: (body: { quote_id: string; tx_hash: string; submit: true; user_confirmed: true }) =>

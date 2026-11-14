@@ -66,6 +66,14 @@ function statusLabel(status: string | null | undefined) {
 /** Base Sepolia manual-deposit funding flow. Notch never signs or broadcasts the source transaction. */
 export function Funding({ accountId, onVerified }: { accountId: string; onVerified?: () => void }) {
   const [tokens] = useApi(() => api.fundingTokens().then((response) => response.data), [])
+  const [mainnetTokens] = useApi(() => api.fundingMainnetTokens().then((response) => response.data), [])
+  const [mainnetSourceAsset, setMainnetSourceAsset] = useState('')
+  const [mainnetRecipient, setMainnetRecipient] = useState('')
+  const [mainnetAmount, setMainnetAmount] = useState('')
+  const [mainnetRefundTo, setMainnetRefundTo] = useState('')
+  const [mainnetQuote, setMainnetQuote] = useState<FundingQuoteResult | null>(null)
+  const [mainnetBusy, setMainnetBusy] = useState(false)
+  const [mainnetError, setMainnetError] = useState<string | null>(null)
   const [chain, setChain] = useState('')
   const [sourceAsset, setSourceAsset] = useState('')
   const [amount, setAmount] = useState('')
@@ -82,6 +90,13 @@ export function Funding({ accountId, onVerified }: { accountId: string; onVerifi
   const [verifiedNotified, setVerifiedNotified] = useState(false)
 
   const data = tokens.status === 'ok' ? tokens.data : null
+  const mainnetData = mainnetTokens.status === 'ok' ? mainnetTokens.data : null
+  const mainnetSourceTokens = mainnetData?.source_tokens ?? []
+  const mainnetDefaultSourceAsset = mainnetSourceTokens.find((token) => token.blockchain === 'base' && token.symbol === 'USDC') ?? mainnetSourceTokens[0] ?? null
+  const mainnetActiveAsset = mainnetSourceTokens.find((token) => token.asset_id === mainnetSourceAsset) ?? mainnetDefaultSourceAsset
+  const mainnetRawAmount = mainnetActiveAsset ? parseUnits(mainnetAmount, mainnetActiveAsset.decimals ?? 0) : null
+  const mainnetTargetRecipient = mainnetRecipient.trim() || mainnetData?.recipient || ''
+  const mainnetCanQuote = !!mainnetData?.quote_enabled && !!mainnetData.destination_asset && !!mainnetTargetRecipient && !!mainnetActiveAsset && !!mainnetRawAmount && !!mainnetRefundTo.trim() && !mainnetBusy
   const activeChain = chain || data?.source_chains[0] || ''
   const sourceTokens = useMemo(
     () => data?.tokens.filter((token) => token.blockchain === activeChain && token.asset_id !== data.destination_asset) ?? [],
@@ -164,6 +179,32 @@ export function Funding({ accountId, onVerified }: { accountId: string; onVerifi
     setSourceAsset(next)
     setDryResult(null)
     setError(null)
+  }
+
+  async function requestMainnetDryQuote() {
+    if (!mainnetData?.destination_asset || !mainnetTargetRecipient || !mainnetActiveAsset || !mainnetRawAmount || !mainnetRefundTo.trim()) return
+    setMainnetBusy(true)
+    setMainnetError(null)
+    setMainnetQuote(null)
+    try {
+      const result = await api.fundingMainnetQuote({
+        source_asset: mainnetActiveAsset.asset_id,
+        destination_asset: mainnetData.destination_asset,
+        source_chain: mainnetActiveAsset.blockchain,
+        deposit_type: 'ORIGIN_CHAIN',
+        amount: mainnetRawAmount,
+        recipient: mainnetTargetRecipient,
+        refund_to: mainnetRefundTo.trim(),
+        slippage_bps: 100,
+        deadline_minutes: 15,
+        dry: true,
+      })
+      setMainnetQuote(result.data)
+    } catch (reason) {
+      setMainnetError(errorText(reason))
+    } finally {
+      setMainnetBusy(false)
+    }
   }
 
   async function requestDryQuote() {
@@ -267,14 +308,9 @@ export function Funding({ accountId, onVerified }: { accountId: string; onVerifi
     if (typeof window !== 'undefined') window.localStorage.removeItem(FUNDING_STORAGE_KEY)
   }
 
-  if (tokens.status === 'loading') return <div className="skeleton" style={{ height: 260 }} />
-  if (tokens.status === 'error') return <p className="dim">Funding discovery is unavailable right now. The provider reason is not available.</p>
-  if (!data || data.source_chains.length === 0 || sourceTokens.length === 0) {
-    return <p className="dim">No external testnet funding route is currently offered to the NEAR Testnet collateral.</p>
-  }
-
   const providerQuote = dryResult?.provider_quote.quote
   const liveProviderQuote = liveResult?.provider_quote.quote
+  const mainnetProviderQuote = mainnetQuote?.provider_quote.quote
   const settlement = status?.settlement_evidence
 
   return (
@@ -289,11 +325,83 @@ export function Funding({ accountId, onVerified }: { accountId: string; onVerifi
       </div>
 
       <div className="fund-boundary" role="note">
-        <strong>{data.network}</strong>
-        <span>{data.provider}. Tidepool is a community-operated testnet sandbox, not the production NEAR Intents service. Test tokens have no value.</span>
+        <strong>{data?.network ?? 'Tidepool Testnet'}</strong>
+        <span>{data?.provider ?? 'Tidepool'}. Tidepool is a community-operated testnet sandbox, not the production NEAR Intents service. Test tokens have no value.</span>
       </div>
 
-      <div className="fund-row fund-row-three">
+      <section className="fund-mainnet" aria-labelledby="fund-mainnet-heading">
+        <div className="fund-quote-head">
+          <div>
+            <p className="eyebrow">Official provider · future production access</p>
+            <h4 id="fund-mainnet-heading">NEAR Intents 1Click Mainnet</h4>
+          </div>
+          <span className="badge badge-replay">READ-ONLY / FUTURE</span>
+        </div>
+        {mainnetTokens.status === 'loading' && <p className="dim">Checking official Mainnet token discovery…</p>}
+        {mainnetTokens.status === 'error' && <p className="fund-warning">Official Mainnet discovery is unavailable. No Mainnet route is enabled.</p>}
+        {mainnetData && (
+          <>
+            <p className="dim">{mainnetData.provider} · {mainnetData.environment}. This surface never funds the current NEAR Testnet market or its Testnet collateral.</p>
+            <dl className="kv kv-tight fund-quote-meta">
+              <div><dt>Live catalog</dt><dd>{mainnetData.tokens.length} assets · {mainnetData.source_chains.length} source chains</dd></div>
+              <div><dt>Authentication</dt><dd>{mainnetData.auth_configured ? 'Partner JWT configured server-side' : 'Unauthenticated public API'}</dd></div>
+              <div><dt>Quote mode</dt><dd>{mainnetData.quote_mode === 'dry_only' ? 'Genuine dry quotes only' : 'Unavailable'}</dd></div>
+              <div><dt>Execution</dt><dd>Disabled · {mainnetData.execution_reasons[0]}</dd></div>
+            </dl>
+            <p className="fund-warning" role="note">{mainnetData.fee_notice}</p>
+            {mainnetData.unavailable_reasons.length > 0 && <ul className="fund-instructions">{mainnetData.unavailable_reasons.map((reason) => <li key={reason}>{reason}</li>)}</ul>}
+            {mainnetData.quote_enabled && mainnetData.destination_asset && (
+              <div className="fund-mainnet-form">
+                <div className="fund-row fund-row-four">
+                  <label className="field" style={{ marginTop: 0 }}>
+                    <span>Mainnet source asset</span>
+                    <select className="field-in sel" value={mainnetActiveAsset?.asset_id ?? ''} onChange={(event) => { setMainnetSourceAsset(event.target.value); setMainnetQuote(null) }}>
+                      {mainnetSourceTokens.map((token) => <option key={token.asset_id} value={token.asset_id}>{token.symbol} · {token.blockchain} · {token.decimals} decimals</option>)}
+                    </select>
+                  </label>
+                  <label className="field" style={{ marginTop: 0 }}>
+                    <span>Mainnet recipient account</span>
+                    <input id="fund-mainnet-recipient" className="field-in" value={mainnetRecipient || mainnetData.recipient || ''} placeholder="yourname.near" onChange={(event) => { setMainnetRecipient(event.target.value); setMainnetQuote(null) }} />
+                  </label>
+                  <label className="field" style={{ marginTop: 0 }}>
+                    <span>Mainnet amount</span>
+                    <div className="field-in"><input id="fund-mainnet-amount" inputMode="decimal" placeholder="0.0" value={mainnetAmount} onChange={(event) => { setMainnetAmount(event.target.value.replace(/[^\d.]/g, '')); setMainnetQuote(null) }} /><span className="dim">{mainnetActiveAsset?.symbol}</span></div>
+                  </label>
+                  <label className="field" style={{ marginTop: 0 }}>
+                    <span>Source-chain refund address</span>
+                    <input id="fund-mainnet-refund" className="field-in fund-refund" value={mainnetRefundTo} placeholder={inputHint(mainnetActiveAsset?.blockchain ?? '')} onChange={(event) => { setMainnetRefundTo(event.target.value); setMainnetQuote(null) }} />
+                  </label>
+                </div>
+                <p className="fine">Mainnet recipient: <span className="mono">{mainnetTargetRecipient || 'enter a .near account'}</span> · destination: <span className="mono hash">{mainnetData.destination_asset}</span></p>
+                <button className="btn btn-quiet" onClick={requestMainnetDryQuote} disabled={!mainnetCanQuote}>{mainnetBusy ? 'Requesting Mainnet dry quote…' : 'Inspect official Mainnet dry quote'}</button>
+              </div>
+            )}
+            {mainnetError && <p className="fine err" role="alert">{mainnetError}</p>}
+            {mainnetQuote && mainnetProviderQuote && (
+              <section className="fund-quote fund-mainnet-quote" aria-labelledby="fund-mainnet-quote-heading" aria-live="polite">
+                <div className="fund-quote-head"><div><p className="eyebrow">Genuine provider response · official dry=true</p><h5 id="fund-mainnet-quote-heading">Mainnet route review</h5></div><span className="badge badge-replay">NO TRANSFER</span></div>
+                <div className="fund-quote-grid">
+                  <div><span>You would send</span><strong className="mono">{formatUnits(mainnetQuote.quote.amount_in, mainnetQuote.quote.source_decimals, 8)} {mainnetQuote.quote.source_symbol}</strong><small>{mainnetProviderQuote.amount_in} source units</small></div>
+                  <div><span>Estimated output</span><strong className="mono">{formatUnits(mainnetQuote.quote.amount_out, mainnetQuote.quote.destination_decimals ?? 0, 8)} {mainnetQuote.quote.destination_symbol}</strong><small>{mainnetProviderQuote.amount_out} destination units</small></div>
+                  <div><span>Minimum output</span><strong className="mono">{formatUnits(mainnetQuote.quote.min_amount_out, mainnetQuote.quote.destination_decimals ?? 0, 8)} {mainnetQuote.quote.destination_symbol}</strong><small>After {((mainnetQuote.quote.slippage_bps ?? 100) / 100).toFixed(2)}% slippage</small></div>
+                  <div><span>Provider fees</span><strong className="mono">refund {mainnetProviderQuote.refund_fee ?? '—'} · withdraw {mainnetProviderQuote.withdraw_fee ?? '—'}</strong><small>Base units returned by 1Click</small></div>
+                </div>
+                <dl className="kv kv-tight fund-quote-meta">
+                  <div><dt>Origin asset</dt><dd className="mono hash">{mainnetQuote.quote.source_asset}</dd></div>
+                  <div><dt>Destination asset</dt><dd className="mono hash">{mainnetQuote.quote.destination_asset}</dd></div>
+                  <div><dt>Signature</dt><dd>{mainnetQuote.validation.signature_verified ? 'Verified against official 1Click manager key' : 'Not verified'}</dd></div>
+                  <div><dt>Freshness</dt><dd>{mainnetQuote.quote.expires_at ? `${relativeTo(mainnetQuote.quote.expires_at)} · expires ${formatUtc(mainnetQuote.quote.expires_at)}` : 'No expiry returned'}</dd></div>
+                </dl>
+                <p className="fund-warning">Read-only Mainnet preview. No deposit address, wallet authorization, signing, broadcast, or Testnet collateral funding is available.</p>
+              </section>
+            )}
+          </>
+        )}
+      </section>
+
+      {data && data.source_chains.length > 0 && sourceTokens.length > 0 ? (
+        <>
+        <div className="fund-row fund-row-three">
         <label className="field" style={{ marginTop: 0 }}>
           <span>Source testnet</span>
           <select className="field-in sel" value={activeChain} onChange={(event) => chooseChain(event.target.value)}>
@@ -435,6 +543,10 @@ export function Funding({ accountId, onVerified }: { accountId: string; onVerifi
           )}
           <div className="row-gap fund-actions"><Link className="btn btn-quiet" to="/app/markets?f=open">Continue to open prediction markets <span aria-hidden="true">→</span></Link><button className="btn btn-quiet" onClick={clearLiveFlow}>Start a new quote</button></div>
         </section>
+      )}
+        </>
+      ) : (
+        <p className="dim">{tokens.status === 'loading' ? 'Checking Tidepool Testnet funding discovery…' : 'Tidepool Testnet discovery is unavailable right now. The official Mainnet panel above remains read-only.'}</p>
       )}
     </div>
   )
