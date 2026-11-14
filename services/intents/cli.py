@@ -135,6 +135,12 @@ def main(argv: list[str] | None = None) -> int:
     status.add_argument("--max-attempts", type=int, default=None)
     status.add_argument("--interval", type=float, default=None)
 
+    observe = sub.add_parser(
+        "capture-pre-transfer-balance",
+        help="Capture one finalized destination balance before deposit",
+    )
+    observe.add_argument("--quote-id", required=True)
+
     verify = sub.add_parser("verify-balance", help="Verify destination USDC increase")
     verify.add_argument("--quote-id", required=True)
 
@@ -200,6 +206,9 @@ def main(argv: list[str] | None = None) -> int:
                 interval_seconds=args.interval,
             )
             _print_json(service.quote_summary(quote))
+            return 0
+        if args.command == "capture-pre-transfer-balance":
+            _print_json(service.capture_pre_transfer_balance(args.quote_id).to_dict())
             return 0
         if args.command == "verify-balance":
             quote = service.verify_balance(args.quote_id)

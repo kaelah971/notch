@@ -8,7 +8,7 @@ import threading
 from pathlib import Path
 from typing import Any
 
-from .models import FundingQuote
+from .models import BalanceObservation, FundingQuote
 
 
 SCHEMA = """
@@ -40,6 +40,13 @@ CREATE TABLE IF NOT EXISTS funding_events (
 );
 CREATE INDEX IF NOT EXISTS idx_funding_events_quote
     ON funding_events(quote_id, id);
+
+CREATE TABLE IF NOT EXISTS funding_balance_observations (
+    quote_id TEXT PRIMARY KEY,
+    observation_id TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL,
+    record_json TEXT NOT NULL
+);
 """
 
 
@@ -120,6 +127,54 @@ class FundingStore:
         if quote is None:
             raise QuoteNotFoundError(f"unknown funding quote: {quote_id}")
         return quote
+
+    def get_balance_observation(self, quote_id: str) -> BalanceObservation | None:
+        with self._lock:
+            row = self.conn.execute(
+                "SELECT record_json FROM funding_balance_observations WHERE quote_id=?",
+                (quote_id,),
+            ).fetchone()
+        if not row:
+            return None
+        return BalanceObservation.from_dict(json.loads(row["record_json"]))
+
+    def save_balance_observation(self, observation: BalanceObservation) -> BalanceObservation:
+        payload = json.dumps(observation.to_dict(), ensure_ascii=False, sort_keys=True)
+        with self._lock, self.conn:
+            row = self.conn.execute(
+                "SELECT record_json FROM funding_balance_observations WHERE quote_id=?",
+                (observation.quote_id,),
+            ).fetchone()
+            if row:
+                existing = BalanceObservation.from_dict(json.loads(row["record_json"]))
+                if existing != observation:
+                    raise FundingStoreError(
+                        f"pre-transfer balance observation already exists for quote {observation.quote_id}"
+                    )
+                return existing
+            try:
+                self.conn.execute(
+                    "INSERT INTO funding_balance_observations(quote_id, observation_id, created_at, record_json) "
+                    "VALUES (?, ?, ?, ?)",
+                    (
+                        observation.quote_id,
+                        observation.observation_id,
+                        observation.created_at,
+                        payload,
+                    ),
+                )
+            except sqlite3.IntegrityError as exc:
+                raise FundingStoreError("pre-transfer balance observation conflicts with existing evidence") from exc
+        return observation
+
+    def first_activity_at(self, quote_id: str) -> str | None:
+        with self._lock:
+            row = self.conn.execute(
+                "SELECT MIN(created_at) AS created_at FROM funding_events "
+                "WHERE quote_id=? AND event IN (?, ?, ?)",
+                (quote_id, "deposit_recorded", "deposit_submitted", "provider_status"),
+            ).fetchone()
+        return row["created_at"] if row and row["created_at"] else None
 
     def find_by_deposit_address(self, deposit_address: str) -> FundingQuote | None:
         with self._lock:

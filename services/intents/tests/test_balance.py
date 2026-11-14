@@ -8,6 +8,7 @@ import unittest
 
 from services.intents.balance import (
     NearRpcClient,
+    NearRpcError,
     read_funding_readiness,
     verify_destination_balance,
 )
@@ -144,6 +145,19 @@ class BalanceTests(unittest.TestCase):
             reader.ft_balance_of("usdc.tidepool-sandbox.testnet", "notch-dev.testnet"),
             100_000_000,
         )
+
+    def test_rpc_client_requires_finalized_block_provenance(self):
+        encoded = base64.b64encode(b'"100000000"').decode("ascii")
+
+        def transport(payload, timeout):
+            return {"result": list(base64.b64decode(encoded))}
+
+        reader = NearRpcClient(rpc_url="https://rpc.invalid", transport=transport)
+        with self.assertRaises(NearRpcError):
+            reader.ft_balance_finalized(
+                "usdc.tidepool-sandbox.testnet",
+                "notch-dev.testnet",
+            )
 
 
 if __name__ == "__main__":

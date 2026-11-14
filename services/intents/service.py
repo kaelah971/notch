@@ -17,6 +17,7 @@ from services.trend_radar.models import iso_utc, now_utc, parse_iso
 from .balance import (
     FundingReadiness,
     NearRpcClient,
+    NearRpcError,
     read_funding_readiness,
     verify_destination_balance,
 )
@@ -24,6 +25,7 @@ from .client import TidepoolClient, TidepoolError
 from .config import IntentsConfig
 from .instructions import build_deposit_instructions
 from .models import (
+    BalanceObservation,
     DepositInstructions,
     DepositMode,
     DepositType,
@@ -341,6 +343,101 @@ class IntentsFundingService:
         )
         return quote
 
+    def capture_pre_transfer_balance(self, quote_id: str) -> BalanceObservation:
+        """Capture one finalized, chain-anchored destination balance before deposit."""
+        quote = self.store.require_quote(quote_id)
+        now = self.now_fn()
+        if quote.dry:
+            raise ValidationError("DRY_QUOTE", "dry quotes cannot capture a pre-transfer balance")
+        if quote.state in TERMINAL_STATES:
+            raise ValidationError(
+                "QUOTE_TERMINAL",
+                f"quote is already {quote.state.value}; request a new quote",
+            )
+        if quote.state != FundingState.AWAITING_DEPOSIT:
+            raise ValidationError(
+                "QUOTE_NOT_AWAITING_DEPOSIT",
+                "pre-transfer balance capture requires an awaiting-deposit quote",
+            )
+        expires = parse_iso(quote.expires_at)
+        if expires is None:
+            raise ValidationError("QUOTE_EXPIRY_MISSING", "quote has no trustworthy expiry")
+        if expires <= now:
+            quote.state = FundingState.EXPIRED
+            quote.updated_at = iso_utc(now) or ""
+            self.store.save_quote(quote)
+            raise ValidationError("QUOTE_EXPIRED", "quote has expired; request a new quote")
+        if (
+            quote.deposit_tx_hash
+            or quote.deposit_recorded_at
+            or quote.deposit_submitted
+            or quote.provider_status
+            or quote.poll_count
+            or quote.raw_status
+            or self.store.first_activity_at(quote_id)
+        ):
+            raise ValidationError(
+                "DEPOSIT_ALREADY_STARTED",
+                "a pre-transfer balance cannot be captured after deposit activity",
+            )
+        token = self._token_for_quote(quote)
+        if quote.destination_asset != self.config.destination_asset or token.blockchain != "near":
+            raise ValidationError(
+                "DESTINATION_ASSET_MISMATCH",
+                "quote destination is not the configured NEAR Testnet collateral",
+            )
+        existing = self.store.get_balance_observation(quote_id)
+        if existing is not None:
+            valid, _candidate, error = self._balance_observation_for_quote(
+                quote,
+                token,
+                now=now,
+            )
+            if valid is None:
+                raise NearRpcError(error or "stored pre-transfer observation is not trustworthy")
+            return valid
+
+        contract = token.contract_address or token.asset_id.removeprefix("nep141:")
+        finalized_reader = getattr(self.reader, "ft_balance_finalized", None)
+        if not callable(finalized_reader):
+            raise NearRpcError("finalized balance observation is not supported by the configured NEAR reader")
+        read = finalized_reader(contract, quote.recipient)
+        if (
+            getattr(read, "finality", None) != "final"
+            or not isinstance(getattr(read, "balance", None), int)
+            or read.balance < 0
+            or not isinstance(getattr(read, "block_height", None), int)
+            or read.block_height <= 0
+            or not isinstance(getattr(read, "block_hash", None), str)
+            or not read.block_hash
+            or not isinstance(getattr(read, "rpc_source", None), str)
+            or not read.rpc_source.startswith("https://")
+        ):
+            raise NearRpcError("finalized balance observation lacks trusted chain provenance")
+        observed_at = iso_utc(self.now_fn()) or ""
+        observation = BalanceObservation(
+            observation_id=f"{quote.quote_id}:pre-transfer",
+            quote_id=quote.quote_id,
+            recipient=quote.recipient,
+            destination_asset=quote.destination_asset,
+            token_contract=contract,
+            balance=str(read.balance),
+            block_height=read.block_height,
+            block_hash=read.block_hash,
+            finality=read.finality,
+            observed_at=observed_at,
+            rpc_source=read.rpc_source,
+            created_at=observed_at,
+        )
+        stored = self.store.save_balance_observation(observation)
+        self.store.append_event(
+            quote.quote_id,
+            "pre_transfer_balance_observed",
+            stored.to_dict(),
+            created_at=stored.created_at,
+        )
+        return stored
+
     # ------------------------------------------------------------------
     # Deposit tracking
     # ------------------------------------------------------------------
@@ -444,6 +541,112 @@ class IntentsFundingService:
     # ------------------------------------------------------------------
     # Status and balance verification
     # ------------------------------------------------------------------
+    def _balance_observation_for_quote(
+        self,
+        quote: FundingQuote,
+        token: Token,
+        *,
+        now: datetime,
+    ) -> tuple[BalanceObservation | None, BalanceObservation | None, str | None]:
+        if quote.balance_before is not None:
+            return None, None, None
+        candidate = self.store.get_balance_observation(quote.quote_id)
+        if candidate is None:
+            return None, None, None
+        contract = token.contract_address or token.asset_id.removeprefix("nep141:")
+        error: str | None = None
+        observed_at = parse_iso(candidate.observed_at)
+        created_at = parse_iso(candidate.created_at)
+        if candidate.quote_id != quote.quote_id:
+            error = "pre-transfer observation quote ID does not match the stored quote"
+        elif candidate.recipient != quote.recipient:
+            error = "pre-transfer observation recipient does not match the stored quote"
+        elif candidate.destination_asset != quote.destination_asset:
+            error = "pre-transfer observation asset does not match the stored quote"
+        elif candidate.token_contract != contract:
+            error = "pre-transfer observation token contract does not match the stored quote"
+        elif candidate.finality != "final":
+            error = "pre-transfer observation is not finalized"
+        elif candidate.block_height <= 0 or not candidate.block_hash:
+            error = "pre-transfer observation lacks finalized block provenance"
+        elif not candidate.rpc_source.startswith("https://"):
+            error = "pre-transfer observation RPC provenance is not trusted"
+        elif observed_at is None or created_at is None or observed_at > created_at:
+            error = "pre-transfer observation timestamps are invalid"
+        elif observed_at > now:
+            error = "pre-transfer observation is from the future"
+        activity_at = self.store.first_activity_at(quote.quote_id)
+        if error is None:
+            try:
+                if int(candidate.balance) < 0:
+                    error = "pre-transfer observation balance is invalid"
+            except (TypeError, ValueError):
+                error = "pre-transfer observation balance is invalid"
+        if error is None and activity_at:
+            activity = parse_iso(activity_at)
+            if activity is None or observed_at is None or observed_at >= activity:
+                error = "pre-transfer observation was captured after deposit activity began"
+        if error is None and quote.deposit_recorded_at:
+            deposit_at = parse_iso(quote.deposit_recorded_at)
+            if deposit_at is None or observed_at is None or observed_at >= deposit_at:
+                error = "pre-transfer observation was captured after the deposit was recorded"
+        if error is None and (
+            quote.deposit_tx_hash
+            or quote.deposit_submitted
+            or quote.provider_status
+            or quote.poll_count
+        ) and not activity_at:
+            error = "pre-transfer observation cannot be ordered before recorded deposit activity"
+        if error:
+            return None, candidate, error
+        return candidate, candidate, None
+
+    def _verify_destination_for_quote(
+        self,
+        quote: FundingQuote,
+        token: Token,
+        *,
+        now: datetime,
+    ) -> tuple[Any, BalanceObservation | None, BalanceObservation | None]:
+        observation, candidate, baseline_error = self._balance_observation_for_quote(
+            quote,
+            token,
+            now=now,
+        )
+        check = verify_destination_balance(
+            self.reader,
+            quote,
+            token,
+            now=now,
+            before_override=observation.balance if observation else None,
+            baseline_observation_id=observation.observation_id if observation else None,
+            baseline_error=baseline_error,
+        )
+        return check, observation, candidate
+
+    def _record_balance_verification(
+        self,
+        quote: FundingQuote,
+        check: Any,
+        *,
+        observation: BalanceObservation | None,
+        candidate: BalanceObservation | None,
+    ) -> None:
+        data = check.to_dict()
+        data.update(
+            {
+                "settlement_verification": True,
+                "baseline_observation_used": observation.to_dict() if observation else None,
+                "baseline_observation_candidate": candidate.to_dict() if candidate and observation is None else None,
+            }
+        )
+        self.store.append_event(
+            quote.quote_id,
+            "balance_verification",
+            data,
+            created_at=check.checked_at,
+        )
+
     def refresh_status(
         self,
         quote_id: str,
@@ -548,8 +751,7 @@ class IntentsFundingService:
             quote.last_error = swap.refund_reason or "provider reported FAILED"
         elif provider == ProviderStatus.SUCCESS.value:
             token = self._token_for_quote(quote)
-            check = verify_destination_balance(
-                self.reader,
+            check, observation, candidate = self._verify_destination_for_quote(
                 quote,
                 token,
                 now=now,
@@ -563,6 +765,12 @@ class IntentsFundingService:
             else:
                 quote.state = FundingState.PROCESSING
                 quote.last_error = check.error
+            self._record_balance_verification(
+                quote,
+                check,
+                observation=observation,
+                candidate=candidate,
+            )
         else:
             quote.state = FundingState.PROCESSING
             quote.last_error = f"unknown provider status: {provider}"
@@ -607,28 +815,30 @@ class IntentsFundingService:
         quote = self.store.require_quote(quote_id)
         if quote.dry:
             raise ValidationError("DRY_QUOTE", "dry quotes have no balance to verify")
+        if quote.state == FundingState.SUCCESS and quote.balance_verified:
+            return quote
         token = self._token_for_quote(quote)
-        check = verify_destination_balance(
-            self.reader,
+        now = self.now_fn()
+        check, observation, candidate = self._verify_destination_for_quote(
             quote,
             token,
-            now=self.now_fn(),
+            now=now,
         )
         quote.balance_after = check.after
         quote.balance_delta = check.delta
         quote.balance_verified = check.verified
-        quote.updated_at = iso_utc(self.now_fn()) or ""
+        quote.updated_at = iso_utc(now) or ""
         if check.verified and quote.provider_status == ProviderStatus.SUCCESS.value:
             quote.state = FundingState.SUCCESS
             quote.last_error = None
         elif not check.verified:
             quote.last_error = check.error
         self.store.save_quote(quote)
-        self.store.append_event(
-            quote_id,
-            "balance_verification",
-            check.to_dict(),
-            created_at=quote.updated_at,
+        self._record_balance_verification(
+            quote,
+            check,
+            observation=observation,
+            candidate=candidate,
         )
         return quote
 
@@ -703,6 +913,7 @@ class IntentsFundingService:
                 )
             except (TypeError, ValueError):
                 pass
+        observation = self.store.get_balance_observation(quote.quote_id)
         return {
             **quote.to_dict(),
             "amount_in_display": format_base_units(quote.amount_in, quote.source_decimals),
@@ -721,6 +932,7 @@ class IntentsFundingService:
                 "required_min_amount_out": quote.min_amount_out,
                 "verified": quote.balance_verified,
                 "error": quote.last_error if destination_state else None,
+                "baseline_observation": observation.to_dict() if observation else None,
             },
             "settlement_evidence": settlement,
             "events": self.store.list_events(quote.quote_id),

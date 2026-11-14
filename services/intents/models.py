@@ -492,6 +492,64 @@ class DepositInstructions:
 
 
 @dataclass(frozen=True)
+class FinalizedBalanceRead:
+    balance: int
+    block_height: int
+    block_hash: str
+    finality: str
+    rpc_source: str
+
+
+@dataclass(frozen=True)
+class BalanceObservation:
+    observation_id: str
+    quote_id: str
+    recipient: str
+    destination_asset: str
+    token_contract: str
+    balance: str
+    block_height: int
+    block_hash: str
+    finality: str
+    observed_at: str
+    rpc_source: str
+    created_at: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "observation_id": self.observation_id,
+            "quote_id": self.quote_id,
+            "recipient": self.recipient,
+            "destination_asset": self.destination_asset,
+            "token_contract": self.token_contract,
+            "balance": self.balance,
+            "block_height": self.block_height,
+            "block_hash": self.block_hash,
+            "finality": self.finality,
+            "observed_at": self.observed_at,
+            "rpc_source": self.rpc_source,
+            "created_at": self.created_at,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "BalanceObservation":
+        return cls(
+            observation_id=str(data["observation_id"]),
+            quote_id=str(data["quote_id"]),
+            recipient=str(data["recipient"]),
+            destination_asset=str(data["destination_asset"]),
+            token_contract=str(data["token_contract"]),
+            balance=str(data["balance"]),
+            block_height=int(data["block_height"]),
+            block_hash=str(data["block_hash"]),
+            finality=str(data["finality"]),
+            observed_at=str(data["observed_at"]),
+            rpc_source=str(data["rpc_source"]),
+            created_at=str(data["created_at"]),
+        )
+
+
+@dataclass(frozen=True)
 class BalanceCheck:
     account: str
     asset_id: str
@@ -502,6 +560,11 @@ class BalanceCheck:
     verified: bool
     checked_at: str
     error: str | None = None
+    baseline_observation_id: str | None = None
+    after_block_height: int | None = None
+    after_block_hash: str | None = None
+    after_finality: str | None = None
+    after_rpc_source: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -514,6 +577,11 @@ class BalanceCheck:
             "verified": self.verified,
             "checked_at": self.checked_at,
             "error": self.error,
+            "baseline_observation_id": self.baseline_observation_id,
+            "after_block_height": self.after_block_height,
+            "after_block_hash": self.after_block_hash,
+            "after_finality": self.after_finality,
+            "after_rpc_source": self.after_rpc_source,
         }
 
 

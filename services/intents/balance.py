@@ -15,7 +15,7 @@ from typing import Any, Callable
 from services.trend_radar.models import iso_utc
 
 from .config import IntentsConfig
-from .models import BalanceCheck, FundingQuote, Token
+from .models import BalanceCheck, FinalizedBalanceRead, FundingQuote, Token
 from .validation import parse_base_units
 
 
@@ -86,7 +86,9 @@ class NearRpcClient:
             self.timeout_seconds,
         )
 
-    def view(self, account_id: str, method_name: str, args: dict[str, Any] | None = None) -> Any:
+    def _view_result(
+        self, account_id: str, method_name: str, args: dict[str, Any] | None = None
+    ) -> tuple[Any, dict[str, Any]]:
         result = self._rpc(
             "query",
             {
@@ -101,8 +103,22 @@ class NearRpcClient:
         )
         raw = bytes(result.get("result", []))
         if not raw:
-            return None
-        return json.loads(raw.decode("utf-8"))
+            return None, result
+        return json.loads(raw.decode("utf-8")), result
+
+    def view(self, account_id: str, method_name: str, args: dict[str, Any] | None = None) -> Any:
+        value, _result = self._view_result(account_id, method_name, args)
+        return value
+
+    def view_finalized(
+        self, account_id: str, method_name: str, args: dict[str, Any] | None = None
+    ) -> tuple[Any, int, str]:
+        value, result = self._view_result(account_id, method_name, args)
+        block_height = result.get("block_height")
+        block_hash = result.get("block_hash")
+        if not isinstance(block_height, int) or block_height <= 0 or not isinstance(block_hash, str) or not block_hash:
+            raise NearRpcError("finalized NEAR view did not include block provenance")
+        return value, block_height, block_hash
 
     def view_account(self, account_id: str) -> dict[str, Any]:
         return self._rpc(
@@ -137,6 +153,26 @@ class NearRpcClient:
             return int(value)
         except (TypeError, ValueError) as exc:
             raise NearRpcError(f"invalid ft_balance_of response for {token_contract}") from exc
+
+    def ft_balance_finalized(self, token_contract: str, account_id: str) -> FinalizedBalanceRead:
+        value, block_height, block_hash = self.view_finalized(
+            token_contract,
+            "ft_balance_of",
+            {"account_id": account_id},
+        )
+        try:
+            balance = int(value)
+        except (TypeError, ValueError) as exc:
+            raise NearRpcError(f"invalid ft_balance_of response for {token_contract}") from exc
+        if balance < 0:
+            raise NearRpcError("negative finalized token balance")
+        return FinalizedBalanceRead(
+            balance=balance,
+            block_height=block_height,
+            block_hash=block_hash,
+            finality="final",
+            rpc_source=self.rpc_url,
+        )
 
     def storage_balance_of(self, token_contract: str, account_id: str) -> dict[str, Any] | None:
         value = self.view(token_contract, "storage_balance_of", {"account_id": account_id})
@@ -188,6 +224,8 @@ def verify_destination_balance(
     *,
     now: datetime,
     before_override: str | None = None,
+    baseline_observation_id: str | None = None,
+    baseline_error: str | None = None,
 ) -> BalanceCheck:
     contract = token.contract_address or token.asset_id.removeprefix("nep141:")
     raw_before = before_override if before_override is not None else quote.balance_before
@@ -201,7 +239,8 @@ def verify_destination_balance(
             required=quote.min_amount_out,
             verified=False,
             checked_at=iso_utc(now) or "",
-            error="balance_before was not recorded; cannot verify the destination increase",
+            error=baseline_error or "balance_before was not recorded; cannot verify the destination increase",
+            baseline_observation_id=baseline_observation_id,
         )
     try:
         before = int(raw_before)
@@ -209,7 +248,15 @@ def verify_destination_balance(
             raise ValueError
     except (TypeError, ValueError) as exc:
         raise NearRpcError("invalid balance_before") from exc
-    after = reader.ft_balance_of(contract, quote.recipient)
+
+    finalized_reader = getattr(reader, "ft_balance_finalized", None)
+    after_read: FinalizedBalanceRead | None = None
+    if callable(finalized_reader):
+        after_read = finalized_reader(contract, quote.recipient)
+        after = after_read.balance
+    else:
+        after = reader.ft_balance_of(contract, quote.recipient)
+
     required = parse_base_units(quote.min_amount_out, field="minAmountOut")
     delta = after - before
     verified = delta >= required and delta > 0
@@ -229,6 +276,11 @@ def verify_destination_balance(
         verified=verified,
         checked_at=iso_utc(now) or "",
         error=error,
+        baseline_observation_id=baseline_observation_id,
+        after_block_height=after_read.block_height if after_read else None,
+        after_block_hash=after_read.block_hash if after_read else None,
+        after_finality=after_read.finality if after_read else None,
+        after_rpc_source=after_read.rpc_source if after_read else None,
     )
 
 
