@@ -51,7 +51,7 @@ class FakeClient:
             raise self.model_error
         return self.model
 
-    def chat_json(self, *, model, system_prompt, user_prompt):
+    def chat_json(self, *, model, system_prompt, user_prompt, **kwargs):
         self.chat_calls += 1
         if self.error:
             raise self.error
@@ -102,6 +102,7 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(brief.generation_status, GenerationStatus.NON_AI_FALLBACK.value)
         self.assertEqual(brief.provider, "deterministic")
         self.assertEqual(brief.model, "none")
+        self.assertEqual(brief.inference["status"], "DETERMINISTIC_FALLBACK")
         self.assertIn("123,851", brief.headline)
         self.assertEqual(client.chat_calls, 0)
         self.assertTrue(brief.fallback_reason)
@@ -113,6 +114,7 @@ class ServiceTests(unittest.TestCase):
         self.assertEqual(brief.generation_status, GenerationStatus.AI_GENERATED.value)
         self.assertEqual(brief.provider, "near-ai")
         self.assertEqual(brief.model, "z-ai/glm-5.3-flash")
+        self.assertEqual(brief.inference["status"], "LIVE_AI_VERIFIED")
         self.assertEqual(client.chat_calls, 1)
         self.assertIn("estimated_cost_usd", brief.usage)
         cached = service._generate(self.radar_context, force=False)
@@ -131,6 +133,7 @@ class ServiceTests(unittest.TestCase):
             brief.generation_status, GenerationStatus.INVALID_AI_FALLBACK.value
         )
         self.assertEqual(brief.provider, "deterministic")
+        self.assertEqual(brief.inference["status"], "DETERMINISTIC_FALLBACK")
         self.assertIn("UNSUPPORTED_NUMBER", brief.fallback_reason)
         self.assertEqual(client.chat_calls, 1)
 

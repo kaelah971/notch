@@ -83,8 +83,11 @@ export interface BriefEvidenceReference {
 }
 
 export interface BriefInference {
+  status?: 'LIVE_AI_VERIFIED' | 'DETERMINISTIC_FALLBACK' | 'UNAVAILABLE' | string
   provider: string
   model: string
+  provider_base_url?: string
+  response_model?: string
   request_timestamp?: string
   input_observation_cutoff?: string | null
   input_digest?: string
@@ -207,6 +210,18 @@ export interface ResearchCouncil {
   topic: string
   created_at: string
   generation_mode: CouncilGenerationStatus
+  inference_status?: 'LIVE_AI_VERIFIED' | 'DETERMINISTIC_FALLBACK' | 'UNAVAILABLE' | string
+  inference?: {
+    status: string
+    provider: string
+    provider_base_url?: string | null
+    model: string
+    request_id?: string | null
+    call_count: number
+    role_generation: string
+    independent_role_calls: boolean
+    [k: string]: unknown
+  }
   ai_call_triggered: boolean
   cache_hit: boolean
   snapshot: CouncilSnapshot

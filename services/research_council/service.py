@@ -81,6 +81,21 @@ class CouncilValidationError(ValueError):
         self.field = field
 
 
+def _completion_budget(config: NearAIConfig, model: AIModel) -> int:
+    configured = max(256, int(config.max_tokens))
+    try:
+        provider_limit = int(model.max_output_length) if model.max_output_length else 0
+    except (TypeError, ValueError):
+        provider_limit = 0
+    return min(configured, provider_limit) if provider_limit > 0 else configured
+
+
+def _council_inference_status(roles: list[dict[str, Any]], ai_call_triggered: bool) -> str:
+    if ai_call_triggered and roles and all(role.get("generation_status") == "AI_GENERATED" for role in roles):
+        return "LIVE_AI_VERIFIED"
+    return "DETERMINISTIC_FALLBACK"
+
+
 class ResearchCouncilService:
     def __init__(
         self,
@@ -218,8 +233,13 @@ class ResearchCouncilService:
                             model=model_info.model_id,
                             system_prompt=system_prompt,
                             user_prompt=user_prompt,
+                            supported_features=model_info.supported_features,
+                            max_tokens=_completion_budget(self.config, model_info),
                         )
-                        shared_usage = _safe_usage(completion.usage)
+                        shared_usage = {
+                            **_safe_usage(completion.usage),
+                            "response_diagnostics": dict(completion.diagnostics),
+                        }
                         shared_request_id = completion.request_id
                         if set(completion.content) != {"roles"}:
                             raise CouncilValidationError("UNKNOWN_FIELD", "AI council response must contain only the roles field")
@@ -252,6 +272,8 @@ class ResearchCouncilService:
                                     snapshot,
                                     generated_at,
                                     model_info.model_id,
+                                    completion.model,
+                                    self.config.base_url,
                                     shared_usage,
                                     shared_request_id,
                                     completion.diagnostics,
@@ -270,6 +292,8 @@ class ResearchCouncilService:
                                 model_diagnostics={},
                             )
                     except NearAIError as exc:
+                        model_error = str(exc)
+                        model_diagnostics = dict(exc.diagnostics)
                         reason = f"NEAR AI request failed: {exc}"
                         for role_id in ROLE_IDS:
                             roles[role_id] = _fallback_role(
@@ -285,6 +309,27 @@ class ResearchCouncilService:
                             )
 
         role_list = [roles[role_id] for role_id in ROLE_IDS]
+        inference_status = _council_inference_status(role_list, ai_call_triggered)
+        council_inference = {
+            "status": inference_status,
+            "provider": "near-ai" if ai_call_triggered else "deterministic",
+            "provider_base_url": self.config.base_url if ai_call_triggered else None,
+            "model": model_info.model_id if model_info is not None else "none",
+            "request_id": shared_request_id,
+            "snapshot_id": snapshot["snapshot_id"],
+            "snapshot_digest": snapshot["snapshot_digest"],
+            "call_count": 1 if ai_call_triggered else 0,
+            "role_generation": (
+                "one_shared_model_response" if ai_call_triggered else "deterministic_evidence_lenses"
+            ),
+            "independent_role_calls": False,
+        }
+        if model_error:
+            council_inference["model_error"] = model_error
+        if model_diagnostics:
+            council_inference["model_diagnostics"] = dict(model_diagnostics)
+        if shared_usage:
+            council_inference["usage"] = dict(shared_usage)
         disagreement = _build_disagreement(role_list)
         result_digest = "sha256:" + sha256_text(
             canonical_json(
@@ -313,6 +358,8 @@ class ResearchCouncilService:
             "topic": context.topic,
             "created_at": generated_at,
             "generation_mode": generation_mode,
+            "inference_status": inference_status,
+            "inference": council_inference,
             "ai_call_triggered": ai_call_triggered,
             "cache_hit": False,
             "snapshot": snapshot,
@@ -529,6 +576,7 @@ def _fallback_role(
         fallback_reason=reason,
         citation_validation=validation,
         inference={
+            "status": "DETERMINISTIC_FALLBACK",
             "provider": "deterministic",
             "model": model,
             "input_digest": context.input_digest,
@@ -550,6 +598,8 @@ def _ai_role(
     snapshot: dict[str, Any],
     generated_at: str,
     model: str,
+    response_model: str,
+    provider_base_url: str,
     usage: dict[str, Any],
     request_id: str | None,
     diagnostics: dict[str, Any],
@@ -561,9 +611,14 @@ def _ai_role(
         "issues": [],
     }
     inference = {
+        "status": "LIVE_AI_VERIFIED",
         "provider": "near-ai",
+        "provider_base_url": provider_base_url,
         "model": model,
+        "response_model": response_model,
         "request_timestamp": generated_at,
+        "role_generation": "one_shared_model_response",
+        "independent_role_calls": False,
         "input_digest": snapshot["input_digest"],
         "snapshot_digest": snapshot["snapshot_digest"],
         "source_ids": snapshot["source_ids"],
@@ -707,6 +762,11 @@ def _build_audit(
         "roles": role_status,
         "disagreement_status": disagreement["status"],
         "ai_call_triggered": ai_call_triggered,
+        "call_count": 1 if ai_call_triggered else 0,
+        "role_generation": (
+            "one_shared_model_response" if ai_call_triggered else "deterministic_evidence_lenses"
+        ),
+        "independent_role_calls": False,
         "request_id": request_id,
         "result_digest": result_digest,
         "execution_boundary": {

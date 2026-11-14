@@ -46,6 +46,23 @@ class BriefServiceError(RuntimeError):
     pass
 
 
+def _completion_budget(config: NearAIConfig, model: AIModel) -> int:
+    configured = max(256, int(config.max_tokens))
+    try:
+        provider_limit = int(model.max_output_length) if model.max_output_length else 0
+    except (TypeError, ValueError):
+        provider_limit = 0
+    return min(configured, provider_limit) if provider_limit > 0 else configured
+
+
+def _inference_status(provider: str, status: GenerationStatus) -> str:
+    if provider == "near-ai" and status == GenerationStatus.AI_GENERATED:
+        return "LIVE_AI_VERIFIED"
+    if provider == "deterministic":
+        return "DETERMINISTIC_FALLBACK"
+    return "UNAVAILABLE"
+
+
 class BriefService:
     def __init__(
         self,
@@ -204,6 +221,8 @@ class BriefService:
                 model=model_info.model_id,
                 system_prompt=system_prompt,
                 user_prompt=user_prompt,
+                supported_features=model_info.supported_features,
+                max_tokens=_completion_budget(self.config, model_info),
             )
             draft = validate_brief_draft(completion.content, context)
         except BriefValidationError as exc:
@@ -238,6 +257,23 @@ class BriefService:
             },
             fallback_reason=None,
             request_id=completion.request_id,
+        )
+        brief.inference.update(
+            {
+                "provider_base_url": self.config.base_url,
+                "response_model": completion.model,
+                "model_capabilities": {
+                    "supported_features": list(model_info.supported_features),
+                    "max_output_length": model_info.max_output_length,
+                },
+                "request_parameters": {
+                    "temperature": self.config.temperature,
+                    "max_tokens": completion.diagnostics.get("max_tokens_requested"),
+                    "response_format": completion.diagnostics.get("response_format"),
+                    "attempt": completion.diagnostics.get("attempt"),
+                    "max_attempts": completion.diagnostics.get("max_attempts"),
+                },
+            }
         )
         self.store.save(cache_key, brief)
         return brief
@@ -302,6 +338,7 @@ class BriefService:
             else None
         )
         inference = {
+            "status": _inference_status(provider, status),
             "provider": provider,
             "model": model,
             "request_timestamp": generated_at,
@@ -402,6 +439,7 @@ class BriefService:
     def brief_summary(self, brief: TrendBrief) -> dict[str, Any]:
         return {
             "brief_id": brief.brief_id,
+            "inference_status": brief.inference.get("status", "UNAVAILABLE"),
             "brief_type": brief.brief_type,
             "topic": brief.topic,
             "candidate_id": brief.candidate_id,

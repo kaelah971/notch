@@ -179,15 +179,19 @@ function EvidencePanel({ ev, loading, onchainHash }: { ev: MarketEvidence | null
 }
 
 const BRIEF_LABEL: Record<string, string> = {
-  AI_GENERATED: 'AI interpretation · NEAR AI',
-  NON_AI_FALLBACK: 'Source-only research · no AI',
-  INVALID_AI_FALLBACK: 'Source-only research · AI output rejected',
-  AI_UNAVAILABLE_FALLBACK: 'Source-only research · AI unavailable',
+  LIVE_AI_VERIFIED: 'LIVE_AI_VERIFIED · locally validated',
+  DETERMINISTIC_FALLBACK: 'DETERMINISTIC_FALLBACK',
+  UNAVAILABLE: 'UNAVAILABLE',
+  AI_GENERATED: 'LIVE_AI_VERIFIED · locally validated',
+  NON_AI_FALLBACK: 'DETERMINISTIC_FALLBACK',
+  INVALID_AI_FALLBACK: 'DETERMINISTIC_FALLBACK · AI rejected',
+  AI_UNAVAILABLE_FALLBACK: 'DETERMINISTIC_FALLBACK · AI unavailable',
 }
 
 function ResearchPanel({ fallbackBrief, research, onRequest }: { fallbackBrief: Brief | null; research: ResearchState; onRequest: () => void }) {
   const brief = research.status === 'ok' ? research.brief : fallbackBrief
   const inference = brief?.inference
+  const inferenceStatus = inference?.status ?? brief?.generation_status ?? 'UNAVAILABLE'
   const verification = inference?.verification
   const verified = verification?.status === 'verified'
   const inputDigest = inference?.input_digest ?? (typeof brief?.input_digest === 'string' ? brief.input_digest : undefined)
@@ -199,7 +203,7 @@ function ResearchPanel({ fallbackBrief, research, onRequest }: { fallbackBrief: 
     : null
   return (
     <section className="card md-research" aria-labelledby="market-research-title">
-      <div className="card-hrow"><h2 className="card-h" id="market-research-title">AI market research</h2>{brief && <span className="badge">{BRIEF_LABEL[brief.generation_status] ?? brief.generation_status}</span>}</div>
+      <div className="card-hrow"><h2 className="card-h" id="market-research-title">AI market research</h2><span className="badge">{BRIEF_LABEL[inferenceStatus] ?? inferenceStatus}</span></div>
       <p className="md-research-intro">Request a bounded brief grounded in this market’s published rule, available Wikimedia observations, and matching historical context. AI interpretation is separate from verified source data and never places a prediction. This is read-only: no wallet, signature, or transaction is requested.</p>
       <button type="button" className="btn btn-primary md-research-trigger" onClick={onRequest} disabled={research.status === 'loading'} aria-busy={research.status === 'loading'}>
         {research.status === 'loading' ? 'Inspecting evidence…' : 'Request research brief'}
@@ -236,16 +240,20 @@ function ResearchPanel({ fallbackBrief, research, onRequest }: { fallbackBrief: 
 }
 
 const COUNCIL_STATUS_LABEL: Record<string, string> = {
-  AI_GENERATED: 'AI council · NEAR AI',
-  NON_AI_FALLBACK: 'Deterministic evidence lenses',
-  AI_UNAVAILABLE_FALLBACK: 'Deterministic lenses · AI unavailable',
-  INVALID_AI_FALLBACK: 'Deterministic lenses · AI output rejected',
-  MIXED_AI_AND_FALLBACK: 'Mixed AI and deterministic lenses',
-  DETERMINISTIC_EVIDENCE_LENSES: 'Deterministic evidence lenses',
+  LIVE_AI_VERIFIED: 'LIVE_AI_VERIFIED · shared response validated',
+  DETERMINISTIC_FALLBACK: 'DETERMINISTIC_FALLBACK',
+  UNAVAILABLE: 'UNAVAILABLE',
+  AI_GENERATED: 'LIVE_AI_VERIFIED · shared response validated',
+  NON_AI_FALLBACK: 'DETERMINISTIC_FALLBACK',
+  AI_UNAVAILABLE_FALLBACK: 'DETERMINISTIC_FALLBACK · AI unavailable',
+  INVALID_AI_FALLBACK: 'DETERMINISTIC_FALLBACK · AI rejected',
+  MIXED_AI_AND_FALLBACK: 'DETERMINISTIC_FALLBACK · mixed roles',
+  DETERMINISTIC_EVIDENCE_LENSES: 'DETERMINISTIC_FALLBACK',
 }
 
 function ResearchCouncilPanel({ council, onRequest }: { council: CouncilState; onRequest: () => void }) {
   const record = council.status === 'ok' ? council.council : null
+  const councilStatus = record?.inference_status ?? (record ? record.generation_mode : 'UNAVAILABLE')
   const errorText = council.status === 'error'
     ? council.error.code === 'NETWORK' ? 'The research API is unreachable. Market and wallet state are unchanged.'
       : council.error.code === 'RULE_NOT_AVAILABLE' ? 'This market has no published rule available for the council.'
@@ -258,7 +266,7 @@ function ResearchCouncilPanel({ council, onRequest }: { council: CouncilState; o
           <h2 className="card-h" id="research-council-title">Research council</h2>
           <p className="md-council-kicker">Three lenses · one bounded evidence snapshot</p>
         </div>
-        {record && <span className="badge">{COUNCIL_STATUS_LABEL[record.generation_mode] ?? record.generation_mode}</span>}
+        <span className="badge">{COUNCIL_STATUS_LABEL[councilStatus] ?? councilStatus}</span>
       </div>
       <p className="md-research-intro">Ask Bull Analyst, Bear Analyst, and Evidence Verifier to inspect the same published rule, Wikimedia observations, and matching historical context. Claims stay cited and descriptive: no probability, trade, wallet, or settlement action is created.</p>
       <button type="button" className="btn btn-primary md-research-trigger" onClick={onRequest} disabled={council.status === 'loading'} aria-busy={council.status === 'loading'}>
@@ -269,6 +277,7 @@ function ResearchCouncilPanel({ council, onRequest }: { council: CouncilState; o
       {record && (
         <>
           <div className="md-council-boundary"><strong>Shared snapshot</strong><span><code>{record.snapshot.snapshot_id}</code> · source package <code>{short(record.snapshot.snapshot_digest)}</code> · as of <strong>{record.snapshot.data_as_of || 'unavailable'}</strong></span></div>
+          {record.inference?.role_generation === 'one_shared_model_response' && <p className="fine">One NEAR AI response was locally validated into all three lenses; Bull, Bear, and Verifier are not independent model calls.</p>}
           <div className="md-council-roles">
             {record.roles.map((role) => <CouncilRoleCard key={role.role_id} role={role} />)}
           </div>

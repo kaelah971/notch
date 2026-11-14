@@ -43,9 +43,23 @@ def _json(data, status=200, headers=None):
     return status, headers or {}, json.dumps(data)
 
 
-def _client(transport, *, key="test-key", model="z-ai/glm-5.3-flash"):
-    config = NearAIConfig(api_key=key, model=model, rate_limit_seconds=0)
-    return NearAIClient(config=config, transport=transport, sleep=lambda _: None)
+def _client(
+    transport,
+    *,
+    key="test-key",
+    model="z-ai/glm-5.3-flash",
+    max_retries=1,
+    max_tokens=4096,
+    sleep=None,
+):
+    config = NearAIConfig(
+        api_key=key,
+        model=model,
+        rate_limit_seconds=0,
+        max_retries=max_retries,
+        max_tokens=max_tokens,
+    )
+    return NearAIClient(config=config, transport=transport, sleep=sleep or (lambda _: None))
 
 
 MODEL = {
@@ -142,13 +156,18 @@ class ClientTests(unittest.TestCase):
             _client(transport).list_models()
         self.assertEqual(len(transport.calls), 1)
 
-    def test_rate_limit_error_no_retry(self):
-        transport = FakeTransport([(429, {}, json.dumps({"message": "slow down"}))])
+    def test_rate_limit_error_is_bounded_for_chat(self):
+        transport = FakeTransport([
+            (429, {}, json.dumps({"message": "slow down"})),
+            (429, {}, json.dumps({"message": "slow down"})),
+        ])
         with self.assertRaises(NearAIRateLimitError):
-            _client(transport).list_models()
-        self.assertEqual(len(transport.calls), 1)
+            _client(transport).chat_json(
+                model="z-ai/glm-5.3-flash", system_prompt="s", user_prompt="u"
+            )
+        self.assertEqual(len(transport.calls), 2)
 
-    def test_provider_error_no_retry(self):
+    def test_provider_error_no_retry_for_model_catalog(self):
         transport = FakeTransport([(503, {}, json.dumps({"message": "unavailable"}))])
         with self.assertRaises(NearAIProviderError):
             _client(transport).list_models()
@@ -201,7 +220,7 @@ class ClientTests(unittest.TestCase):
             ]
         )
         with self.assertRaises(NearAIResponseError) as caught:
-            _client(transport).chat_json(
+            _client(transport, max_retries=0).chat_json(
                 model="z-ai/glm-5.3-flash", system_prompt="s", user_prompt="u"
             )
         error = caught.exception
@@ -230,7 +249,7 @@ class ClientTests(unittest.TestCase):
             ]
         )
         with self.assertRaises(NearAIResponseError) as caught:
-            _client(transport).chat_json(
+            _client(transport, max_retries=0).chat_json(
                 model="z-ai/glm-5.3-flash", system_prompt="s", user_prompt="u"
             )
         error = caught.exception
@@ -240,7 +259,10 @@ class ClientTests(unittest.TestCase):
 
     def test_missing_content_is_reported(self):
         transport = FakeTransport(
-            [_json({"choices": [{"message": {}, "finish_reason": "stop"}], "usage": {}})]
+            [
+                _json({"choices": [{"message": {}, "finish_reason": "stop"}], "usage": {}}),
+                _json({"choices": [{"message": {}, "finish_reason": "stop"}], "usage": {}}),
+            ]
         )
         with self.assertRaises(NearAIResponseError) as caught:
             _client(transport).chat_json(
@@ -248,6 +270,7 @@ class ClientTests(unittest.TestCase):
             )
         self.assertTrue(caught.exception.diagnostics["message_content_empty"])
         self.assertFalse(caught.exception.diagnostics["reasoning_content_present"])
+        self.assertEqual(caught.exception.diagnostics["attempt"], 2)
 
     def test_dict_content_is_accepted_as_structured_json(self):
         transport = FakeTransport(
@@ -258,6 +281,50 @@ class ClientTests(unittest.TestCase):
         )
         self.assertEqual(completion.content, {"headline": "ok"})
         self.assertEqual(completion.diagnostics["message_content_type"], "dict")
+
+    def test_empty_content_retries_once_with_more_output_budget(self):
+        transport = FakeTransport(
+            [
+                _json({"choices": [{"message": {"content": "", "reasoning_content": "thinking"}, "finish_reason": "length"}], "usage": {}}),
+                _json({"id": "provider-response-2", "model": "z-ai/glm-5.3-flash", "choices": [{"message": {"content": json.dumps({"headline": "ok"})}, "finish_reason": "stop"}], "usage": {}}),
+            ]
+        )
+        completion = _client(transport, max_tokens=4096).chat_json(
+            model="z-ai/glm-5.3-flash", system_prompt="s", user_prompt="u"
+        )
+        self.assertEqual(completion.content, {"headline": "ok"})
+        self.assertEqual(completion.request_id, "provider-response-2")
+        self.assertEqual(completion.diagnostics["attempt"], 2)
+        self.assertEqual(transport.calls[0]["body"]["max_tokens"], 4096)
+        self.assertEqual(transport.calls[1]["body"]["max_tokens"], 8192)
+
+    def test_unsupported_json_mode_uses_prompt_only(self):
+        transport = FakeTransport(
+            [_json({"choices": [{"message": {"content": json.dumps({"headline": "ok"})}}], "usage": {}})]
+        )
+        completion = _client(transport).chat_json(
+            model="other-model",
+            system_prompt="s",
+            user_prompt="u",
+            supported_features=["tools", "reasoning"],
+        )
+        self.assertEqual(completion.content, {"headline": "ok"})
+        self.assertNotIn("response_format", transport.calls[0]["body"])
+        self.assertEqual(completion.diagnostics["response_format"], "prompt_only")
+
+    def test_content_parts_and_output_text_shapes_are_supported(self):
+        parts = FakeTransport(
+            [_json({"choices": [{"message": {"content": [{"type": "text", "text": json.dumps({"headline": "ok"})}]}}], "usage": {}})]
+        )
+        self.assertEqual(
+            _client(parts).chat_json(model="z-ai/glm-5.3-flash", system_prompt="s", user_prompt="u").content,
+            {"headline": "ok"},
+        )
+        output_text = FakeTransport([_json({"choices": [{"message": {}}], "output_text": json.dumps({"headline": "ok"})})])
+        self.assertEqual(
+            _client(output_text).chat_json(model="z-ai/glm-5.3-flash", system_prompt="s", user_prompt="u").content,
+            {"headline": "ok"},
+        )
 
     def test_no_key_does_not_add_authorization(self):
         transport = FakeTransport([_json({"object": "list", "data": [MODEL]})])

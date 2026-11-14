@@ -18,3 +18,11 @@ test('verification UI cannot claim a verified inference from an unavailable stat
   assert.match(marketDetail, /Inference verification unavailable/)
   assert.match(marketDetail, /No wallet or signing call is made\./)
 })
+
+test('research and council expose truthful inference status labels', () => {
+  assert.match(marketDetail, /LIVE_AI_VERIFIED/)
+  assert.match(marketDetail, /DETERMINISTIC_FALLBACK/)
+  assert.match(marketDetail, /UNAVAILABLE/)
+  assert.match(marketDetail, /one_shared_model_response/)
+  assert.match(marketDetail, /not independent model calls/)
+})

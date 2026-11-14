@@ -229,6 +229,7 @@ class NearAIClient:
             interval_seconds=config.rate_limit_seconds,
             sleep=sleep,
         )
+        self.sleep = sleep
         self.user_agent = user_agent
 
     def _headers(self) -> dict[str, str]:
@@ -268,14 +269,22 @@ class NearAIClient:
             if status in {401, 403}:
                 raise NearAIAuthError(message or "NEAR AI authentication failed", **kwargs)
             if status == 429:
-                raise NearAIRateLimitError(message or "NEAR AI rate limited", **kwargs)
+                raise NearAIRateLimitError(
+                    message or "NEAR AI rate limited",
+                    retryable=True,
+                    **kwargs,
+                )
             if 500 <= status < 600:
                 raise NearAIProviderError(
                     message or "NEAR AI provider unavailable",
                     retryable=True,
                     **kwargs,
                 )
-            raise NearAIRequestError(message or f"NEAR AI HTTP {status}", **kwargs)
+            raise NearAIRequestError(
+                message or f"NEAR AI HTTP {status}",
+                retryable=status in {408, 409, 425},
+                **kwargs,
+            )
         try:
             payload = json.loads(text) if text else {}
         except ValueError as exc:
@@ -283,6 +292,7 @@ class NearAIClient:
                 "NEAR AI returned invalid JSON",
                 status=status,
                 path=path,
+                retryable=True,
                 diagnostics=response_diagnostics,
             ) from exc
         if not isinstance(payload, dict):
@@ -326,7 +336,11 @@ class NearAIClient:
         model: str,
         system_prompt: str,
         user_prompt: str,
+        supported_features: list[str] | None = None,
+        max_tokens: int | None = None,
     ) -> AICompletion:
+        requested_max_tokens = max(256, int(max_tokens or self.config.max_tokens))
+        response_format = _response_format_for(supported_features)
         body = {
             "model": model,
             "messages": [
@@ -334,64 +348,179 @@ class NearAIClient:
                 {"role": "user", "content": user_prompt},
             ],
             "temperature": self.config.temperature,
-            "max_tokens": self.config.max_tokens,
-            "response_format": {"type": "json_object"},
+            "max_tokens": requested_max_tokens,
         }
-        payload, headers, status = self._request("POST", "/chat/completions", body=body)
-        choices = payload.get("choices")
-        diagnostics = _completion_diagnostics(
-            payload,
-            headers=headers,
-            status=status,
-            choices=choices,
-            system_prompt_chars=len(system_prompt),
-            user_prompt_chars=len(user_prompt),
-            max_tokens=self.config.max_tokens,
-        )
-        if not isinstance(choices, list) or not choices:
-            raise NearAIResponseError(
-                "NEAR AI response has no choices",
-                status=status,
-                path="/chat/completions",
-                diagnostics=diagnostics,
-            )
-        choice = choices[0] if isinstance(choices[0], dict) else {}
-        message = choice.get("message") if isinstance(choice.get("message"), dict) else {}
-        content = message.get("content")
-        if isinstance(content, dict):
-            parsed = content
-            text = json.dumps(content, ensure_ascii=False)
-        elif isinstance(content, str):
-            text = content
-            if not content.strip():
-                raise _empty_content_error(status, diagnostics)
+        if response_format is not None:
+            body["response_format"] = response_format
+
+        max_attempts = max(1, min(3, int(self.config.max_retries) + 1))
+        attempt = 0
+        retry_tokens = min(16_384, requested_max_tokens + 4_096)
+        while True:
+            attempt += 1
+            attempt_body = dict(body)
+            if attempt > 1 and requested_max_tokens < retry_tokens:
+                attempt_body["max_tokens"] = retry_tokens
             try:
-                parsed = _parse_json_content(content)
-            except (TypeError, ValueError) as exc:
-                raise NearAIResponseError(
-                    "NEAR AI message content is not valid JSON",
+                payload, headers, status = self._request(
+                    "POST", "/chat/completions", body=attempt_body
+                )
+                return _parse_completion(
+                    payload,
+                    headers=headers,
                     status=status,
-                    path="/chat/completions",
-                    diagnostics=diagnostics,
-                ) from exc
-        else:
-            raise _empty_content_error(status, diagnostics)
-        if not isinstance(parsed, dict):
-            raise NearAIResponseError(
-                "NEAR AI content is not a JSON object",
-                status=status,
-                path="/chat/completions",
-                diagnostics=diagnostics,
-            )
-        return AICompletion(
-            content=parsed,
-            text=text,
-            model=str(payload.get("model") or model),
-            usage=dict(payload.get("usage") or {}),
-            request_id=headers.get("x-request-id"),
-            raw=payload,
+                    model=model,
+                    system_prompt_chars=len(system_prompt),
+                    user_prompt_chars=len(user_prompt),
+                    max_tokens=int(attempt_body["max_tokens"]),
+                    response_format=("json_object" if response_format is not None else "prompt_only"),
+                    attempt=attempt,
+                    max_attempts=max_attempts,
+                )
+            except NearAIError as exc:
+                exc.diagnostics.setdefault("attempt", attempt)
+                exc.diagnostics.setdefault("max_attempts", max_attempts)
+                if not exc.retryable or attempt >= max_attempts:
+                    raise
+                delay = min(4.0, max(0.0, self.config.retry_backoff_seconds) * attempt)
+                if delay:
+                    self.sleep(delay)
+
+
+def _response_format_for(supported_features: list[str] | None) -> dict[str, str] | None:
+    """Use JSON mode only when the live model catalog says it is supported."""
+    if supported_features is None:
+        # Preserve direct-client compatibility for callers that have not loaded
+        # the catalog. Production services pass the selected model features.
+        return {"type": "json_object"}
+    features = {str(item).strip().lower() for item in supported_features}
+    return {"type": "json_object"} if "json_mode" in features else None
+
+
+def _response_id(payload: dict[str, Any], headers: dict[str, str]) -> str | None:
+    for key, value in headers.items():
+        if key.lower() == "x-request-id" and value:
+            return str(value)
+    value = payload.get("id")
+    return str(value) if isinstance(value, str) and value else None
+
+
+def _parse_completion(
+    payload: dict[str, Any],
+    *,
+    headers: dict[str, str],
+    status: int,
+    model: str,
+    system_prompt_chars: int,
+    user_prompt_chars: int,
+    max_tokens: int,
+    response_format: str,
+    attempt: int,
+    max_attempts: int,
+) -> AICompletion:
+    choices = payload.get("choices")
+    diagnostics = _completion_diagnostics(
+        payload,
+        headers=headers,
+        status=status,
+        choices=choices,
+        system_prompt_chars=system_prompt_chars,
+        user_prompt_chars=user_prompt_chars,
+        max_tokens=max_tokens,
+        response_format=response_format,
+    )
+    diagnostics.update({"attempt": attempt, "max_attempts": max_attempts})
+    if not isinstance(choices, list) or not choices:
+        raise NearAIResponseError(
+            "NEAR AI response has no choices",
+            status=status,
+            path="/chat/completions",
+            retryable=True,
             diagnostics=diagnostics,
         )
+    choice = choices[0] if isinstance(choices[0], dict) else {}
+    content, source = _completion_content(payload, choice)
+    diagnostics["content_source"] = source
+    if isinstance(content, dict):
+        parsed = content
+        text = json.dumps(content, ensure_ascii=False)
+    elif isinstance(content, list):
+        text = _content_parts_text(content)
+        if not text.strip():
+            raise _empty_content_error(status, diagnostics)
+        try:
+            parsed = _parse_json_content(text)
+        except (TypeError, ValueError) as exc:
+            truncated = diagnostics.get("finish_reason") == "length"
+            raise NearAIResponseError(
+                "NEAR AI message content is truncated JSON" if truncated else "NEAR AI message content is not valid JSON",
+                status=status,
+                path="/chat/completions",
+                code="TRUNCATED_JSON" if truncated else "INVALID_JSON",
+                retryable=truncated,
+                diagnostics=diagnostics,
+            ) from exc
+    elif isinstance(content, str):
+        text = content
+        if not content.strip():
+            raise _empty_content_error(status, diagnostics)
+        try:
+            parsed = _parse_json_content(content)
+        except (TypeError, ValueError) as exc:
+            truncated = diagnostics.get("finish_reason") == "length"
+            raise NearAIResponseError(
+                "NEAR AI message content is truncated JSON" if truncated else "NEAR AI message content is not valid JSON",
+                status=status,
+                path="/chat/completions",
+                code="TRUNCATED_JSON" if truncated else "INVALID_JSON",
+                retryable=truncated,
+                diagnostics=diagnostics,
+            ) from exc
+    else:
+        raise _empty_content_error(status, diagnostics)
+    if not isinstance(parsed, dict):
+        raise NearAIResponseError(
+            "NEAR AI content is not a JSON object",
+            status=status,
+            path="/chat/completions",
+            diagnostics=diagnostics,
+        )
+    return AICompletion(
+        content=parsed,
+        text=text,
+        model=str(payload.get("model") or model),
+        usage=dict(payload.get("usage") or {}),
+        request_id=_response_id(payload, headers),
+        raw=payload,
+        diagnostics=diagnostics,
+    )
+
+
+def _completion_content(payload: dict[str, Any], choice: dict[str, Any]) -> tuple[Any, str]:
+    message = choice.get("message") if isinstance(choice.get("message"), dict) else {}
+    if "content" in message:
+        return message.get("content"), "message.content"
+    if isinstance(choice.get("text"), (str, dict, list)):
+        return choice.get("text"), "choice.text"
+    if isinstance(payload.get("output_text"), (str, dict, list)):
+        return payload.get("output_text"), "output_text"
+    return None, "none"
+
+
+def _content_parts_text(parts: list[Any]) -> str:
+    result: list[str] = []
+    for part in parts:
+        if isinstance(part, str):
+            result.append(part)
+        elif isinstance(part, dict):
+            value = part.get("text")
+            if isinstance(value, str):
+                result.append(value)
+            elif isinstance(part.get("content"), str):
+                result.append(str(part["content"]))
+            elif isinstance(part.get("json"), (dict, list)):
+                result.append(json.dumps(part["json"], ensure_ascii=False))
+    return "".join(result)
 
 
 def _request_diagnostics(
@@ -420,6 +549,7 @@ def _completion_diagnostics(
     system_prompt_chars: int,
     user_prompt_chars: int,
     max_tokens: int,
+    response_format: str,
 ) -> dict[str, Any]:
     choice = choices[0] if isinstance(choices, list) and choices and isinstance(choices[0], dict) else {}
     message = choice.get("message") if isinstance(choice.get("message"), dict) else {}
@@ -446,7 +576,8 @@ def _completion_diagnostics(
             "max_tokens_requested": max_tokens,
             "system_prompt_chars": system_prompt_chars,
             "user_prompt_chars": user_prompt_chars,
-            "response_format": "json_object",
+            "response_format": response_format,
+            "provider_response_id": _response_id(payload, headers),
         }
     )
     return diagnostics
@@ -479,14 +610,21 @@ def _value_chars(value: Any) -> int:
 
 def _empty_content_error(status: int, diagnostics: dict[str, Any]) -> NearAIResponseError:
     reason = "NEAR AI message has no content"
+    retryable = True
     if diagnostics.get("finish_reason") == "length":
         reason += "; finish_reason=length may indicate that reasoning exhausted the output-token budget"
+        code = "EMPTY_CONTENT_TRUNCATED"
     elif diagnostics.get("reasoning_content_present"):
         reason += "; reasoning_content was present without a final answer"
+        code = "EMPTY_CONTENT_REASONING_ONLY"
+    else:
+        code = "EMPTY_CONTENT"
     return NearAIResponseError(
         reason,
         status=status,
         path="/chat/completions",
+        code=code,
+        retryable=retryable,
         diagnostics=diagnostics,
     )
 
@@ -498,7 +636,17 @@ def _parse_json_content(text: str) -> Any:
         if stripped.endswith("```"):
             stripped = stripped[:-3]
         stripped = stripped.strip()
-    return json.loads(stripped)
+    try:
+        return json.loads(stripped)
+    except json.JSONDecodeError:
+        # Some OpenAI-compatible gateways wrap otherwise valid JSON in a short
+        # sentence. Keep parsing bounded and let schema validation decide what
+        # the object is allowed to contain.
+        starts = [index for index in (stripped.find("{"), stripped.find("[")) if index >= 0]
+        ends = [index for index in (stripped.rfind("}"), stripped.rfind("]")) if index >= 0]
+        if not starts or not ends:
+            raise
+        return json.loads(stripped[min(starts) : max(ends) + 1])
 
 
 def _error_message(text: str) -> tuple[str | None, str | None]:
