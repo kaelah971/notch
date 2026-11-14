@@ -41,6 +41,7 @@
 
 .arena-back:hover { color: var(--ink, #f5f6f2); }
 
+.arena-head-actions { display: grid; justify-items: end; gap: 12px; }
 .arena-head-badge,
 .arena-panel-note {
   display: inline-flex;
@@ -279,6 +280,7 @@
 @media (max-width: 850px) {
   .arena-page { padding-inline: 16px; }
   .arena-head { align-items: flex-start; flex-direction: column; }
+  .arena-head-actions { justify-items: start; }
   .arena-head-badge { align-self: flex-start; }
   .arena-participant-grid { grid-template-columns: 1fr; }
   .arena-rules-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

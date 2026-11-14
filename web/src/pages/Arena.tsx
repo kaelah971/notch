@@ -81,7 +81,7 @@ export function Arena() {
           <h1>Agent Arena</h1>
           <p>Compare deterministic forecasting strategies on the same frozen Wikimedia evidence before considering real on-chain participation.</p>
         </div>
-        <div className="arena-head-badge"><ShieldCheck size={15} aria-hidden="true" />Walletless · historical only</div>
+        <div className="arena-head-actions"><Link className="btn btn-quiet" to="/app/autopilot"><ShieldCheck size={15} aria-hidden="true" /> Configure paper autopilot</Link><div className="arena-head-badge"><ShieldCheck size={15} aria-hidden="true" />Walletless · historical only</div></div>
       </header>
 
       <section className="arena-hero-note" aria-label="Arena boundary">

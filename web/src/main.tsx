@@ -18,6 +18,7 @@ import { Portfolio } from './pages/Portfolio'
 import { HowItWorks } from './pages/HowItWorks'
 import { Practice } from './pages/Practice'
 import { Arena } from './pages/Arena'
+import { Autopilot } from './pages/Autopilot'
 
 const router = createBrowserRouter([
   { path: '/', element: <Landing /> },
@@ -31,6 +32,7 @@ const router = createBrowserRouter([
       { path: 'markets/:id', element: <MarketDetail /> },
       { path: 'practice', element: <Practice /> },
       { path: 'arena', element: <Arena /> },
+      { path: 'autopilot', element: <Autopilot /> },
       { path: 'battles', element: <Markets battlesOnly /> },
       { path: 'discover', element: <Discover /> },
       { path: 'strategy-builder', element: <StrategyBuilder /> },
