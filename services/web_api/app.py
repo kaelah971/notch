@@ -197,8 +197,21 @@ class WebAPI:
             return 200, self._creator_public_notes(query)
         if parts == ["api", "research", "notes", "mine"]:
             return 200, self._creator_mine(query, headers)
+        if parts == ["api", "research", "payout"]:
+            return 200, {"data": self._creator_payout(headers)}
+        if parts == ["api", "research", "purchases"]:
+            return 200, {"data": self._creator_purchases(query, headers)}
+        if len(parts) == 4 and parts[:3] == ["api", "research", "payment-intents"]:
+            return 200, {"data": self._creator_payment_status(parts[3], headers)}
+        if len(parts) == 5 and parts[:3] == ["api", "research", "notes"] and parts[4] == "premium":
+            revision = query.get("revision")
+            try:
+                revision_number = int(revision) if revision else None
+            except ValueError as exc:
+                raise ApiError("INVALID_REVISION", "revision must be an integer", status=400) from exc
+            return 200, {"data": self._creator_premium(parts[3], revision_number, headers)}
         if len(parts) == 4 and parts[:3] == ["api", "research", "notes"]:
-            return 200, self._creator_public_note(parts[3])
+            return 200, {"data": self._creator_public_note(parts[3])}
         if len(parts) == 4 and parts[:2] == ["api", "creators"] and parts[3] == "notes":
             return 200, self._creator_profile(parts[2], query)
         if parts == ["api", "research", "me"]:
@@ -230,8 +243,17 @@ class WebAPI:
             return 200, {"data": self._creator_challenge(body)}
         if parts == ["api", "research", "identity", "verify"]:
             return 200, {"data": self._creator_verify(body)}
+        if parts == ["api", "research", "identity", "revoke"]:
+            return 200, {"data": self._creator_revoke(headers)}
+        if parts == ["api", "research", "payout", "configure"]:
+            return 200, {"data": self._creator_configure_payout(body, headers)}
         if parts == ["api", "research", "notes"]:
             return 201, {"data": self._creator_create(body, headers)}
+        if len(parts) == 5 and parts[:3] == ["api", "research", "notes"] and parts[4] == "payment-intents":
+            return 201, {"data": self._creator_create_payment_intent(parts[3], headers)}
+        if len(parts) == 5 and parts[:3] == ["api", "research", "payment-intents"] and parts[4] == "verify":
+            result = self._creator_verify_payment(parts[3], body, headers)
+            return (202 if result.get("status") == "PENDING" else 200), {"data": result}
         if len(parts) == 5 and parts[:3] == ["api", "research", "notes"] and parts[4] == "update":
             return 200, {"data": self._creator_update(parts[3], body, headers)}
         if len(parts) == 5 and parts[:3] == ["api", "research", "notes"] and parts[4] == "publish":
@@ -287,6 +309,18 @@ class WebAPI:
     def _creator_verify(self, body: dict[str, Any]) -> dict[str, Any]:
         return self._creator_service().verify_identity(body)
 
+    def _creator_revoke(self, headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().revoke_identity(self._authorization(headers))
+
+    def _creator_payout(self, headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().payout_status(self._authorization(headers))
+
+    def _creator_configure_payout(self, body: dict[str, Any], headers: dict[str, str]) -> dict[str, Any]:
+        requested = body.get("payout_account")
+        if requested is not None and not isinstance(requested, str):
+            raise ApiError("INVALID_BODY", "payout_account must be a string when provided", status=400)
+        return self._creator_service().configure_payout(self._authorization(headers), requested)
+
     def _creator_create(self, body: dict[str, Any], headers: dict[str, str]) -> dict[str, Any]:
         return self._creator_service().create_draft(self._authorization(headers), body).to_dict()
 
@@ -301,12 +335,30 @@ class WebAPI:
             self._authorization(headers), note_id, body.get("reason")
         ).to_dict()
 
+    def _creator_create_payment_intent(self, note_id: str, headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().create_payment_intent(self._authorization(headers), note_id)
+
+    def _creator_payment_status(self, intent_id: str, headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().payment_status(self._authorization(headers), intent_id)
+
+    def _creator_verify_payment(self, intent_id: str, body: dict[str, Any], headers: dict[str, str]) -> dict[str, Any]:
+        tx_hash = body.get("tx_hash")
+        if not isinstance(tx_hash, str) or not tx_hash.strip():
+            raise ApiError("INVALID_BODY", "tx_hash is required", status=400)
+        return self._creator_service().verify_payment(self._authorization(headers), intent_id, tx_hash)
+
+    def _creator_purchases(self, query: dict[str, str], headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().purchases(self._authorization(headers), self._limit(query))
+
+    def _creator_premium(self, note_id: str, revision: int | None, headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().premium_content(self._authorization(headers), note_id, revision)
+
     def _creator_public_notes(self, query: dict[str, str]) -> dict[str, Any]:
         data = self._creator_service().public_list(self._limit(query))
         return {"data": data, "meta": {"count": len(data), "status": "PUBLISHED"}}
 
     def _creator_public_note(self, note_id: str) -> dict[str, Any]:
-        return {"data": self._creator_service().public_detail(note_id)}
+        return self._creator_service().public_detail(note_id)
 
     def _creator_profile(self, account_id: str, query: dict[str, str]) -> dict[str, Any]:
         data = self._creator_service().creator_public(account_id, self._limit(query))
@@ -323,6 +375,7 @@ class WebAPI:
                 "account_id": row["account_id"],
                 "public_key": row["public_key"],
                 "expires_at": row["expires_at"],
+                "network": row.get("network", "testnet"),
                 "verified": True,
             }
         }

@@ -104,6 +104,7 @@ class CreatorIdentityService:
         challenge_recipient: str = CHALLENGE_RECIPIENT,
         challenge_ttl: timedelta = CHALLENGE_TTL,
         session_ttl: timedelta = SESSION_TTL,
+        network: str = "testnet",
         clock=now_utc,
     ) -> None:
         self.store = store
@@ -111,6 +112,7 @@ class CreatorIdentityService:
         self.challenge_recipient = challenge_recipient
         self.challenge_ttl = challenge_ttl
         self.session_ttl = session_ttl
+        self.network = network
         self.clock = clock
 
     def create_challenge(self, account_id: str) -> dict[str, Any]:
@@ -120,8 +122,11 @@ class CreatorIdentityService:
         now = _utc(self.clock())
         expires = now + self.challenge_ttl
         nonce_b64 = base64.b64encode(secrets.token_bytes(32)).decode("ascii")
+        if self.network != "testnet":
+            raise CreatorIdentityError("TESTNET_IDENTITY_REQUIRED", "Creator Studio identity is restricted to NEAR Testnet", status=503)
         message = (
             "Notch Creator Studio ownership challenge\n"
+            "Network: NEAR Testnet\n"
             f"Account: {account_id}\n"
             f"Nonce: {nonce_b64}\n"
             f"Expires: {_iso(expires)}"
@@ -133,6 +138,7 @@ class CreatorIdentityService:
             recipient=self.challenge_recipient,
             created_at=_iso(now),
             expires_at=_iso(expires),
+            network=self.network,
         )
 
     def verify(
@@ -148,6 +154,8 @@ class CreatorIdentityService:
             raise CreatorIdentityError("CHALLENGE_NOT_FOUND", "ownership challenge was not found", status=404)
         if challenge["account_id"] != account_id:
             raise CreatorIdentityError("CHALLENGE_ACCOUNT_MISMATCH", "challenge account does not match")
+        if challenge.get("network", "testnet") != self.network:
+            raise CreatorIdentityError("CHALLENGE_NETWORK_MISMATCH", "ownership challenge is bound to a different NEAR network")
         now = _utc(self.clock())
         now_iso = _iso(now)
         if challenge["used_at"] is not None:
@@ -189,11 +197,13 @@ class CreatorIdentityService:
             public_key=public_key,
             created_at=now_iso,
             expires_at=_iso(expires),
+            network=self.network,
         )
         return {
             "account_id": account_id,
             "public_key": public_key,
             "verified": True,
+            "network": self.network,
             "verification_method": "NEP-413 + final NEAR access-key lookup",
             "session_token": token,
             "session_expires_at": _iso(expires),
@@ -203,9 +213,18 @@ class CreatorIdentityService:
         if not token:
             raise CreatorIdentityError("AUTH_REQUIRED", "a verified Creator Studio session is required", status=401)
         row = self.store.get_session(token, _iso(_utc(self.clock())))
-        if not row:
-            raise CreatorIdentityError("AUTH_INVALID", "Creator Studio session is missing or expired", status=401)
+        if not row or row.get("network", "testnet") != self.network:
+            raise CreatorIdentityError("AUTH_INVALID", "Creator Studio session is missing, expired, revoked, or network-bound elsewhere", status=401)
         return row
+
+    def revoke(self, token: str | None) -> dict[str, Any]:
+        row = self.session(token)
+        if not token or not self.store.revoke_session(token, _iso(_utc(self.clock()))):
+            raise CreatorIdentityError("AUTH_INVALID", "Creator Studio session is missing or already revoked", status=401)
+        return {"revoked": True, "account_id": row["account_id"], "revoked_at": _iso(_utc(self.clock()))}
+
+    def access_key_is_authorized(self, account_id: str, public_key: str) -> bool:
+        return self._view_access_key(account_id, public_key) is not None
 
     def _view_access_key(self, account_id: str, public_key: str) -> dict[str, Any] | None:
         if hasattr(self.reader, "view_access_key"):

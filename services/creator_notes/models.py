@@ -35,8 +35,29 @@ class CreatorResearchNote:
     published_at: str | None = None
     withdrawn_at: str | None = None
     withdrawal_reason: str | None = None
+    premium_enabled: bool = False
+    premium_body: str | None = None
+    premium_body_digest: str | None = None
+    premium_price_base_units: str | None = None
+    premium_token_contract: str | None = None
+    premium_token_symbol: str | None = None
+    premium_token_decimals: int | None = None
 
-    def to_dict(self) -> dict[str, Any]:
+    def premium_dict(self, *, include_body: bool) -> dict[str, Any]:
+        value: dict[str, Any] = {
+            "enabled": self.premium_enabled,
+            "price_base_units": self.premium_price_base_units,
+            "token_contract": self.premium_token_contract,
+            "token_symbol": self.premium_token_symbol,
+            "token_decimals": self.premium_token_decimals,
+            "body_digest": self.premium_body_digest,
+            "locked": self.premium_enabled and not include_body,
+        }
+        if include_body:
+            value["body"] = self.premium_body
+        return value
+
+    def to_dict(self, *, include_premium_body: bool = True) -> dict[str, Any]:
         return {
             "schema": NOTE_SCHEMA,
             "note_id": self.note_id,
@@ -62,12 +83,12 @@ class CreatorResearchNote:
             "published_at": self.published_at,
             "withdrawn_at": self.withdrawn_at,
             "withdrawal_reason": self.withdrawal_reason,
+            "premium": self.premium_dict(include_body=include_premium_body),
         }
 
     def public_dict(self) -> dict[str, Any]:
-        # Public notes intentionally expose provenance and revision identity, but
-        # never expose challenge/session material or private draft state.
-        return self.to_dict()
+        # Public notes expose the offer and provenance, never premium text.
+        return self.to_dict(include_premium_body=False)
 
     @classmethod
     def from_dict(cls, value: dict[str, Any]) -> "CreatorResearchNote":
@@ -95,6 +116,17 @@ class CreatorResearchNote:
             published_at=value.get("published_at"),
             withdrawn_at=value.get("withdrawn_at"),
             withdrawal_reason=value.get("withdrawal_reason"),
+            premium_enabled=bool((value.get("premium") or {}).get("enabled", value.get("premium_enabled", False))),
+            premium_body=(value.get("premium") or {}).get("body", value.get("premium_body")),
+            premium_body_digest=(value.get("premium") or {}).get("body_digest", value.get("premium_body_digest")),
+            premium_price_base_units=(value.get("premium") or {}).get("price_base_units", value.get("premium_price_base_units")),
+            premium_token_contract=(value.get("premium") or {}).get("token_contract", value.get("premium_token_contract")),
+            premium_token_symbol=(value.get("premium") or {}).get("token_symbol", value.get("premium_token_symbol")),
+            premium_token_decimals=(
+                int((value.get("premium") or {}).get("token_decimals", value.get("premium_token_decimals")))
+                if (value.get("premium") or {}).get("token_decimals", value.get("premium_token_decimals")) is not None
+                else None
+            ),
         )
 
     def preview(self) -> dict[str, Any]:
@@ -114,4 +146,5 @@ class CreatorResearchNote:
             "evidence_digest": self.evidence_digest,
             "updated_at": self.updated_at,
             "published_at": self.published_at,
+            "premium": self.premium_dict(include_body=False),
         }

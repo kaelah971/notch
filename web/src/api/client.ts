@@ -1,6 +1,6 @@
 import type {
   ApiErrorBody, Brief, EntryIntent, Envelope, FundingTokens, MainnetFundingDiscovery, Market, MarketDetail, MarketEvidence,
-  CreatorIdentitySession, CreatorNoteChallenge, CreatorResearchNote, CreatorNotesMeta, FundingQuoteResult, FundingStatusResult, PoolSnapshot, Position, PulseData, PulseWindow, QuoteRequest, Readiness, ResearchCouncil, ScoutCandidate, ScoutDirection, ScoutMeta, Trend, WalletBalances,
+  CreatorIdentitySession, CreatorNoteChallenge, CreatorPaymentIntent, CreatorPremiumContent, CreatorPurchases, CreatorPayoutStatus, CreatorResearchNote, CreatorNotesMeta, FundingQuoteResult, FundingStatusResult, PoolSnapshot, Position, PulseData, PulseWindow, QuoteRequest, Readiness, ResearchCouncil, ScoutCandidate, ScoutDirection, ScoutMeta, Trend, WalletBalances,
 } from './types'
 
 const BASE = ((import.meta.env.VITE_API_BASE as string | undefined) ?? '').replace(/\/$/, '')
@@ -75,11 +75,19 @@ export const api = {
     request<CreatorNoteChallenge>('/api/research/identity/challenge', { method: 'POST', body: JSON.stringify({ account_id: accountId }) }),
   creatorVerify: (body: { challenge_id: string; account_id: string; public_key: string; signature: string }) =>
     request<CreatorIdentitySession>('/api/research/identity/verify', { method: 'POST', body: JSON.stringify(body) }),
-  creatorMe: (token: string) => request<{ account_id: string; public_key: string; expires_at: string; verified: boolean }>('/api/research/me', { headers: bearer(token) }),
+  creatorRevoke: (token: string) => request<{ revoked: boolean; account_id: string; revoked_at: string }>('/api/research/identity/revoke', { method: 'POST', headers: bearer(token), body: '{}' }),
+  creatorMe: (token: string) => request<{ account_id: string; public_key: string; expires_at: string; network?: string; verified: boolean }>('/api/research/me', { headers: bearer(token) }),
+  creatorPayout: (token: string) => request<CreatorPayoutStatus>('/api/research/payout', { headers: bearer(token) }),
+  creatorConfigurePayout: (token: string, payoutAccount?: string) => request<CreatorPayoutStatus>('/api/research/payout/configure', { method: 'POST', headers: bearer(token), body: JSON.stringify(payoutAccount ? { payout_account: payoutAccount } : {}) }),
   creatorPublicNotes: (limit = 12) => request<CreatorResearchNote[], CreatorNotesMeta>(`/api/research/notes?limit=${limit}`),
   creatorPublicNote: (noteId: string) => request<CreatorResearchNote>(`/api/research/notes/${enc(noteId)}`),
   creatorProfile: (accountId: string, limit = 20) => request<CreatorResearchNote[], CreatorNotesMeta>(`/api/creators/${enc(accountId)}/notes?limit=${limit}`),
   creatorMine: (token: string, limit = 20) => request<CreatorResearchNote[], CreatorNotesMeta>(`/api/research/notes/mine?limit=${limit}`, { headers: bearer(token) }),
+  creatorPurchases: (token: string, limit = 50) => request<CreatorPurchases>(`/api/research/purchases?limit=${limit}`, { headers: bearer(token) }),
+  creatorPremium: (noteId: string, token: string, revision?: number) => request<CreatorPremiumContent>(`/api/research/notes/${enc(noteId)}/premium${revision ? `?revision=${revision}` : ''}`, { headers: bearer(token) }),
+  creatorCreatePaymentIntent: (token: string, noteId: string) => request<CreatorPaymentIntent>(`/api/research/notes/${enc(noteId)}/payment-intents`, { method: 'POST', headers: bearer(token), body: '{}' }),
+  creatorPaymentStatus: (token: string, intentId: string) => request<CreatorPaymentIntent>(`/api/research/payment-intents/${enc(intentId)}`, { headers: bearer(token) }),
+  creatorVerifyPayment: (token: string, intentId: string, txHash: string) => request<CreatorPaymentIntent>(`/api/research/payment-intents/${enc(intentId)}/verify`, { method: 'POST', headers: bearer(token), body: JSON.stringify({ tx_hash: txHash }) }),
   creatorCreate: (token: string, body: Record<string, unknown>) => request<CreatorResearchNote>('/api/research/notes', { method: 'POST', headers: bearer(token), body: JSON.stringify(body) }),
   creatorUpdate: (token: string, noteId: string, body: Record<string, unknown>) => request<CreatorResearchNote>(`/api/research/notes/${enc(noteId)}/update`, { method: 'POST', headers: bearer(token), body: JSON.stringify(body) }),
   creatorPublish: (token: string, noteId: string) => request<CreatorResearchNote>(`/api/research/notes/${enc(noteId)}/publish`, { method: 'POST', headers: bearer(token), body: '{}' }),

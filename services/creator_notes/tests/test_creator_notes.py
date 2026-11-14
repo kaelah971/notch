@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import tempfile
 import unittest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 from services.creator_notes.identity import CreatorIdentityService, verify_nep413_signature
@@ -132,6 +132,25 @@ class CreatorNotesTests(unittest.TestCase):
                         "signature": "fixture",
                     }
                 )
+
+    def test_session_revocation_is_server_side_and_single_use(self):
+        token = self.auth_token()
+        self.assertEqual(self.identity.session(token)["account_id"], self.account)
+        revoked = self.service.revoke_identity(token)
+        self.assertTrue(revoked["revoked"])
+        with self.assertRaisesRegex(CreatorNotesError, "revoked"):
+            self.service.mine(token)
+
+    def test_session_expiry_blocks_private_access(self):
+        token = self.auth_token()
+        self.now = self.now + timedelta(days=2)
+        with self.assertRaisesRegex(CreatorNotesError, "expired"):
+            self.service.mine(token)
+
+    def test_network_binding_is_part_of_the_challenge_and_session(self):
+        identity = CreatorIdentityService(store=self.store, reader=FakeReader(), network="mainnet", clock=lambda: self.now)
+        with self.assertRaisesRegex(Exception, "Testnet"):
+            identity.create_challenge(self.account)
 
     def test_publish_exposes_provenance_and_preserves_strategy_revision(self):
         token = self.auth_token()

@@ -2,28 +2,24 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Check, ExternalLink, FilePenLine, LockKeyhole, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { api, ApiError } from '../api/client'
-import type { CreatorResearchNote } from '../api/types'
+import type { CreatorPayoutStatus, CreatorPurchases, CreatorResearchNote } from '../api/types'
 import { useApi } from '../api/useApi'
 import { useWallet } from '../wallet/WalletProvider'
+import { clearCreatorSession, readCreatorSession, verifyCreatorOwnership, type StoredCreatorSession } from '../creator/session'
 import './CreatorStudio.css'
 
-const SESSION_KEY = 'notch.creator-studio.session.v1'
 const DEFAULT_SOURCE_URL = 'https://pageviews.wmcloud.org/'
 const emptyMine = { data: [] as CreatorResearchNote[], meta: { count: 0, private: true } }
+const emptyPayout: CreatorPayoutStatus = { configured: false, creator_account: '', network: 'testnet', token_contract: null, payout_account: null, token_symbol: null, token_decimals: null, storage_registered: false, verified_at: null }
+const emptyPurchases: CreatorPurchases = { buyer_entitlements: [], creator_sales: [] }
 
-type StoredSession = { token: string; accountId: string; expiresAt: string }
-
-function readSession(): StoredSession | null {
-  try {
-    const value = JSON.parse(localStorage.getItem(SESSION_KEY) ?? 'null') as StoredSession | null
-    if (!value?.token || !value.accountId || Date.parse(value.expiresAt) <= Date.now()) return null
-    return value
-  } catch { return null }
-}
-
-function decodeBase64(value: string): Uint8Array {
-  const binary = atob(value)
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0))
+function formatBaseUnits(value: string | null, decimals: number | null) {
+  if (!value || decimals == null) return ''
+  const padded = value.padStart(decimals + 1, '0')
+  const split = padded.length - decimals
+  const whole = padded.slice(0, split)
+  const fraction = padded.slice(split).replace(/0+$/, '')
+  return fraction ? `${whole}.${fraction}` : whole
 }
 
 function errorText(error: unknown) {
@@ -36,7 +32,7 @@ function NoteStatus({ status }: { status: string }) {
 
 export function CreatorStudio() {
   const { accountId, connect, signMessage } = useWallet()
-  const [session, setSession] = useState<StoredSession | null>(() => readSession())
+  const [session, setSession] = useState<StoredCreatorSession | null>(() => readCreatorSession())
   const [identityState, setIdentityState] = useState<'idle' | 'working' | 'verified' | 'error'>('idle')
   const [identityError, setIdentityError] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -55,14 +51,21 @@ export function CreatorStudio() {
   const [counterClaim, setCounterClaim] = useState('')
   const [strategyId, setStrategyId] = useState('')
   const [strategyHash, setStrategyHash] = useState('')
+  const [premiumEnabled, setPremiumEnabled] = useState(false)
+  const [premiumBody, setPremiumBody] = useState('')
+  const [premiumPrice, setPremiumPrice] = useState('')
+  const [payoutBusy, setPayoutBusy] = useState(false)
+  const [payoutError, setPayoutError] = useState<string | null>(null)
 
   const scoutState = useApi(() => api.scout('all', 12), [])
   const mineState = useApi(() => session ? api.creatorMine(session.token) : Promise.resolve(emptyMine), [session?.token])
+  const payoutState = useApi(() => session ? api.creatorPayout(session.token) : Promise.resolve({ data: emptyPayout }), [session?.token])
+  const purchasesState = useApi(() => session ? api.creatorPurchases(session.token) : Promise.resolve({ data: emptyPurchases }), [session?.token])
   const candidates = scoutState[0].status === 'ok' ? scoutState[0].data.data : []
 
   useEffect(() => {
     if (session && accountId && session.accountId !== accountId) {
-      localStorage.removeItem(SESSION_KEY)
+      clearCreatorSession()
       setSession(null)
       setIdentityState('idle')
     }
@@ -90,6 +93,9 @@ export function CreatorStudio() {
     setCounterClaim('')
     setStrategyId('')
     setStrategyHash('')
+    setPremiumEnabled(false)
+    setPremiumBody('')
+    setPremiumPrice('')
   }
 
   function editNote(note: CreatorResearchNote) {
@@ -108,6 +114,9 @@ export function CreatorStudio() {
     setCounterClaim(note.contradictory_evidence[0]?.claim ?? '')
     setStrategyId(note.strategy_reference?.id ?? '')
     setStrategyHash(note.strategy_reference?.revision_hash ?? '')
+    setPremiumEnabled(note.premium.enabled)
+    setPremiumBody(note.premium.body ?? '')
+    setPremiumPrice(formatBaseUnits(note.premium.price_base_units, note.premium.token_decimals))
     setNotice(`Editing revision ${note.revision} of ${note.note_id}. Publishing creates a new immutable revision.`)
   }
 
@@ -116,18 +125,43 @@ export function CreatorStudio() {
     setIdentityState('working')
     setIdentityError(null)
     try {
-      const challenge = (await api.creatorChallenge(accountId)).data
-      const signed = await signMessage({ message: challenge.message, recipient: challenge.recipient, nonce: decodeBase64(challenge.nonce_b64) })
-      if (signed.accountId !== accountId) throw new Error('The wallet signed for a different account.')
-      const verified = (await api.creatorVerify({ challenge_id: challenge.challenge_id, account_id: accountId, public_key: signed.publicKey, signature: signed.signature })).data
-      const next = { token: verified.session_token, accountId: verified.account_id, expiresAt: verified.session_expires_at }
-      localStorage.setItem(SESSION_KEY, JSON.stringify(next))
+      const next = await verifyCreatorOwnership(accountId, signMessage)
       setSession(next)
       setIdentityState('verified')
-      setNotice(`Wallet ownership verified for ${verified.account_id}.`)
+      setNotice(`Wallet ownership verified for ${next.accountId}.`)
     } catch (error) {
       setIdentityState('error')
       setIdentityError(errorText(error))
+    }
+  }
+
+  async function revokeIdentity() {
+    if (!session) return
+    setIdentityError(null)
+    try {
+      await api.creatorRevoke(session.token)
+    } catch (error) {
+      setIdentityError(errorText(error))
+      return
+    }
+    clearCreatorSession()
+    setSession(null)
+    setIdentityState('idle')
+    setNotice('Creator Studio session revoked on the server.')
+  }
+
+  async function configurePayout() {
+    if (!session) { setPayoutError('Verify wallet ownership before configuring a payout account.'); return }
+    setPayoutBusy(true)
+    setPayoutError(null)
+    try {
+      await api.creatorConfigurePayout(session.token, session.accountId)
+      setNotice('Verified Testnet payout account and token storage registration.')
+      payoutState[1]()
+    } catch (error) {
+      setPayoutError(errorText(error))
+    } finally {
+      setPayoutBusy(false)
     }
   }
 
@@ -145,6 +179,7 @@ export function CreatorStudio() {
       contradictory_evidence: counterClaim ? [{ source_id: sourceId, url: sourceUrl, observed_at: cutoff, claim: counterClaim }] : [],
       strategy_reference: strategyId && strategyHash ? { id: strategyId, revision_hash: strategyHash } : null,
       evaluation_reference: null,
+      premium: premiumEnabled ? { enabled: true, body: premiumBody, price: premiumPrice } : { enabled: false },
     }
     try {
       const result = editingId
@@ -195,9 +230,9 @@ export function CreatorStudio() {
           <p>A short NEP-413 challenge is signed in your wallet. The API checks the public key against a final NEAR Testnet access-key lookup. It never receives a private key or transaction approval.</p>
           {identityError && <span className="creator-error">{identityError}</span>}
         </div>
-        <button className="btn creator-verify" onClick={verifyIdentity} disabled={identityState === 'working'}>
+        <div className="creator-identity-actions"><button className="btn creator-verify" onClick={verifyIdentity} disabled={identityState === 'working'}>
           {identityState === 'working' ? 'Waiting for wallet…' : session ? 'Re-verify wallet' : accountId ? 'Verify ownership' : 'Connect wallet'}
-        </button>
+        </button>{session && <button className="btn btn-quiet" type="button" onClick={revokeIdentity}>Revoke session</button>}</div>
       </section>
 
       <div className="creator-layout">
@@ -221,6 +256,12 @@ export function CreatorStudio() {
           </div>
           <label>Supporting observation<textarea value={claim} onChange={(e) => setClaim(e.target.value)} maxLength={800} rows={3} placeholder="What did the source actually observe?" required /></label>
           <label>Contradictory observation <span className="creator-optional">optional</span><textarea value={counterClaim} onChange={(e) => setCounterClaim(e.target.value)} maxLength={800} rows={2} placeholder="What weakens or qualifies the thesis?" /></label>
+          <div className="creator-subhead"><span className="creator-label">PREMIUM RESEARCH OFFER</span><span className="creator-hint">Testnet-only unlock; public evidence and preview remain visible.</span></div>
+          <label className="creator-check"><input type="checkbox" checked={premiumEnabled} onChange={(e) => setPremiumEnabled(e.target.checked)} /> Offer protected research body</label>
+          {premiumEnabled && <>
+            <label>Premium body<textarea value={premiumBody} onChange={(e) => setPremiumBody(e.target.value)} maxLength={50000} rows={7} placeholder="The private method, assumptions, and deeper analysis readers unlock after verified payment." required /></label>
+            <label>Price in {payoutState[0].status === 'ok' ? payoutState[0].data.data.token_symbol ?? 'configured Testnet token' : 'configured Testnet token'}<input inputMode="decimal" value={premiumPrice} onChange={(e) => setPremiumPrice(e.target.value)} placeholder="1.25" required /><span className="creator-hint">The server converts this decimal using verified token metadata and stores exact base units.</span></label>
+          </>}
           <div className="creator-subhead"><span className="creator-label">OPTIONAL LOCAL REFERENCES</span><span className="creator-hint">Hashes are preserved as supplied; V1 does not pretend to verify browser-local artifacts.</span></div>
           <div className="creator-form-grid">
             <label>Strategy ID<input value={strategyId} onChange={(e) => setStrategyId(e.target.value)} placeholder="local strategy id" /></label>
@@ -236,6 +277,15 @@ export function CreatorStudio() {
             <div className="creator-section-head"><div><span className="creator-label">YOUR NOTES</span><h2>Revision ledger</h2></div><button className="icon-btn" onClick={() => mineState[1]()} aria-label="Refresh your notes"><RefreshCw size={16} aria-hidden="true" /></button></div>
             {!session ? <p className="creator-muted">Verify ownership to see private drafts and publication controls.</p> : mineState[0].status === 'loading' ? <p className="creator-muted">Loading local ledger…</p> : mineState[0].status === 'error' ? <p className="creator-error">{mineState[0].error.message}</p> : mineState[0].data.data.length === 0 ? <p className="creator-muted">No drafts yet. Your first saved note will appear here.</p> : <div className="creator-note-list">{mineState[0].data.data.map((note) => <article className={`creator-note-row ${selectedId === note.note_id ? 'is-selected' : ''}`} key={note.note_id} onClick={() => editNote(note)}><div className="creator-note-row-top"><strong>{note.title}</strong><NoteStatus status={note.status} /></div><span className="creator-note-meta mono">rev {note.revision} · {note.content_digest.slice(0, 18)}…</span><div className="creator-note-row-actions"><button type="button" onClick={(e) => { e.stopPropagation(); editNote(note) }}><FilePenLine size={14} aria-hidden="true" /> Edit</button>{note.status === 'DRAFT' && <button type="button" onClick={(e) => { e.stopPropagation(); publishNote(note.note_id) }}>Publish</button>}{note.status === 'PUBLISHED' && <button type="button" onClick={(e) => { e.stopPropagation(); withdrawNote(note.note_id) }}><Trash2 size={14} aria-hidden="true" /> Withdraw</button>}<Link to={`/app/research/notes/${encodeURIComponent(note.note_id)}`} onClick={(e) => e.stopPropagation()}>Inspect <ExternalLink size={13} aria-hidden="true" /></Link></div></article>)}</div>}
           </div>
+          {session && <div className="creator-side-card">
+            <div className="creator-section-head"><div><span className="creator-label">PAYMENT DESTINATION</span><h2>Verified Testnet payout</h2></div><ShieldCheck size={18} aria-hidden="true" /></div>
+            {payoutState[0].status === 'loading' ? <p className="creator-muted">Checking token metadata and storage registration…</p> : payoutState[0].status === 'error' ? <p className="creator-error">{payoutState[0].error.message}</p> : payoutState[0].data.data.configured ? <><p className="creator-muted">{payoutState[0].data.data.payout_account} receives {payoutState[0].data.data.token_symbol} on NEAR Testnet. The account is the currently authenticated wallet and was rechecked against its access key.</p><button className="btn btn-quiet" type="button" onClick={configurePayout} disabled={payoutBusy}>{payoutBusy ? 'Rechecking…' : 'Recheck payout account'}</button></> : <><p className="creator-muted">Configure your own authenticated wallet as the receiving account before publishing a premium revision. Notch never becomes the recipient.</p><button className="btn btn-accent" type="button" onClick={configurePayout} disabled={payoutBusy}>{payoutBusy ? 'Checking token…' : 'Configure payout account'}</button></>}
+            {payoutError && <div className="creator-error creator-alert">{payoutError}</div>}
+          </div>}
+          {session && purchasesState[0].status === 'ok' && <div className="creator-side-card">
+            <div className="creator-section-head"><div><span className="creator-label">PURCHASE RECORDS</span><h2>Verified sales</h2></div></div>
+            {purchasesState[0].data.data.creator_sales.length === 0 ? <p className="creator-muted">No verified Testnet purchases yet. This ledger never invents sales or revenue.</p> : <div className="creator-purchase-list">{purchasesState[0].data.data.creator_sales.map((sale) => <div className="creator-purchase" key={sale.entitlement_id}><strong>{sale.buyer_account}</strong><span>rev {sale.note_revision} · {sale.amount_base_units ?? '—'} {sale.token_symbol ?? ''} · <a href={sale.explorer_url} target="_blank" rel="noreferrer">verified tx ↗</a></span></div>)}</div>}
+          </div>}
           <div className="creator-side-card creator-limit-card"><span className="creator-label">V1 IDENTITY LIMIT</span><p>Wallet ownership proves control of the signing key at verification time. It does not prove a legal name, editorial quality, or that a human wrote every sentence.</p></div>
         </aside>
       </div>

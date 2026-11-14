@@ -92,6 +92,8 @@ def build_default_app(config: WebAPIConfig | None = None) -> WebAPI:
         reader=chain_reader,
         chain=chain,
         radar=radar,
+        payment_token=config.collateral_token,
+        payment_network=config.network,
     )
     pulse = PulseIndexer(
         rpc=chain_reader,

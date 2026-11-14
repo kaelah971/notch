@@ -121,6 +121,12 @@ class NearRpcClient:
             },
         )
 
+    def transaction_status(self, tx_hash: str, signer_id: str) -> dict[str, Any]:
+        return self._rpc("EXPERIMENTAL_tx_status", [tx_hash, signer_id])
+
+    def block_by_id(self, block_id: str) -> dict[str, Any]:
+        return self._rpc("block", {"block_id": block_id})
+
     def latest_block_timestamp_ns(self) -> int:
         result = self._rpc("block", {"finality": "final"})
         return int(result["header"]["timestamp"])

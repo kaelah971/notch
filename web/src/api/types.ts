@@ -517,6 +517,93 @@ export interface CreatorNoteRevision {
   evidence_digest: string
   created_at: string
 }
+export interface CreatorPremiumOffer {
+  enabled: boolean
+  price_base_units: string | null
+  token_contract: string | null
+  token_symbol: string | null
+  token_decimals: number | null
+  body_digest: string | null
+  locked: boolean
+  body?: string | null
+}
+export interface CreatorPayoutStatus {
+  configured: boolean
+  creator_account: string
+  network: string
+  token_contract: string | null
+  payout_account: string | null
+  token_symbol: string | null
+  token_decimals: number | null
+  storage_registered: boolean
+  verified_at: string | null
+}
+export interface CreatorPaymentAction {
+  receiver_id: string
+  method_name: 'ft_transfer' | string
+  args: { receiver_id: string; amount: string; memo: string }
+  gas_tgas: number
+  attached_deposit_yocto: string
+}
+export interface CreatorEntitlement {
+  entitlement_id: string
+  intent_id: string
+  buyer_account: string
+  creator_account: string
+  note_id: string
+  note_revision: number
+  content_digest: string
+  tx_hash: string
+  receipt_id: string
+  granted_at: string
+  amount_base_units: string | null
+  token_contract: string | null
+  token_symbol: string | null
+  recipient_account: string | null
+  memo: string | null
+  explorer_url: string
+}
+export interface CreatorPaymentIntent {
+  intent_id: string
+  status: 'PENDING' | 'VERIFIED' | 'FAILED' | 'EXPIRED' | string
+  buyer_account: string
+  creator_account: string
+  note_id: string
+  note_title: string
+  note_revision: number
+  content_digest: string
+  network: 'testnet' | string
+  token_contract: string
+  token_symbol: string
+  token_decimals: number
+  amount_base_units: string
+  recipient_account: string
+  memo: string
+  created_at: string
+  expires_at: string
+  updated_at: string
+  tx_hash: string | null
+  receipt_id: string | null
+  explorer_url?: string
+  failure_code: string | null
+  failure_message: string | null
+  action: CreatorPaymentAction
+  disclosure: { testnet_only: boolean; refund_policy: string; user_approval_required: boolean; notch_signs_or_broadcasts: boolean }
+  entitlement?: CreatorEntitlement
+  already_entitled?: boolean
+}
+export interface CreatorPremiumContent {
+  note_id: string
+  revision: number
+  content_digest: string
+  premium: { body: string; body_digest: string | null; price_base_units: string | null; token_contract: string | null; token_symbol: string | null; token_decimals: number | null }
+  entitlement: CreatorEntitlement | null
+  access: 'creator' | 'purchased_revision' | string
+}
+export interface CreatorPurchases {
+  buyer_entitlements: CreatorEntitlement[]
+  creator_sales: CreatorEntitlement[]
+}
 export interface CreatorResearchNote {
   schema: string
   note_id: string
@@ -542,6 +629,7 @@ export interface CreatorResearchNote {
   published_at: string | null
   withdrawn_at: string | null
   withdrawal_reason: string | null
+  premium: CreatorPremiumOffer
   revision_history?: CreatorNoteRevision[]
 }
 export interface CreatorNoteChallenge {
@@ -557,6 +645,7 @@ export interface CreatorIdentitySession {
   account_id: string
   public_key: string
   verified: boolean
+  network?: string
   verification_method: string
   session_token: string
   session_expires_at: string
