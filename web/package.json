@@ -13,6 +13,7 @@
     "test:research": "node --experimental-strip-types --test tests/research.test.mjs",
     "test:strategy": "node --experimental-strip-types --test tests/strategy.test.mjs",
     "test:strategy-evaluation": "node --experimental-strip-types --test tests/strategy-evaluation.test.mjs",
+    "test:arena": "node --experimental-strip-types --test tests/arena.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
