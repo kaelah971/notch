@@ -1,6 +1,6 @@
 import type {
   ApiErrorBody, Brief, EntryIntent, Envelope, FundingInstructions, FundingQuote, FundingTokens, Market, MarketDetail, MarketEvidence,
-  PoolSnapshot, Position, PulseData, PulseWindow, QuoteRequest, Readiness, ScoutCandidate, ScoutDirection, ScoutMeta, Trend, WalletBalances,
+  PoolSnapshot, Position, PulseData, PulseWindow, QuoteRequest, Readiness, ResearchCouncil, ScoutCandidate, ScoutDirection, ScoutMeta, Trend, WalletBalances,
 } from './types'
 
 const BASE = ((import.meta.env.VITE_API_BASE as string | undefined) ?? '').replace(/\/$/, '')
@@ -41,6 +41,9 @@ export const api = {
   marketEvidence: (id: string) => request<MarketEvidence>(`/api/markets/${enc(id)}/evidence`),
   marketBrief: (id: string) => request<{ brief: Brief; market: Market }>(`/api/markets/${enc(id)}/brief`),
   marketResearch: (id: string) => request<{ brief: Brief; market: Market }>(`/api/markets/${enc(id)}/research`, { method: 'POST', body: '{}' }),
+  marketCouncil: (id: string, body: { allow_ai?: boolean; force?: boolean } = {}) =>
+    request<{ council: ResearchCouncil; market: Market }>(`/api/markets/${enc(id)}/council`, { method: 'POST', body: JSON.stringify(body) }),
+  marketCouncilLatest: (id: string) => request<{ council: ResearchCouncil; market: Market }>(`/api/markets/${enc(id)}/council`),
   trends: () => request<Trend[], { count: number }>('/api/trends'),
   scout: (direction: ScoutDirection = 'all', limit = 12) =>
     request<ScoutCandidate[], ScoutMeta>(`/api/scout?direction=${direction}&limit=${limit}`),

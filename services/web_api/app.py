@@ -23,6 +23,7 @@ from services.near_ai.observations import fetch_market_observations
 from services.near_ai.service import BriefService
 from services.near_ai.store import BriefStore
 from services.oracle.evidence import verify_evidence
+from services.research_council.service import ResearchCouncilService
 from services.trend_radar.models import iso_utc, now_utc, parse_iso
 from services.trend_radar.scout import build_scout_feed, scout_metadata
 from services.web_api.chain import ChainReadError, MarketChainReader
@@ -74,6 +75,7 @@ class WebAPI:
         rate_limiter: RateLimiter | None = None,
         attention_fetcher: Any = None,
         pulse: PulseIndexer | None = None,
+        council_service: ResearchCouncilService | None = None,
     ) -> None:
         self.config = config
         self.attention_fetcher = attention_fetcher
@@ -84,10 +86,13 @@ class WebAPI:
         self.funding_service = funding_service
         self.rate_limiter = rate_limiter or RateLimiter()
         self.pulse = pulse
+        self.council_service = council_service
 
     def close(self) -> None:
         if self.pulse is not None:
             self.pulse.close()
+        if self.council_service is not None:
+            self.council_service.close()
         self.brief_service.store.close()
         self.funding_service.store.close()
 
@@ -164,6 +169,8 @@ class WebAPI:
             return 200, self._market_evidence(parts[2])
         if len(parts) == 4 and parts[:2] == ["api", "markets"] and parts[3] == "brief":
             return 200, self._market_brief(parts[2])
+        if len(parts) == 4 and parts[:2] == ["api", "markets"] and parts[3] == "council":
+            return 200, self._market_council_latest(parts[2])
         if parts == ["api", "funding", "tokens"]:
             return 200, self._funding_tokens()
         if len(parts) == 4 and parts[:2] == ["api", "funding"] and parts[2] == "status":
@@ -187,6 +194,8 @@ class WebAPI:
             return 200, self._entry_intent(parts[2], body)
         if len(parts) == 4 and parts[:2] == ["api", "markets"] and parts[3] == "research":
             return 200, self._market_research(parts[2], body)
+        if len(parts) == 4 and parts[:2] == ["api", "markets"] and parts[3] == "council":
+            return 200, self._market_council(parts[2], body)
         raise ApiError("NOT_FOUND", "endpoint not found", status=404)
 
     # ------------------------------------------------------------------
@@ -232,6 +241,12 @@ class WebAPI:
             "ok": True,
             "provider": "tidepool-testnet",
             "data_dir": self.funding_service.config.data_dir,
+        }
+        council_store = getattr(self.council_service, "store", None)
+        checks["research_council"] = {
+            "ok": self.council_service is not None,
+            "status": "ready" if self.council_service is not None else "not_configured",
+            "cache_count": council_store.count() if council_store is not None else 0,
         }
         if self.pulse is None:
             checks["pulse"] = {"ok": False, "status": "not_configured"}
@@ -485,6 +500,67 @@ class WebAPI:
                 "cache_hit": brief.cache_hit,
                 "source_ids": inference.get("source_ids", []),
                 "observation_cutoff": inference.get("input_observation_cutoff"),
+            },
+        }
+
+    def _market_council_latest(self, market_id: str) -> dict[str, Any]:
+        market = self.chain.get_market(market_id)
+        if market is None:
+            raise ApiError("MARKET_NOT_FOUND", f"unknown market: {market_id}", status=404)
+        if self.council_service is None:
+            raise ApiError("COUNCIL_UNAVAILABLE", "research council is not configured", status=503)
+        council = self.council_service.get_latest(market_id)
+        if council is None:
+            raise ApiError(
+                "COUNCIL_NOT_AVAILABLE",
+                "no research council record has been generated for this market",
+                status=404,
+            )
+        summary = self._market_summary(market, self.chain.now_ns())
+        return {
+            "data": {"council": council, "market": summary.to_dict()},
+            "meta": {"market_id": market_id, "generation_mode": "cached_council"},
+        }
+
+    def _market_council(self, market_id: str, body: dict[str, Any]) -> dict[str, Any]:
+        market = self.chain.get_market(market_id)
+        if market is None:
+            raise ApiError("MARKET_NOT_FOUND", f"unknown market: {market_id}", status=404)
+        if self.council_service is None:
+            raise ApiError("COUNCIL_UNAVAILABLE", "research council is not configured", status=503)
+        rule = self.oracle.find_rule(market_id)
+        if rule is None or str(rule.get("status")) not in {"APPROVED", "PUBLISHED"}:
+            raise ApiError("RULE_NOT_AVAILABLE", "a published market rule is required for the research council", status=404)
+        if str(rule.get("rule_hash")) != str(market.get("rule_hash")):
+            raise ApiError("RULE_MISMATCH", "stored rule does not match the onchain market rule hash", status=503)
+        verified_record = self.oracle.verify(market_id) or {}
+        evidence = verified_record.get("evidence") if verified_record.get("verified") else None
+        attention = fetch_market_observations(
+            rule,
+            fetcher=self.attention_fetcher,
+            now=now_utc(),
+        ) if self.attention_fetcher is not None else []
+        historical = self.oracle.matching_historical_context(rule)
+        allow_ai = bool(body.get("allow_ai", True))
+        force = bool(body.get("force", False))
+        council = self.council_service.generate_from_records(
+            rule,
+            evidence,
+            attention_snapshots=attention,
+            historical_context=historical,
+            force=force,
+            allow_ai=allow_ai,
+        )
+        summary = self._market_summary(market, self.chain.now_ns(), rule=rule, evidence=evidence)
+        return {
+            "data": {"council": council, "market": summary.to_dict()},
+            "meta": {
+                "market_id": market_id,
+                "generation_mode": "explicit_research_council_request",
+                "ai_call_triggered": bool(council.get("ai_call_triggered")),
+                "cache_hit": bool(council.get("cache_hit")),
+                "snapshot_id": council.get("snapshot", {}).get("snapshot_id"),
+                "snapshot_digest": council.get("snapshot", {}).get("snapshot_digest"),
             },
         }
 

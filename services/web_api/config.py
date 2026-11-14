@@ -38,6 +38,7 @@ class WebAPIConfig:
     network: str = "testnet"
     request_timeout_seconds: float = 15.0
     pulse_db_path: str = "var/web_api/pulse.sqlite3"
+    council_db_path: str = "var/web_api/research_council.sqlite3"
     pulse_start_block: int | None = None
     pulse_max_blocks_per_request: int = 25
 
@@ -85,6 +86,9 @@ class WebAPIConfig:
             ),
             pulse_db_path=os.environ.get(
                 "PULSE_DB_PATH", "var/web_api/pulse.sqlite3"
+            ),
+            council_db_path=os.environ.get(
+                "RESEARCH_COUNCIL_DB_PATH", "var/web_api/research_council.sqlite3"
             ),
             pulse_start_block=(
                 int(os.environ["PULSE_START_BLOCK"])

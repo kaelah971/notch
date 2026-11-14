@@ -15,6 +15,8 @@ from services.near_ai.client import NearAIClient
 from services.near_ai.config import NearAIConfig
 from services.near_ai.service import BriefService
 from services.near_ai.store import BriefStore
+from services.research_council.service import ResearchCouncilService
+from services.research_council.store import ResearchCouncilStore
 from services.trend_radar.http import LiveFetcher
 from services.web_api.app import WebAPI
 from services.web_api.chain import MarketChainReader
@@ -60,10 +62,16 @@ def build_default_app(config: WebAPIConfig | None = None) -> WebAPI:
         data_dir=str(Path(ai.data_dir)),
     )
     brief_store = BriefStore(Path(ai.data_dir) / "briefs.sqlite3")
+    ai_client = NearAIClient(config=ai)
     brief_service = BriefService(
         config=ai,
-        client=NearAIClient(config=ai),
+        client=ai_client,
         store=brief_store,
+    )
+    council_service = ResearchCouncilService(
+        config=ai,
+        client=ai_client,
+        store=ResearchCouncilStore(config.council_db_path),
     )
 
     chain = MarketChainReader(config=intents, reader=chain_reader)
@@ -90,6 +98,7 @@ def build_default_app(config: WebAPIConfig | None = None) -> WebAPI:
         oracle=oracle,
         brief_service=brief_service,
         funding_service=funding_service,
+        council_service=council_service,
         pulse=pulse,
     )
 

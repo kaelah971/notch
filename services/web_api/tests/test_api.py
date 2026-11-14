@@ -304,6 +304,33 @@ class FakeBrief:
         }
 
 
+class FakeCouncil:
+    def __init__(self):
+        self.last = None
+
+    def close(self):
+        return None
+
+    def get_latest(self, market_id):
+        return self.last
+
+    def generate_from_records(self, rule, evidence, *, attention_snapshots, historical_context, force=False, allow_ai=True):
+        self.last = {
+            "schema_version": "notch.research-council/1",
+            "council_id": "council_test",
+            "market_id": rule["market_id"],
+            "generation_mode": "DETERMINISTIC_EVIDENCE_LENSES",
+            "ai_call_triggered": False,
+            "cache_hit": False,
+            "snapshot": {"snapshot_id": "snapshot_test", "snapshot_digest": "sha256:snapshot"},
+            "roles": [],
+            "disagreement": {"status": "UNRESOLVED", "records": []},
+            "audit": {"audit_id": "audit_test", "execution_boundary": {"broadcast": False}},
+            "execution": {"wallet_action": False, "signature_requested": False, "broadcast": False},
+        }
+        return self.last
+
+
 class FakeToken:
     def __init__(self, symbol):
         self.symbol = symbol
@@ -368,6 +395,7 @@ def make_app(*, rate_limit=1000):
         oracle=FakeOracle(),
         brief_service=FakeBrief(),
         funding_service=FakeFunding(),
+        council_service=FakeCouncil(),
         rate_limiter=RateLimiter(),
     )
 
@@ -458,6 +486,16 @@ class APITests(unittest.TestCase):
         self.assertEqual(payload["data"]["brief"]["brief_id"], "brief_research_test")
         self.assertFalse(payload["meta"]["ai_call_triggered"])
         self.assertEqual(payload["meta"]["generation_mode"], "explicit_research_request")
+
+    def test_market_research_council_is_read_only_and_snapshot_bound(self):
+        status, payload = self.call("POST", f"/api/markets/{OPEN_ID}/council", {"allow_ai": False})
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["data"]["council"]["generation_mode"], "DETERMINISTIC_EVIDENCE_LENSES")
+        self.assertFalse(payload["data"]["council"]["execution"]["broadcast"])
+        self.assertEqual(payload["meta"]["snapshot_id"], "snapshot_test")
+        status, payload = self.call("GET", f"/api/markets/{OPEN_ID}/council")
+        self.assertEqual(status, 200)
+        self.assertEqual(payload["data"]["council"]["council_id"], "council_test")
 
     def test_market_research_provider_error_is_safe(self):
         def fail(*args, **kwargs):

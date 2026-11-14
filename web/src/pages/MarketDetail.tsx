@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { ChevronLeft, ShieldCheck, ShieldQuestion, ExternalLink } from 'lucide-react'
 import { ApiError, api } from '../api/client'
 import { useApi } from '../api/useApi'
-import type { Brief, BriefClaim, BriefEvidenceReference, MarketDetail as MD, MarketEvidence } from '../api/types'
+import type { Brief, BriefClaim, BriefEvidenceReference, MarketDetail as MD, MarketEvidence, ResearchCouncil, CouncilRole, CouncilClaim } from '../api/types'
 import { cleanQuestion, formatUtc, relativeTo } from '../api/format'
 import { PoolBars, StatusBadge, isOpenForEntry, marketCategory, marketTitle, modeLabel, parseRule } from '../components/market'
 import { AttentionChart } from '../components/AttentionChart'
@@ -19,6 +19,11 @@ type ResearchState =
   | { marketId: string; status: 'loading' }
   | { marketId: string; status: 'ok'; brief: Brief }
   | { marketId: string; status: 'error'; error: ApiError }
+type CouncilState =
+  | { marketId: string; status: 'idle' }
+  | { marketId: string; status: 'loading' }
+  | { marketId: string; status: 'ok'; council: ResearchCouncil }
+  | { marketId: string; status: 'error'; error: ApiError }
 const short = (h?: string | null) => (h ? `${h.slice(0, 15)}…${h.slice(-6)}` : '—')
 
 export function MarketDetail() {
@@ -27,6 +32,7 @@ export function MarketDetail() {
   const [ev] = useApi(() => api.marketEvidence(id).then((r) => r.data), [id])
   const [br] = useApi(() => api.marketBrief(id).then((r) => r.data.brief), [id])
   const [research, setResearch] = useState<ResearchState>({ marketId: id, status: 'idle' })
+  const [council, setCouncil] = useState<CouncilState>({ marketId: id, status: 'idle' })
 
   const requestResearch = () => {
     setResearch({ marketId: id, status: 'loading' })
@@ -35,7 +41,15 @@ export function MarketDetail() {
       (error) => setResearch({ marketId: id, status: 'error', error: error instanceof ApiError ? error : new ApiError(0, 'UNKNOWN', String(error)) }),
     )
   }
+  const requestCouncil = () => {
+    setCouncil({ marketId: id, status: 'loading' })
+    api.marketCouncil(id).then(
+      (response) => setCouncil({ marketId: id, status: 'ok', council: response.data.council }),
+      (error) => setCouncil({ marketId: id, status: 'error', error: error instanceof ApiError ? error : new ApiError(0, 'UNKNOWN', String(error)) }),
+    )
+  }
   const researchForMarket = research.marketId === id ? research : { marketId: id, status: 'idle' as const }
+  const councilForMarket = council.marketId === id ? council : { marketId: id, status: 'idle' as const }
 
   // Open markets: silently re-read pools from the contract every 20s (no skeleton flash).
   const [fresh, setFresh] = useState<{ d: MD; at: number } | null>(null)
@@ -84,6 +98,7 @@ export function MarketDetail() {
             <p className="dim">Per-entry history isn’t available yet: the contract exposes pool totals and per-account positions, not an entry log or participant count. Indexing the market’s <span className="mono">ft_on_transfer</span> receipts would add it without contract changes.</p>
           </section>
           <ResearchPanel fallbackBrief={br.status === 'ok' ? br.data : null} research={researchForMarket} onRequest={requestResearch} />
+          <ResearchCouncilPanel council={councilForMarket} onRequest={requestCouncil} />
         </div>
         <aside className="md-side">
           <EntryPanel d={d} onPositionChange={reload} />
@@ -220,7 +235,82 @@ function ResearchPanel({ fallbackBrief, research, onRequest }: { fallbackBrief: 
   )
 }
 
-function ResearchClaimSection({ title, claims, tone, muted = false }: { title: string; claims: BriefClaim[]; tone?: 'up' | 'down'; muted?: boolean }) {
+const COUNCIL_STATUS_LABEL: Record<string, string> = {
+  AI_GENERATED: 'AI council · NEAR AI',
+  NON_AI_FALLBACK: 'Deterministic evidence lenses',
+  AI_UNAVAILABLE_FALLBACK: 'Deterministic lenses · AI unavailable',
+  INVALID_AI_FALLBACK: 'Deterministic lenses · AI output rejected',
+  MIXED_AI_AND_FALLBACK: 'Mixed AI and deterministic lenses',
+  DETERMINISTIC_EVIDENCE_LENSES: 'Deterministic evidence lenses',
+}
+
+function ResearchCouncilPanel({ council, onRequest }: { council: CouncilState; onRequest: () => void }) {
+  const record = council.status === 'ok' ? council.council : null
+  const errorText = council.status === 'error'
+    ? council.error.code === 'NETWORK' ? 'The research API is unreachable. Market and wallet state are unchanged.'
+      : council.error.code === 'RULE_NOT_AVAILABLE' ? 'This market has no published rule available for the council.'
+        : 'The council is unavailable right now. No wallet or signing action was requested.'
+    : null
+  return (
+    <section className="card md-council" aria-labelledby="research-council-title">
+      <div className="card-hrow">
+        <div>
+          <h2 className="card-h" id="research-council-title">Research council</h2>
+          <p className="md-council-kicker">Three lenses · one bounded evidence snapshot</p>
+        </div>
+        {record && <span className="badge">{COUNCIL_STATUS_LABEL[record.generation_mode] ?? record.generation_mode}</span>}
+      </div>
+      <p className="md-research-intro">Ask Bull Analyst, Bear Analyst, and Evidence Verifier to inspect the same published rule, Wikimedia observations, and matching historical context. Claims stay cited and descriptive: no probability, trade, wallet, or settlement action is created.</p>
+      <button type="button" className="btn btn-primary md-research-trigger" onClick={onRequest} disabled={council.status === 'loading'} aria-busy={council.status === 'loading'}>
+        {council.status === 'loading' ? 'Convening council…' : 'Open research council'}
+      </button>
+      {council.status === 'loading' && <p className="md-research-status" role="status">Freezing one evidence snapshot and checking three read-only lenses. No wallet or signing call is made.</p>}
+      {errorText && <div className="md-research-error" role="alert"><strong>{errorText}</strong><button type="button" className="btn btn-quiet" onClick={onRequest}>Try again</button></div>}
+      {record && (
+        <>
+          <div className="md-council-boundary"><strong>Shared snapshot</strong><span><code>{record.snapshot.snapshot_id}</code> · source package <code>{short(record.snapshot.snapshot_digest)}</code> · as of <strong>{record.snapshot.data_as_of || 'unavailable'}</strong></span></div>
+          <div className="md-council-roles">
+            {record.roles.map((role) => <CouncilRoleCard key={role.role_id} role={role} />)}
+          </div>
+          <div className="md-council-disagreement">
+            <div className="md-council-section-head"><h3>Disagreement tracking</h3><span className={`badge council-${record.disagreement.status.toLowerCase()}`}>{record.disagreement.status.replace(/_/g, ' ')}</span></div>
+            <p>{record.disagreement.summary}</p>
+            {record.disagreement.records.map((item, index) => <div className="md-council-record" key={`${String(item.kind ?? 'record')}-${index}`}><span>Bull refs</span><code>{refsFromRecord(item, 'bull_evidence_refs')}</code><span>Bear refs</span><code>{refsFromRecord(item, 'bear_evidence_refs')}</code></div>)}
+          </div>
+          <div className="md-council-audit">
+            <span>Audit <code>{record.audit.audit_id}</code></span>
+            <span>Input <code>{short(record.snapshot.input_digest)}</code></span>
+            <span>Result <code>{short(record.result_digest)}</code></span>
+            <span className="md-council-safe">Read-only boundary · no broadcast, publication, or settlement</span>
+          </div>
+        </>
+      )}
+      {!record && council.status !== 'loading' && !errorText && <p className="dim md-research-empty">No council record has been generated for this market yet.</p>}
+    </section>
+  )
+}
+
+function CouncilRoleCard({ role }: { role: CouncilRole }) {
+  const tone = role.role_id === 'bull_analyst' ? 'bull' : role.role_id === 'bear_analyst' ? 'bear' : 'verify'
+  return (
+    <article className={`md-council-role is-${tone}`}>
+      <div className="md-council-role-head"><div><span className="md-council-role-label">{role.label}</span><h3>{role.headline}</h3></div><span className="md-council-stance">{role.position}</span></div>
+      <p className="md-council-thesis">{role.thesis}</p>
+      <ResearchClaimSection title="Cited claims" claims={role.claims} tone={tone === 'bull' ? 'up' : tone === 'bear' ? 'down' : undefined} />
+      <ResearchClaimSection title="Counterpoints" claims={role.counterpoints} muted />
+      <ResearchTextList title="Open questions" items={role.open_questions} />
+      <div className="md-council-role-meta"><span>{COUNCIL_STATUS_LABEL[role.generation_status] ?? role.generation_status}</span><span className={role.citation_validation.status === 'valid' ? 'md-council-cited' : 'bad'}>{role.citation_validation.status === 'valid' ? 'Citations checked' : 'Citation issue'}</span></div>
+      {role.fallback_reason && <p className="fine">{role.fallback_reason}</p>}
+    </article>
+  )
+}
+
+function refsFromRecord(record: Record<string, unknown>, key: string) {
+  const refs = record[key]
+  return Array.isArray(refs) && refs.length ? refs.join(' · ') : 'none'
+}
+
+function ResearchClaimSection({ title, claims, tone, muted = false }: { title: string; claims: Array<BriefClaim | CouncilClaim>; tone?: 'up' | 'down'; muted?: boolean }) {
   return (
     <div className={`md-research-section${tone ? ` is-${tone}` : ''}${muted ? ' is-muted' : ''}`}>
       <h3>{title}</h3>

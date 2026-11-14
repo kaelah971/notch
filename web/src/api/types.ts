@@ -126,6 +126,98 @@ export interface Brief {
   [k: string]: unknown
 }
 
+export type CouncilGenerationStatus = BriefStatus | 'MIXED_AI_AND_FALLBACK' | 'DETERMINISTIC_EVIDENCE_LENSES' | string
+
+export interface CouncilClaim {
+  text: string
+  kind: 'FACT' | 'INTERPRETATION' | 'UNKNOWN' | string
+  evidence_refs: string[]
+}
+
+export interface CouncilCitationValidation {
+  status: 'valid' | 'invalid' | string
+  checked_claims: number
+  invalid_refs: string[]
+  issues: string[]
+}
+
+export interface CouncilRole {
+  role_id: 'bull_analyst' | 'bear_analyst' | 'evidence_verifier' | string
+  label: string
+  stance: 'UP' | 'DOWN' | 'NEUTRAL' | string
+  position: 'UP' | 'DOWN' | 'NEUTRAL' | string
+  headline: string
+  thesis: string
+  claims: CouncilClaim[]
+  counterpoints: CouncilClaim[]
+  open_questions: string[]
+  generation_status: CouncilGenerationStatus
+  provider: string
+  model: string
+  generated_at: string
+  fallback_reason?: string | null
+  snapshot_id: string
+  input_digest: string
+  citation_validation: CouncilCitationValidation
+  inference?: BriefInference
+}
+
+export interface CouncilSnapshot {
+  snapshot_id: string
+  snapshot_digest: string
+  input_digest: string
+  market_id: string
+  topic: string
+  data_as_of: string
+  measurement_window: Record<string, unknown>
+  source_ids: string[]
+  evidence_references: BriefEvidenceReference[]
+  scope: Record<string, unknown>
+  grounding_digest: string
+}
+
+export interface CouncilDisagreement {
+  status: 'MIXED_EVIDENCE' | 'UP_ONLY' | 'DOWN_ONLY' | 'UNRESOLVED' | string
+  summary: string
+  records: Array<Record<string, unknown>>
+  limitations: string[]
+}
+
+export interface CouncilAudit {
+  audit_id: string
+  event: string
+  market_id: string
+  occurred_at: string
+  snapshot_id: string
+  snapshot_digest: string
+  input_digest: string
+  source_ids: string[]
+  roles: Array<Record<string, unknown>>
+  disagreement_status: string
+  ai_call_triggered: boolean
+  request_id?: string | null
+  result_digest: string
+  execution_boundary: Record<string, boolean>
+}
+
+export interface ResearchCouncil {
+  schema_version: string
+  council_id: string
+  market_id: string
+  topic: string
+  created_at: string
+  generation_mode: CouncilGenerationStatus
+  ai_call_triggered: boolean
+  cache_hit: boolean
+  snapshot: CouncilSnapshot
+  roles: CouncilRole[]
+  disagreement: CouncilDisagreement
+  audit: CouncilAudit
+  result_digest: string
+  limitations: string[]
+  execution: Record<string, boolean>
+}
+
 export interface Trend {
   candidate_id: string
   canonical_topic_id: string
