@@ -23,6 +23,37 @@ export const AUTOPILOT_DEFAULT_RISK: AutopilotRiskConfig = {
 export type AutopilotStatus = 'ACTIVE' | 'PAUSED' | 'STOPPED'
 export type AutopilotMode = 'MANUAL_REVIEW' | 'PAPER_AUTO'
 export type AutopilotRunMode = 'FORWARD_EVALUATION' | 'HISTORICAL_SIMULATION'
+export type AutopilotPaperResult = 'PAPER_EXECUTED' | 'BLOCKED' | 'NO_ACTION'
+export type AutopilotRecommendationDirection = 'UP' | 'DOWN' | 'NO_ACTION'
+export type AutopilotFreshnessStatus = 'FROZEN_HISTORICAL' | 'FRESH' | 'STALE' | 'UNAVAILABLE'
+export type AutopilotRecommendationEligibility = 'ELIGIBLE' | 'BLOCKED' | 'NO_ACTION'
+export type AutopilotAgentKind = 'DETERMINISTIC_BOT' | 'BASELINE' | 'USER_STRATEGY'
+
+export interface AutopilotAgentContext {
+  agent_id: string
+  agent_name: string
+  agent_kind: AutopilotAgentKind
+  agent_behavior: string
+}
+
+export interface AutopilotRecommendation {
+  agent_id: string
+  agent_name: string
+  agent_kind: AutopilotAgentKind
+  agent_behavior: string
+  strategy_id: string
+  strategy_hash: string
+  market_id: string | null
+  direction: AutopilotRecommendationDirection
+  evidence_snapshot_id: string | null
+  evidence_digest: string | null
+  decision_timestamp_utc: string | null
+  reasoning: string
+  signal_momentum_bps: number | null
+  source_data_as_of: string | null
+  freshness_status: AutopilotFreshnessStatus
+  eligibility_status: AutopilotRecommendationEligibility
+}
 export type AutopilotActionStatus =
   | 'PAPER_ENTRY_APPROVED'
   | 'NEEDS_MANUAL_REVIEW'
@@ -77,6 +108,10 @@ export interface AutopilotPolicy {
   policy_id: string
   schema_version: typeof AUTOPILOT_POLICY_VERSION
   version: number
+  agent_id: string
+  agent_name: string
+  agent_kind: AutopilotAgentKind
+  agent_behavior: string
   strategy_id: string
   strategy_hash: string
   status: AutopilotStatus
@@ -88,6 +123,9 @@ export interface AutopilotPolicy {
 
 export interface AutopilotAction {
   action_id: string
+  audit_id: string
+  paper_result: AutopilotPaperResult
+  recommendation: AutopilotRecommendation
   idempotency_key: string
   policy_id: string
   policy_version: number
@@ -210,6 +248,57 @@ function validRisk(value: unknown): value is AutopilotRiskConfig {
     && validateAutopilotRisk(risk as AutopilotRiskConfig).length === 0
 }
 
+function defaultAgent(strategyId: string, strategyName = 'Saved strategy'): AutopilotAgentContext {
+  return {
+    agent_id: `saved_${strategyId}`,
+    agent_name: `Saved: ${strategyName}`,
+    agent_kind: 'USER_STRATEGY',
+    agent_behavior: 'SAVED_STRATEGY',
+  }
+}
+
+function paperResultFor(status: AutopilotActionStatus): AutopilotPaperResult {
+  if (status === 'PAPER_ENTRY_APPROVED') return 'PAPER_EXECUTED'
+  if (status === 'NEEDS_MANUAL_REVIEW' || status === 'ALREADY_PROCESSED') return 'NO_ACTION'
+  return 'BLOCKED'
+}
+
+function recommendationEligibilityFor(status: AutopilotActionStatus): AutopilotRecommendationEligibility {
+  if (status === 'PAPER_ENTRY_APPROVED' || status === 'NEEDS_MANUAL_REVIEW') return 'ELIGIBLE'
+  if (status === 'ALREADY_PROCESSED') return 'NO_ACTION'
+  return 'BLOCKED'
+}
+
+function recommendationFromAction(action: Partial<AutopilotAction>, status: AutopilotActionStatus, policy?: Partial<AutopilotPolicy>): AutopilotRecommendation {
+  const raw: Partial<AutopilotRecommendation> = isRecord(action.recommendation) ? action.recommendation as Partial<AutopilotRecommendation> : {}
+  const agent = policy ?? {}
+  const agentKind = raw.agent_kind === 'DETERMINISTIC_BOT' || raw.agent_kind === 'BASELINE' || raw.agent_kind === 'USER_STRATEGY'
+    ? raw.agent_kind
+    : agent.agent_kind === 'DETERMINISTIC_BOT' || agent.agent_kind === 'BASELINE' || agent.agent_kind === 'USER_STRATEGY' ? agent.agent_kind : 'USER_STRATEGY'
+  const direction = raw.direction === 'UP' || raw.direction === 'DOWN' ? raw.direction : action.strategy_prediction === 'UP' || action.strategy_prediction === 'DOWN' ? action.strategy_prediction : 'NO_ACTION'
+  const freshness = raw.freshness_status === 'FROZEN_HISTORICAL' || raw.freshness_status === 'FRESH' || raw.freshness_status === 'STALE' || raw.freshness_status === 'UNAVAILABLE'
+    ? raw.freshness_status
+    : action.source_data_as_of ? 'UNAVAILABLE' : 'UNAVAILABLE'
+  return {
+    agent_id: typeof raw.agent_id === 'string' ? raw.agent_id : agent.agent_id ?? `saved_${action.strategy_id ?? 'unknown'}`,
+    agent_name: typeof raw.agent_name === 'string' ? raw.agent_name : agent.agent_name ?? 'Saved strategy',
+    agent_kind: agentKind,
+    agent_behavior: typeof raw.agent_behavior === 'string' ? raw.agent_behavior : agent.agent_behavior ?? 'SAVED_STRATEGY',
+    strategy_id: typeof raw.strategy_id === 'string' ? raw.strategy_id : action.strategy_id ?? '',
+    strategy_hash: typeof raw.strategy_hash === 'string' ? raw.strategy_hash : action.strategy_hash ?? '',
+    market_id: typeof raw.market_id === 'string' ? raw.market_id : asString(action.market_id),
+    direction,
+    evidence_snapshot_id: typeof raw.evidence_snapshot_id === 'string' ? raw.evidence_snapshot_id : asString(action.evidence_snapshot_id),
+    evidence_digest: typeof raw.evidence_digest === 'string' ? raw.evidence_digest : asString(action.evidence_digest),
+    decision_timestamp_utc: typeof raw.decision_timestamp_utc === 'string' ? raw.decision_timestamp_utc : asString(action.decision_cutoff_utc),
+    reasoning: typeof raw.reasoning === 'string' ? raw.reasoning : action.explanation ?? '',
+    signal_momentum_bps: asNumber(raw.signal_momentum_bps) ?? asNumber(action.signal_momentum_bps),
+    source_data_as_of: typeof raw.source_data_as_of === 'string' ? raw.source_data_as_of : asString(action.source_data_as_of),
+    freshness_status: freshness,
+    eligibility_status: raw.eligibility_status === 'ELIGIBLE' || raw.eligibility_status === 'BLOCKED' || raw.eligibility_status === 'NO_ACTION' ? raw.eligibility_status : recommendationEligibilityFor(status),
+  }
+}
+
 function normalizePolicy(value: unknown): AutopilotPolicy | null {
   if (!isRecord(value) || !validRisk(value.risk)) return null
   const policy = value as Partial<AutopilotPolicy>
@@ -219,10 +308,17 @@ function normalizePolicy(value: unknown): AutopilotPolicy | null {
   if (policy.schema_version !== AUTOPILOT_POLICY_VERSION || typeof policyVersion !== 'number' || !Number.isSafeInteger(policyVersion) || policyVersion < 1) return null
   if (!['ACTIVE', 'PAUSED', 'STOPPED'].includes(String(policy.status)) || !['MANUAL_REVIEW', 'PAPER_AUTO'].includes(String(policy.mode))) return null
   if (typeof policy.created_at_utc !== 'string' || typeof policy.updated_at_utc !== 'string') return null
+  const agent = {
+    agent_id: typeof policy.agent_id === 'string' ? policy.agent_id : `saved_${policy.strategy_id}`,
+    agent_name: typeof policy.agent_name === 'string' ? policy.agent_name : 'Saved strategy',
+    agent_kind: policy.agent_kind === 'DETERMINISTIC_BOT' || policy.agent_kind === 'BASELINE' || policy.agent_kind === 'USER_STRATEGY' ? policy.agent_kind : 'USER_STRATEGY' as AutopilotAgentKind,
+    agent_behavior: typeof policy.agent_behavior === 'string' ? policy.agent_behavior : 'SAVED_STRATEGY',
+  }
   return {
     policy_id: policy.policy_id,
     schema_version: AUTOPILOT_POLICY_VERSION,
     version: policyVersion as number,
+    ...agent,
     strategy_id: policy.strategy_id,
     strategy_hash: policy.strategy_hash,
     status: policy.status as AutopilotStatus,
@@ -243,8 +339,12 @@ function normalizeAction(value: unknown): AutopilotAction | null {
   if (typeof policyVersion !== 'number' || !Number.isSafeInteger(policyVersion) || policyVersion < 1 || !statuses.includes(action.status as AutopilotActionStatus)) return null
   if (typeof action.reason_code !== 'string' || typeof action.explanation !== 'string' || typeof action.run_timestamp_utc !== 'string') return null
   if (!Number.isFinite(action.requested_stake) || !Number.isFinite(action.stake) || !Number.isFinite(action.exposure_before) || !Number.isFinite(action.exposure_after) || !Number.isFinite(action.active_positions_before) || !Number.isFinite(action.daily_loss_before)) return null
+  const status = action.status as AutopilotActionStatus
   return {
     action_id: action.action_id,
+    audit_id: typeof action.audit_id === 'string' ? action.audit_id : action.action_id,
+    paper_result: action.paper_result === 'PAPER_EXECUTED' || action.paper_result === 'BLOCKED' || action.paper_result === 'NO_ACTION' ? action.paper_result : paperResultFor(status),
+    recommendation: recommendationFromAction(action, status),
     idempotency_key: action.idempotency_key,
     policy_id: action.policy_id,
     policy_version: policyVersion as number,
@@ -302,7 +402,7 @@ export function strategyAutopilotCompatibility(strategy: StrategyDefinition, dat
   return { ok: true }
 }
 
-export function createPolicy(strategy: StrategyDefinition, risk: AutopilotRiskConfig, mode: AutopilotMode, now: string, existing: AutopilotPolicy | null = null): AutopilotPolicy {
+export function createPolicy(strategy: StrategyDefinition, risk: AutopilotRiskConfig, mode: AutopilotMode, now: string, existing: AutopilotPolicy | null = null, agent: AutopilotAgentContext = defaultAgent(strategy.strategy_id, strategy.name)): AutopilotPolicy {
   const errors = validateAutopilotRisk(risk)
   if (errors.length) throw new Error(errors.join(' '))
   const normalizedNow = iso(now)
@@ -311,6 +411,7 @@ export function createPolicy(strategy: StrategyDefinition, risk: AutopilotRiskCo
     policy_id: existing?.policy_id ?? `autopilot_${stableHash(strategy.strategy_id)}`,
     schema_version: AUTOPILOT_POLICY_VERSION,
     version: existing ? existing.version + 1 : 1,
+    ...agent,
     strategy_id: strategy.strategy_id,
     strategy_hash: strategyHash,
     status: 'ACTIVE',
@@ -437,7 +538,36 @@ function baseAction(
   manualReviewOf: string | null = null,
 ): AutopilotAction {
   const exposureAfter = status === 'PAPER_ENTRY_APPROVED' ? ledger.current_exposure + stake : ledger.current_exposure
+  const paperResult = paperResultFor(status)
+  const freshnessStatus: AutopilotFreshnessStatus = runMode === 'HISTORICAL_SIMULATION'
+    ? 'FROZEN_HISTORICAL'
+    : !sourceDataAsOf
+      ? 'UNAVAILABLE'
+      : sourceDataAsOf < day(timestamp)
+        ? 'STALE'
+        : 'FRESH'
+  const recommendation: AutopilotRecommendation = {
+    agent_id: policy.agent_id,
+    agent_name: policy.agent_name,
+    agent_kind: policy.agent_kind,
+    agent_behavior: policy.agent_behavior,
+    strategy_id: policy.strategy_id,
+    strategy_hash: policy.strategy_hash,
+    market_id: market?.market_id ?? null,
+    direction: prediction ?? 'NO_ACTION',
+    evidence_snapshot_id: snapshot.id,
+    evidence_digest: snapshot.digest,
+    decision_timestamp_utc: decisionCutoff,
+    reasoning: explanation,
+    signal_momentum_bps: momentum,
+    source_data_as_of: sourceDataAsOf,
+    freshness_status: freshnessStatus,
+    eligibility_status: recommendationEligibilityFor(status),
+  }
   return makeAction({
+    audit_id: `paper_audit_${stableHash(JSON.stringify({ policy_id: policy.policy_id, version: policy.version, idempotencyKey, timestamp, index, status }))}`,
+    paper_result: paperResult,
+    recommendation,
     idempotency_key: idempotencyKey,
     policy_id: policy.policy_id,
     policy_version: policy.version,

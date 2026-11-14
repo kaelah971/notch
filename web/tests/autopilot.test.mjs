@@ -17,6 +17,7 @@ import {
   writeAutopilotState,
 } from '../src/autopilot/autopilot.ts'
 import { createStrategyFromDraft, emptyStrategyDraft } from '../src/strategy/strategy.ts'
+import { builtInArenaParticipants, runArenaMatch } from '../src/arena/arena.ts'
 
 const NOW = '2026-11-10T12:00:00.000Z'
 const RULE_HASH = 'sha256:' + 'a'.repeat(64)
@@ -116,6 +117,11 @@ test('paper-auto approves once, records provenance and deduplicates repeated eva
   const state = activeState(rule)
   const first = evaluateAutopilot(state, rule, NVIDIA_MOMENTUM_DATASET, [market()], { now: NOW })
   assert.equal(first.actions[0].status, 'PAPER_ENTRY_APPROVED')
+  assert.equal(first.actions[0].paper_result, 'PAPER_EXECUTED')
+  assert.equal(first.actions[0].recommendation.direction, 'DOWN')
+  assert.equal(first.actions[0].recommendation.eligibility_status, 'ELIGIBLE')
+  assert.equal(first.actions[0].recommendation.freshness_status, 'FRESH')
+  assert.match(first.actions[0].audit_id, /^paper_audit_/)
   assert.equal(first.actions[0].stake, 100)
   assert.match(first.actions[0].simulated_position_id, /^paper_position_/)
   assert.equal(first.actions[0].evidence_digest, first.strategy_evaluation.result_digest)
@@ -133,6 +139,7 @@ test('manual review creates no position until approval and approval is idempoten
   const rule = strategy()
   const first = evaluateAutopilot(activeState(rule, AUTOPILOT_DEFAULT_RISK, 'MANUAL_REVIEW'), rule, NVIDIA_MOMENTUM_DATASET, [market()], { now: NOW })
   assert.equal(first.actions[0].status, 'NEEDS_MANUAL_REVIEW')
+  assert.equal(first.actions[0].paper_result, 'NO_ACTION')
   assert.equal(first.actions[0].simulated_position_id, null)
   assert.equal(first.ledger.current_exposure, 0)
 
@@ -168,6 +175,7 @@ test('paused and stopped policies refuse new paper actions', () => {
   const rule = strategy()
   const paused = evaluateAutopilot(setPolicyStatus(activeState(rule), 'PAUSED', NOW), rule, NVIDIA_MOMENTUM_DATASET, [market()], { now: NOW })
   assert.equal(paused.actions[0].status, 'PAUSED')
+  assert.equal(paused.actions[0].paper_result, 'BLOCKED')
   assert.equal(paused.actions[0].reason_code, 'POLICY_PAUSED')
   const stopped = evaluateAutopilot(setPolicyStatus(activeState(rule), 'STOPPED', NOW), rule, NVIDIA_MOMENTUM_DATASET, [market()], { now: NOW })
   assert.equal(stopped.actions[0].reason_code, 'POLICY_STOPPED')
@@ -178,12 +186,17 @@ test('no market and stale evidence remain honest and never fabricate eligibility
   const empty = evaluateAutopilot(activeState(rule), rule, NVIDIA_MOMENTUM_DATASET, [], { now: NOW })
   assert.equal(empty.eligible_market_count, 0)
   assert.equal(empty.actions[0].status, 'MARKET_INELIGIBLE')
+  assert.equal(empty.actions[0].paper_result, 'BLOCKED')
+  assert.equal(empty.actions[0].recommendation.eligibility_status, 'BLOCKED')
   assert.equal(empty.actions[0].reason_code, 'NO_MARKETS_RETURNED')
   const repeated = evaluateAutopilot(empty.state, rule, NVIDIA_MOMENTUM_DATASET, [], { now: '2026-11-10T12:01:00.000Z' })
   assert.equal(repeated.actions[0].status, 'ALREADY_PROCESSED')
+  assert.equal(repeated.actions[0].paper_result, 'NO_ACTION')
 
   const stale = evaluateAutopilot(activeState(rule), rule, NVIDIA_MOMENTUM_DATASET, [market({ close_at_utc: '2026-11-20T00:00:00.000Z' })], { now: '2026-11-14T12:00:00.000Z' })
   assert.equal(stale.actions[0].status, 'INSUFFICIENT_EVIDENCE')
+  assert.equal(stale.actions[0].paper_result, 'BLOCKED')
+  assert.equal(stale.actions[0].recommendation.freshness_status, 'STALE')
   assert.equal(stale.actions[0].reason_code, 'STALE_EVIDENCE')
 })
 
@@ -198,6 +211,37 @@ test('target-window changes do not alter the paper signal or cutoff', () => {
   assert.equal(second.actions[0].strategy_prediction, first.actions[0].strategy_prediction)
   assert.equal(second.actions[0].decision_cutoff_utc, first.actions[0].decision_cutoff_utc)
   assert.equal(second.actions[0].signal_momentum_bps, first.actions[0].signal_momentum_bps)
+  assert.equal(second.actions[0].recommendation.freshness_status, 'FROZEN_HISTORICAL')
+})
+
+test('Arena participant handoff produces a deterministic paper recommendation and persisted audit', () => {
+  const participants = builtInArenaParticipants()
+  const participant = participants[0]
+  const match = runArenaMatch(NVIDIA_MOMENTUM_DATASET, participants)
+  assert.equal(match.execution.ai_inference, false)
+  assert.equal(match.participant_configs.length, 4)
+  const policy = createPolicy(
+    participant.strategy,
+    { ...AUTOPILOT_DEFAULT_RISK, cooldown_seconds: 0 },
+    'PAPER_AUTO',
+    NOW,
+    null,
+    { agent_id: participant.participant_id, agent_name: participant.name, agent_kind: participant.kind, agent_behavior: participant.behavior },
+  )
+  const result = evaluateAutopilot({ ...emptyAutopilotState(), policy }, participant.strategy, NVIDIA_MOMENTUM_DATASET, [market()], { now: NOW, run_mode: 'HISTORICAL_SIMULATION' })
+  const action = result.actions[0]
+  assert.equal(action.paper_result, 'PAPER_EXECUTED')
+  assert.equal(action.recommendation.agent_id, participant.participant_id)
+  assert.equal(action.recommendation.agent_name, participant.name)
+  assert.equal(action.recommendation.freshness_status, 'FROZEN_HISTORICAL')
+  assert.match(action.recommendation.evidence_snapshot_id, /^wikimedia_snapshot_/)
+  assert.equal(action.recommendation.decision_timestamp_utc, action.decision_cutoff_utc)
+  const memory = { value: null, getItem() { return this.value }, setItem(_key, value) { this.value = value } }
+  assert.equal(writeAutopilotState(result.state, memory), true)
+  const readback = readAutopilotState(memory)
+  assert.equal(readback.actions[0].audit_id, action.audit_id)
+  assert.equal(readback.actions[0].recommendation.evidence_digest, action.recommendation.evidence_digest)
+  assert.match(match.result_digest, /^fnv1a32:/)
 })
 
 test('strategy revisions change policy hashes and practice accounting matches reserved paper exposure', () => {

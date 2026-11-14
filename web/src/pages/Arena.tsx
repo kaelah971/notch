@@ -147,9 +147,10 @@ function Rule({ label, value }: { label: string; value: string }) {
 }
 
 function ArenaResults({ match, inspectedResult, onInspect, onRunAgain }: { match: ArenaMatch; inspectedResult: ArenaParticipantResult | null; onInspect: (id: string) => void; onRunAgain: () => void }) {
+  const inspectedAgent = match.participant_configs.find((participant) => participant.participant_id === inspectedResult?.participant_id)
   return (
     <section className="arena-results" aria-labelledby="arena-results-title">
-      <div className="arena-results-head"><div><p className="eyebrow">4 · Results</p><h2 id="arena-results-title">Historical leaderboard</h2><p>Virtual credits are a controlled score, not profit, token returns or a prediction of future performance.</p></div><button type="button" className="btn btn-quiet" onClick={onRunAgain}><RefreshCw size={15} aria-hidden="true" /> Run again</button></div>
+      <div className="arena-results-head"><div><p className="eyebrow">4 · Results</p><h2 id="arena-results-title">Historical leaderboard</h2><p>Virtual credits are a controlled score, not profit, token returns or a prediction of future performance.</p></div><div className="arena-head-actions">{inspectedAgent?.strategy && <Link className="btn btn-primary" to={`/app/autopilot?agent=${encodeURIComponent(inspectedAgent.participant_id)}`}><ShieldCheck size={15} aria-hidden="true" /> Send to paper Autopilot</Link>}<button type="button" className="btn btn-quiet" onClick={onRunAgain}><RefreshCw size={15} aria-hidden="true" /> Run again</button></div></div>
       <div className="arena-summary-grid">
         <Summary label="Winner" value={match.leaderboard[0]?.participant_name ?? '—'} note={match.leaderboard[0] ? formatCredits(match.leaderboard[0].ending_credits) : 'No result'} />
         <Summary label="Shared eligible windows" value={String(match.shared_eligible_dates.length)} note={`${match.shared_benchmark_signal_dates.length} benchmark signal dates · ${match.shared_candidate_dates.length} candidates`} />

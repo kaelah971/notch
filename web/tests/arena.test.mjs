@@ -135,6 +135,8 @@ test('ranking and no-execution boundary are present in the inspectable source', 
   const source = readFileSync(new URL('../src/pages/Arena.tsx', import.meta.url), 'utf8')
   const engine = readFileSync(new URL('../src/arena/arena.ts', import.meta.url), 'utf8')
   assert.doesNotMatch(source, /NEAR_AI_KEY|ft_transfer_call|signAndSendTransaction|entryIntent/i)
+  assert.match(source, /Send to paper Autopilot/)
+  assert.match(source, /\/app\/autopilot\?agent=/)
   assert.doesNotMatch(engine, /NEAR_AI_KEY|fetch\(|signAndSendTransaction|entryIntent|near_ai/i)
   const match = runArenaMatch(NVIDIA_MOMENTUM_DATASET, builtInArenaParticipants())
   assert.deepEqual(match.leaderboard.map((row) => row.rank), [1, 2, 3, 4])

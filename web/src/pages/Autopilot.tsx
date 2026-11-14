@@ -5,6 +5,7 @@ import { api } from '../api/client'
 import type { Market, MarketDetail } from '../api/types'
 import { useApi } from '../api/useApi'
 import { NVIDIA_MOMENTUM_DATASET } from '../practice/fixtures/nvidia-momentum-v1'
+import { builtInArenaParticipants } from '../arena/arena'
 import {
   AUTOPILOT_DEFAULT_RISK,
   actionStatusLabel,
@@ -19,6 +20,7 @@ import {
   writeAutopilotState,
   type AutopilotAction,
   type AutopilotActionStatus,
+  type AutopilotAgentContext,
   type AutopilotEvaluationResult,
   type AutopilotMode,
   type AutopilotRiskConfig,
@@ -47,8 +49,22 @@ export function Autopilot() {
   const [busy, setBusy] = useState(false)
   const [marketsState, reloadMarkets] = useApi(() => api.markets().then((response) => response.data), [])
 
-  const requestedId = params.get('strategy')
-  const selected = strategies.find((strategy) => strategy.strategy_id === requestedId) ?? strategies[0] ?? null
+  const builtInAgents = useMemo(() => builtInArenaParticipants().filter((participant) => participant.strategy), [])
+  const requestedAgentId = params.get('agent')
+  const requestedStrategyId = params.get('strategy')
+  const requestedAgent = builtInAgents.find((participant) => participant.participant_id === requestedAgentId) ?? null
+  const requestedStrategy = strategies.find((strategy) => strategy.strategy_id === requestedStrategyId) ?? null
+  const defaultAgent = builtInAgents[0]
+  const savedAgent = requestedStrategy ?? strategies[0] ?? null
+  const selectedAgent: AutopilotAgentContext | null = requestedAgent
+    ? { agent_id: requestedAgent.participant_id, agent_name: requestedAgent.name, agent_kind: requestedAgent.kind, agent_behavior: requestedAgent.behavior }
+    : savedAgent
+      ? { agent_id: `saved_${savedAgent.strategy_id}`, agent_name: `Saved: ${savedAgent.name}`, agent_kind: 'USER_STRATEGY', agent_behavior: 'SAVED_STRATEGY' }
+      : defaultAgent
+        ? { agent_id: defaultAgent.participant_id, agent_name: defaultAgent.name, agent_kind: defaultAgent.kind, agent_behavior: defaultAgent.behavior }
+        : null
+  const selected = requestedAgent?.strategy ?? savedAgent ?? defaultAgent?.strategy ?? null
+  const selectionKey = requestedAgent ? `agent:${requestedAgent.participant_id}` : savedAgent ? `strategy:${savedAgent.strategy_id}` : defaultAgent ? `agent:${defaultAgent.participant_id}` : ''
   const evaluation = useMemo(() => selected ? evaluateStrategy(selected, NVIDIA_MOMENTUM_DATASET) : null, [selected])
   const compatibility = useMemo(() => selected ? strategyAutopilotCompatibility(selected, NVIDIA_MOMENTUM_DATASET) : null, [selected])
   const selectedPolicy = selected && autopilotState.policy?.strategy_id === selected.strategy_id && autopilotState.policy.strategy_hash === (selected ? canonicalStrategyHash(selected) : '') ? autopilotState.policy : null
@@ -70,10 +86,12 @@ export function Autopilot() {
     setForm(existing ? { risk: { ...existing.risk }, mode: existing.mode } : emptyForm)
   }, [selected, autopilotState.policy])
 
-  function chooseStrategy(strategyId: string) {
+  function chooseStrategy(selection: string) {
     const next = new URLSearchParams(params)
-    if (strategyId) next.set('strategy', strategyId)
-    else next.delete('strategy')
+    next.delete('agent')
+    next.delete('strategy')
+    if (selection.startsWith('agent:')) next.set('agent', selection.slice('agent:'.length))
+    if (selection.startsWith('strategy:')) next.set('strategy', selection.slice('strategy:'.length))
     setParams(next, { replace: true })
     setRunResult(null)
     setMessage(null)
@@ -97,7 +115,7 @@ export function Autopilot() {
     }
     try {
       const existing = autopilotState.policy?.strategy_id === selected.strategy_id ? autopilotState.policy : null
-      const policy = createPolicy(selected, form.risk, form.mode, new Date().toISOString(), existing)
+      const policy = createPolicy(selected, form.risk, form.mode, new Date().toISOString(), existing, selectedAgent ?? undefined)
       const nextState = { ...autopilotState, policy }
       writeAutopilotState(nextState)
       setAutopilotState(nextState)
@@ -159,7 +177,7 @@ export function Autopilot() {
     setMessage({ kind: 'info', text: result.action.status === 'PAPER_ENTRY_APPROVED' ? 'Manual review approved one paper-only virtual position.' : result.action.explanation })
   }
 
-  if (!strategies.length) return <EmptyAutopilot />
+  if (!selected || !selectedAgent) return <EmptyAutopilot />
 
   return (
     <div className="autopilot-page">
@@ -168,7 +186,7 @@ export function Autopilot() {
           <Link className="autopilot-back" to="/app/arena"><ArrowLeft size={16} aria-hidden="true" /> Agent Arena</Link>
           <p className="eyebrow">PHASE 6B / AUTOPILOT V1</p>
           <h1>Paper Autopilot</h1>
-          <p>Turn one validated saved strategy into a controlled, auditable paper policy. Evaluate Now runs only while this browser is open.</p>
+          <p>Turn one validated Arena agent or saved strategy into a controlled, auditable paper policy. Evaluate Now runs only while this browser is open.</p>
         </div>
         <div className="autopilot-head-badge"><ShieldCheck size={15} aria-hidden="true" />Paper only · local device</div>
       </header>
@@ -176,12 +194,12 @@ export function Autopilot() {
       <section className="autopilot-boundary" aria-label="Autopilot boundary"><div><strong>No autonomous on-chain execution</strong><span>Virtual positions only · no wallet, signer, broadcast, market publication or paid inference.</span></div><p>V1 is a browser-local control surface. Closing the browser stops evaluation; there is no server scheduler or 24/7 claim.</p></section>
 
       <section className="autopilot-panel" aria-labelledby="autopilot-select-title">
-        <div className="autopilot-panel-head"><div><p className="eyebrow">1 · Select and inspect</p><h2 id="autopilot-select-title">Validated saved strategy</h2></div><span className="autopilot-panel-note">notch.strategy/1</span></div>
+        <div className="autopilot-panel-head"><div><p className="eyebrow">1 · Select and inspect</p><h2 id="autopilot-select-title">Validated strategy or Arena agent</h2></div><span className="autopilot-panel-note">notch.strategy/1</span></div>
         <div className="autopilot-selector-grid">
-          <label className="autopilot-field" htmlFor="autopilot-strategy"><span>Strategy revision</span><select id="autopilot-strategy" value={selected?.strategy_id ?? ''} onChange={(event) => chooseStrategy(event.target.value)}>{strategies.map((strategy) => <option key={strategy.strategy_id} value={strategy.strategy_id}>{strategy.name} · {strategy.source.topic}</option>)}</select></label>
-          {selected && <div className="autopilot-selected-rule"><span>Compiled rule</span><strong>{selected.source.topic} · {selected.signal_direction} · {selected.threshold_percent}% · {selected.observation_window.lookback_days}d → {selected.forecast_horizon_days}d</strong><code>{selected.strategy_id} · {canonicalStrategyHash(selected)}</code></div>}
+          <label className="autopilot-field" htmlFor="autopilot-strategy"><span>Agent / strategy revision</span><select id="autopilot-strategy" value={selectionKey} onChange={(event) => chooseStrategy(event.target.value)}><optgroup label="Deterministic Arena agents">{builtInAgents.map((participant) => <option key={participant.participant_id} value={`agent:${participant.participant_id}`}>{participant.name} · {participant.behavior.replace(/_/g, ' ')}</option>)}</optgroup><optgroup label="Saved strategies">{strategies.map((strategy) => <option key={strategy.strategy_id} value={`strategy:${strategy.strategy_id}`}>{strategy.name} · {strategy.source.topic}</option>)}</optgroup></select></label>
+          {selected && <div className="autopilot-selected-rule"><span>{selectedAgent?.agent_name ?? 'Selected deterministic strategy'} · DETERMINISTIC STRATEGY</span><strong>{selected.source.topic} · {selected.signal_direction} · {selected.threshold_percent}% · {selected.observation_window.lookback_days}d → {selected.forecast_horizon_days}d</strong><code>{selected.strategy_id} · {canonicalStrategyHash(selected)}</code></div>}
         </div>
-        {selected && <div className="autopilot-action-row"><Link className="btn btn-quiet" to={`/app/strategy-lab?strategy=${encodeURIComponent(selected.strategy_id)}`}>Inspect historical evaluation <ExternalLink size={14} aria-hidden="true" /></Link><Link className="btn btn-quiet" to={`/app/strategy-builder?strategy=${encodeURIComponent(selected.strategy_id)}`}>Adjust revision</Link><span className="autopilot-safety-note"><Info size={14} aria-hidden="true" /> Saved definitions remain editable and device-local.</span></div>}
+        {selected && <div className="autopilot-action-row">{selectedAgent?.agent_kind === 'USER_STRATEGY' ? <><Link className="btn btn-quiet" to={`/app/strategy-lab?strategy=${encodeURIComponent(selected.strategy_id)}`}>Inspect historical evaluation <ExternalLink size={14} aria-hidden="true" /></Link><Link className="btn btn-quiet" to={`/app/strategy-builder?strategy=${encodeURIComponent(selected.strategy_id)}`}>Adjust revision</Link></> : <Link className="btn btn-quiet" to="/app/arena">Open Arena record <ExternalLink size={14} aria-hidden="true" /></Link>}<span className="autopilot-safety-note"><Info size={14} aria-hidden="true" /> Deterministic definitions remain device-local and editable only when saved.</span></div>}
       </section>
 
       {selected && evaluation && <EvaluationSummary strategy={selected} evaluation={evaluation} compatibility={compatibility} />}
@@ -244,5 +262,10 @@ function EvaluationResult({ result, onApprove }: { result: AutopilotEvaluationRe
 }
 
 function ActionRow({ action, onApprove }: { action: AutopilotAction; onApprove: (actionId: string) => void }) {
-  return <article className={`autopilot-action ${actionClass(action.status)}`}><div className="autopilot-action-main"><span className="autopilot-action-status">{actionStatusLabel(action.status)}</span><strong>{action.market_id ?? 'Policy-level evaluation'}</strong><small>{action.run_timestamp_utc} · {action.run_mode === 'FORWARD_EVALUATION' ? 'manual forward evaluation' : 'historical simulation'}</small></div><div className="autopilot-action-detail"><span>{action.explanation}</span><code>{action.reason_code} · {action.idempotency_key}</code></div><div className="autopilot-action-meta"><span>Stake {formatCredits(action.stake || action.requested_stake)}</span><span>Exposure {formatCredits(action.exposure_before)} → {formatCredits(action.exposure_after)}</span><span>Evidence {compact(action.evidence_snapshot_id)}</span>{action.simulated_position_id && <span>Position {compact(action.simulated_position_id)}</span>}</div>{action.status === 'NEEDS_MANUAL_REVIEW' && <button type="button" className="btn btn-primary autopilot-approve" onClick={() => onApprove(action.action_id)}>Approve paper entry</button>}</article>
+  return <article className={`autopilot-action ${actionClass(action.status)}`}>
+    <div className="autopilot-action-main"><span className="autopilot-action-status">{action.paper_result} · {actionStatusLabel(action.status)}</span><strong>{action.market_id ?? 'Policy-level evaluation'}</strong><small>{action.run_timestamp_utc} · {action.run_mode === 'FORWARD_EVALUATION' ? 'manual forward evaluation' : 'HISTORICAL REPLAY'}</small></div>
+    <div className="autopilot-action-detail"><span><strong>{action.recommendation.agent_name}</strong> · {action.recommendation.direction} · {action.recommendation.eligibility_status}<br />{action.recommendation.reasoning}</span><code>Audit {action.audit_id} · {action.reason_code} · {action.idempotency_key}</code></div>
+    <div className="autopilot-action-meta"><span>Freshness {action.recommendation.freshness_status}</span><span>Decision {action.recommendation.decision_timestamp_utc ?? '—'}</span><span>Evidence {compact(action.evidence_snapshot_id)}</span><span>Stake {formatCredits(action.stake || action.requested_stake)}</span><span>Exposure {formatCredits(action.exposure_before)} → {formatCredits(action.exposure_after)}</span>{action.simulated_position_id && <span>Position {compact(action.simulated_position_id)}</span>}</div>
+    {action.status === 'NEEDS_MANUAL_REVIEW' && <button type="button" className="btn btn-primary autopilot-approve" onClick={() => onApprove(action.action_id)}>Approve paper entry</button>}
+  </article>
 }
