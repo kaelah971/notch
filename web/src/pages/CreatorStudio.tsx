@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Check, ExternalLink, FilePenLine, LockKeyhole, RefreshCw, ShieldCheck, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { api, ApiError } from '../api/client'
-import type { CreatorPayoutStatus, CreatorPurchases, CreatorResearchNote } from '../api/types'
+import type { CreatorPayoutStatus, CreatorPurchases, CreatorResearchNote, CreatorSubscriptionPlan, CreatorSubscriptions } from '../api/types'
 import { useApi } from '../api/useApi'
 import { useWallet } from '../wallet/WalletProvider'
 import { clearCreatorSession, readCreatorSession, verifyCreatorOwnership, type StoredCreatorSession } from '../creator/session'
@@ -12,6 +12,8 @@ const DEFAULT_SOURCE_URL = 'https://pageviews.wmcloud.org/'
 const emptyMine = { data: [] as CreatorResearchNote[], meta: { count: 0, private: true } }
 const emptyPayout: CreatorPayoutStatus = { configured: false, creator_account: '', network: 'testnet', token_contract: null, payout_account: null, token_symbol: null, token_decimals: null, storage_registered: false, verified_at: null }
 const emptyPurchases: CreatorPurchases = { buyer_entitlements: [], creator_sales: [] }
+const emptyPlans = { data: [] as CreatorSubscriptionPlan[], meta: { count: 0, private: true } }
+const emptySubscriptions: CreatorSubscriptions = { subscriber_subscriptions: [], creator_subscriptions: [] }
 
 function formatBaseUnits(value: string | null, decimals: number | null) {
   if (!value || decimals == null) return ''
@@ -56,11 +58,20 @@ export function CreatorStudio() {
   const [premiumPrice, setPremiumPrice] = useState('')
   const [payoutBusy, setPayoutBusy] = useState(false)
   const [payoutError, setPayoutError] = useState<string | null>(null)
+  const [planId, setPlanId] = useState<string | null>(null)
+  const [planTitle, setPlanTitle] = useState('')
+  const [planDescription, setPlanDescription] = useState('')
+  const [planDuration, setPlanDuration] = useState<7 | 30>(7)
+  const [planPrice, setPlanPrice] = useState('')
+  const [planScope, setPlanScope] = useState<string[]>([])
+  const [planError, setPlanError] = useState<string | null>(null)
 
   const scoutState = useApi(() => api.scout('all', 12), [])
   const mineState = useApi(() => session ? api.creatorMine(session.token) : Promise.resolve(emptyMine), [session?.token])
   const payoutState = useApi(() => session ? api.creatorPayout(session.token) : Promise.resolve({ data: emptyPayout }), [session?.token])
   const purchasesState = useApi(() => session ? api.creatorPurchases(session.token) : Promise.resolve({ data: emptyPurchases }), [session?.token])
+  const plansState = useApi(() => session ? api.creatorPlans(session.token) : Promise.resolve(emptyPlans), [session?.token])
+  const subscriptionsState = useApi(() => session ? api.subscriptions(session.token) : Promise.resolve({ data: emptySubscriptions }), [session?.token])
   const candidates = scoutState[0].status === 'ok' ? scoutState[0].data.data : []
 
   useEffect(() => {
@@ -163,6 +174,51 @@ export function CreatorStudio() {
     } finally {
       setPayoutBusy(false)
     }
+  }
+
+  function editPlan(plan: CreatorSubscriptionPlan) {
+    setPlanId(plan.plan_id)
+    setPlanTitle(plan.title)
+    setPlanDescription(plan.description)
+    setPlanDuration(plan.duration_days === 30 ? 30 : 7)
+    setPlanPrice(formatBaseUnits(plan.price_base_units, plan.token_decimals))
+    setPlanScope(plan.scope_note_ids ?? plan.scope.map((note) => note.note_id))
+    setPlanError(null)
+    setNotice(`Editing subscription terms v${plan.terms_version}. Saving changed terms creates a new immutable plan version.`)
+  }
+
+  function clearPlan() {
+    setPlanId(null)
+    setPlanTitle('')
+    setPlanDescription('')
+    setPlanDuration(7)
+    setPlanPrice('')
+    setPlanScope([])
+    setPlanError(null)
+  }
+
+  async function savePlan(event: FormEvent) {
+    event.preventDefault()
+    if (!session) { setPlanError('Verify wallet ownership before configuring a subscription plan.'); return }
+    if (planScope.length === 0) { setPlanError('Select at least one published premium note for this plan.'); return }
+    setPlanError(null)
+    try {
+      const body = { title: planTitle, description: planDescription, duration_days: planDuration, price: planPrice, note_ids: planScope }
+      const result = planId ? await api.creatorPlanUpdate(session.token, planId, body) : await api.creatorPlanCreate(session.token, body)
+      setPlanId(result.data.plan_id)
+      setNotice(`Subscription plan ${result.data.title} saved at terms version ${result.data.terms_version}.`)
+      plansState[1]()
+    } catch (error) { setPlanError(errorText(error)) }
+  }
+
+  async function togglePlan(plan: CreatorSubscriptionPlan) {
+    if (!session) return
+    setPlanError(null)
+    try {
+      const result = await api.creatorPlanUpdate(session.token, plan.plan_id, { status: plan.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' })
+      setNotice(`${result.data.title} is now ${result.data.status.toLowerCase()}.`)
+      plansState[1]()
+    } catch (error) { setPlanError(errorText(error)) }
   }
 
   async function saveDraft(event: FormEvent) {
@@ -277,6 +333,23 @@ export function CreatorStudio() {
             <div className="creator-section-head"><div><span className="creator-label">YOUR NOTES</span><h2>Revision ledger</h2></div><button className="icon-btn" onClick={() => mineState[1]()} aria-label="Refresh your notes"><RefreshCw size={16} aria-hidden="true" /></button></div>
             {!session ? <p className="creator-muted">Verify ownership to see private drafts and publication controls.</p> : mineState[0].status === 'loading' ? <p className="creator-muted">Loading local ledger…</p> : mineState[0].status === 'error' ? <p className="creator-error">{mineState[0].error.message}</p> : mineState[0].data.data.length === 0 ? <p className="creator-muted">No drafts yet. Your first saved note will appear here.</p> : <div className="creator-note-list">{mineState[0].data.data.map((note) => <article className={`creator-note-row ${selectedId === note.note_id ? 'is-selected' : ''}`} key={note.note_id} onClick={() => editNote(note)}><div className="creator-note-row-top"><strong>{note.title}</strong><NoteStatus status={note.status} /></div><span className="creator-note-meta mono">rev {note.revision} · {note.content_digest.slice(0, 18)}…</span><div className="creator-note-row-actions"><button type="button" onClick={(e) => { e.stopPropagation(); editNote(note) }}><FilePenLine size={14} aria-hidden="true" /> Edit</button>{note.status === 'DRAFT' && <button type="button" onClick={(e) => { e.stopPropagation(); publishNote(note.note_id) }}>Publish</button>}{note.status === 'PUBLISHED' && <button type="button" onClick={(e) => { e.stopPropagation(); withdrawNote(note.note_id) }}><Trash2 size={14} aria-hidden="true" /> Withdraw</button>}<Link to={`/app/research/notes/${encodeURIComponent(note.note_id)}`} onClick={(e) => e.stopPropagation()}>Inspect <ExternalLink size={13} aria-hidden="true" /></Link></div></article>)}</div>}
           </div>
+          {session && <div className="creator-side-card creator-plan-card">
+            <div className="creator-section-head"><div><span className="creator-label">RESEARCH SUBSCRIPTIONS</span><h2>Plan terms</h2></div>{planId && <button className="btn btn-quiet" type="button" onClick={clearPlan}>New plan</button>}</div>
+            <p className="creator-muted">Plans are fixed-term, versioned, Testnet-only terms. Existing subscribers keep the exact version they paid for.</p>
+            {plansState[0].status === 'loading' ? <p className="creator-muted">Loading plans…</p> : plansState[0].status === 'error' ? <p className="creator-error">{plansState[0].error.message}</p> : plansState[0].data.data.length === 0 ? <p className="creator-muted">No subscription plans yet.</p> : <div className="creator-plan-list">{plansState[0].data.data.map((plan) => <div className="creator-plan-row" key={plan.plan_id}><div><strong>{plan.title}</strong><span>v{plan.terms_version} · {plan.duration_days} days · {formatBaseUnits(plan.price_base_units, plan.token_decimals)} {plan.token_symbol} · {plan.subscriber_count} active</span></div><div className="creator-note-row-actions"><button type="button" onClick={() => editPlan(plan)}>Edit</button><button type="button" onClick={() => togglePlan(plan)}>{plan.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}</button></div>{plan.version_history && plan.version_history.length > 1 && <div className="creator-plan-history"><span className="creator-label">TERMS HISTORY</span>{[...plan.version_history].reverse().map((version) => <span key={version.version}>v{version.version} · {version.duration_days}d · {formatBaseUnits(version.price_base_units, version.token_decimals)} {version.token_symbol} · {new Date(version.created_at).toLocaleDateString()}</span>)}</div>}</div>)}</div>}
+            <form className="creator-plan-form" onSubmit={savePlan}>
+              <label>Plan title<input value={planTitle} onChange={(event) => setPlanTitle(event.target.value)} maxLength={120} placeholder="Research desk access" required /></label>
+              <label>Description<textarea value={planDescription} onChange={(event) => setPlanDescription(event.target.value)} maxLength={1200} rows={3} placeholder="What subscriber-only research does this cover?" required /></label>
+              <div className="creator-form-grid"><label>Duration<select value={planDuration} onChange={(event) => setPlanDuration(Number(event.target.value) as 7 | 30)}><option value={7}>7 days</option><option value={30}>30 days</option></select></label><label>Price in {payoutState[0].status === 'ok' ? payoutState[0].data.data.token_symbol ?? 'Testnet token' : 'Testnet token'}<input inputMode="decimal" value={planPrice} onChange={(event) => setPlanPrice(event.target.value)} placeholder="2.50" required /></label></div>
+              <div><span className="creator-label">SUBSCRIBER-ONLY RESEARCH SCOPE</span><div className="creator-scope-list">{mineState[0].status === 'ok' && mineState[0].data.data.filter((note) => note.status === 'PUBLISHED' && note.premium.enabled).map((note) => <label className="creator-check" key={note.note_id}><input type="checkbox" checked={planScope.includes(note.note_id)} onChange={() => setPlanScope((current) => current.includes(note.note_id) ? current.filter((id) => id !== note.note_id) : [...current, note.note_id])} />{note.title} <span className="creator-hint">rev {note.revision}</span></label>)}</div></div>
+              {planError && <div className="creator-error creator-alert">{planError}</div>}
+              <button className="btn btn-accent" type="submit" disabled={!session}>{planId ? 'Save new terms version' : 'Publish active plan'}</button>
+            </form>
+          </div>}
+          {session && subscriptionsState[0].status === 'ok' && <div className="creator-side-card">
+            <div className="creator-section-head"><div><span className="creator-label">SUBSCRIPTION HISTORY</span><h2>Verified access ledger</h2></div></div>
+            {subscriptionsState[0].data.data.creator_subscriptions.length === 0 ? <p className="creator-muted">No verified subscriber terms yet.</p> : <div className="creator-purchase-list">{subscriptionsState[0].data.data.creator_subscriptions.map((subscription) => <div className="creator-purchase" key={subscription.subscription_id}><strong>{subscription.subscriber_account}</strong><span>{subscription.plan_title} · {subscription.status} · through {subscription.expires_at ? new Date(subscription.expires_at).toLocaleDateString() : 'pending'} · {subscription.payments.length} verified payment{subscription.payments.length === 1 ? '' : 's'}</span>{subscription.payments.map((payment) => <a href={payment.explorer_url} target="_blank" rel="noreferrer" key={payment.payment_id}>v{payment.plan_version} · {new Date(payment.granted_at).toLocaleDateString()} · {payment.tx_hash.slice(0, 12)}… <ExternalLink size={11} aria-hidden="true" /></a>)}</div>)}</div>}
+          </div>}
           {session && <div className="creator-side-card">
             <div className="creator-section-head"><div><span className="creator-label">PAYMENT DESTINATION</span><h2>Verified Testnet payout</h2></div><ShieldCheck size={18} aria-hidden="true" /></div>
             {payoutState[0].status === 'loading' ? <p className="creator-muted">Checking token metadata and storage registration…</p> : payoutState[0].status === 'error' ? <p className="creator-error">{payoutState[0].error.message}</p> : payoutState[0].data.data.configured ? <><p className="creator-muted">{payoutState[0].data.data.payout_account} receives {payoutState[0].data.data.token_symbol} on NEAR Testnet. The account is the currently authenticated wallet and was rechecked against its access key.</p><button className="btn btn-quiet" type="button" onClick={configurePayout} disabled={payoutBusy}>{payoutBusy ? 'Rechecking…' : 'Recheck payout account'}</button></> : <><p className="creator-muted">Configure your own authenticated wallet as the receiving account before publishing a premium revision. Notch never becomes the recipient.</p><button className="btn btn-accent" type="button" onClick={configurePayout} disabled={payoutBusy}>{payoutBusy ? 'Checking token…' : 'Configure payout account'}</button></>}

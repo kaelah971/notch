@@ -6,6 +6,7 @@ import hashlib
 import json
 import secrets
 import sqlite3
+from datetime import datetime, timedelta, timezone
 import threading
 import uuid
 from pathlib import Path
@@ -24,6 +25,20 @@ def _json(value: Any) -> str:
 
 def _token_hash(token: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def _parse_utc_iso(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except (TypeError, ValueError):
+        return None
+    return parsed.astimezone(timezone.utc)
+
+
+def _iso_utc(value: datetime) -> str:
+    return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 class CreatorNotesStore:
@@ -134,6 +149,12 @@ class CreatorNotesStore:
                     receipt_id TEXT,
                     failure_code TEXT,
                     failure_message TEXT,
+                    payment_kind TEXT NOT NULL DEFAULT 'ONE_TIME',
+                    plan_id TEXT,
+                    plan_version INTEGER,
+                    subscription_id TEXT,
+                    terms_json TEXT,
+                    correlation_id TEXT,
                     FOREIGN KEY(note_id) REFERENCES creator_notes(note_id)
                 );
                 CREATE UNIQUE INDEX IF NOT EXISTS idx_creator_payment_intents_tx
@@ -163,8 +184,86 @@ class CreatorNotesStore:
                     ON creator_entitlements(buyer_account, granted_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_creator_entitlements_creator
                     ON creator_entitlements(creator_account, granted_at DESC);
+
+                CREATE TABLE IF NOT EXISTS creator_subscription_plans (
+                    plan_id TEXT PRIMARY KEY,
+                    creator_account TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    current_version INTEGER NOT NULL,
+                    current_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_creator_subscription_plans_public
+                    ON creator_subscription_plans(status, updated_at DESC);
+                CREATE INDEX IF NOT EXISTS idx_creator_subscription_plans_creator
+                    ON creator_subscription_plans(creator_account, updated_at DESC);
+
+                CREATE TABLE IF NOT EXISTS creator_subscription_plan_versions (
+                    plan_id TEXT NOT NULL,
+                    version INTEGER NOT NULL,
+                    creator_account TEXT NOT NULL,
+                    record_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    PRIMARY KEY(plan_id, version),
+                    FOREIGN KEY(plan_id) REFERENCES creator_subscription_plans(plan_id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS creator_subscriptions (
+                    subscription_id TEXT PRIMARY KEY,
+                    subscriber_account TEXT NOT NULL,
+                    creator_account TEXT NOT NULL,
+                    plan_id TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    renewal_cancelled INTEGER NOT NULL DEFAULT 0,
+                    started_at TEXT,
+                    expires_at TEXT,
+                    current_plan_version INTEGER,
+                    last_payment_intent_id TEXT,
+                    last_tx_hash TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    UNIQUE(subscriber_account, plan_id),
+                    FOREIGN KEY(plan_id) REFERENCES creator_subscription_plans(plan_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_creator_subscriptions_subscriber
+                    ON creator_subscriptions(subscriber_account, updated_at DESC);
+                CREATE INDEX IF NOT EXISTS idx_creator_subscriptions_creator
+                    ON creator_subscriptions(creator_account, updated_at DESC);
+
+                CREATE TABLE IF NOT EXISTS creator_subscription_payments (
+                    payment_id TEXT PRIMARY KEY,
+                    subscription_id TEXT NOT NULL,
+                    payment_intent_id TEXT NOT NULL UNIQUE,
+                    tx_hash TEXT NOT NULL UNIQUE,
+                    receipt_id TEXT NOT NULL,
+                    plan_version INTEGER NOT NULL,
+                    amount_base_units TEXT NOT NULL,
+                    token_contract TEXT NOT NULL,
+                    term_started_at TEXT NOT NULL,
+                    term_expires_at TEXT NOT NULL,
+                    granted_at TEXT NOT NULL,
+                    terms_json TEXT NOT NULL,
+                    FOREIGN KEY(subscription_id) REFERENCES creator_subscriptions(subscription_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_creator_subscription_payments_subscription
+                    ON creator_subscription_payments(subscription_id, granted_at DESC);
                 """
             )
+            payment_columns = {row[1] for row in self._db.execute("PRAGMA table_info(creator_payment_intents)").fetchall()}
+            if "payment_kind" not in payment_columns:
+                self._db.execute("ALTER TABLE creator_payment_intents ADD COLUMN payment_kind TEXT NOT NULL DEFAULT 'ONE_TIME'")
+            if "plan_id" not in payment_columns:
+                self._db.execute("ALTER TABLE creator_payment_intents ADD COLUMN plan_id TEXT")
+            if "plan_version" not in payment_columns:
+                self._db.execute("ALTER TABLE creator_payment_intents ADD COLUMN plan_version INTEGER")
+            if "subscription_id" not in payment_columns:
+                self._db.execute("ALTER TABLE creator_payment_intents ADD COLUMN subscription_id TEXT")
+            if "terms_json" not in payment_columns:
+                self._db.execute("ALTER TABLE creator_payment_intents ADD COLUMN terms_json TEXT")
+            if "correlation_id" not in payment_columns:
+                self._db.execute("ALTER TABLE creator_payment_intents ADD COLUMN correlation_id TEXT")
+            self._db.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_creator_payment_intents_correlation ON creator_payment_intents(correlation_id) WHERE correlation_id IS NOT NULL")
             challenge_columns = {row[1] for row in self._db.execute("PRAGMA table_info(creator_auth_challenges)").fetchall()}
             if "network" not in challenge_columns:
                 self._db.execute("ALTER TABLE creator_auth_challenges ADD COLUMN network TEXT NOT NULL DEFAULT 'testnet'")
@@ -376,8 +475,9 @@ class CreatorNotesStore:
                     (intent_id, buyer_account, creator_account, note_id, note_revision,
                      content_digest, token_contract, token_symbol, token_decimals,
                      amount_base_units, recipient_account, memo, status, created_at,
-                     expires_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     expires_at, updated_at, payment_kind, plan_id, plan_version,
+                     subscription_id, terms_json, correlation_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         record["intent_id"], record["buyer_account"], record["creator_account"],
@@ -385,6 +485,8 @@ class CreatorNotesStore:
                         record["token_contract"], record["token_symbol"], int(record["token_decimals"]),
                         record["amount_base_units"], record["recipient_account"], record["memo"],
                         record["status"], record["created_at"], record["expires_at"], record["updated_at"],
+                        record.get("payment_kind", "ONE_TIME"), record.get("plan_id"), record.get("plan_version"),
+                        record.get("subscription_id"), record.get("terms_json"), record.get("correlation_id"),
                     ),
                 )
             except sqlite3.IntegrityError as exc:
@@ -487,6 +589,325 @@ class CreatorNotesStore:
                 (*args, max(1, min(int(limit), 100))),
             ).fetchall()
         return [dict(row) for row in rows]
+
+    # ------------------------------------------------------------------
+    # Subscription plans, subscriptions and verified term payments.
+    # ------------------------------------------------------------------
+    def create_subscription_plan(self, record: dict[str, Any], version_record: dict[str, Any]) -> dict[str, Any]:
+        with self._lock, self._db:
+            self._db.execute(
+                """
+                INSERT INTO creator_subscription_plans
+                (plan_id, creator_account, status, current_version, current_json, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    record["plan_id"], record["creator_account"], record["status"],
+                    int(record["current_version"]), _json(record), record["created_at"], record["updated_at"],
+                ),
+            )
+            self._db.execute(
+                """
+                INSERT INTO creator_subscription_plan_versions
+                (plan_id, version, creator_account, record_json, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    version_record["plan_id"], int(version_record["version"]), version_record["creator_account"],
+                    _json(version_record), version_record["created_at"],
+                ),
+            )
+        return self.get_subscription_plan(str(record["plan_id"])) or dict(record)
+
+    def get_subscription_plan(self, plan_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._db.execute(
+                "SELECT * FROM creator_subscription_plans WHERE plan_id = ?",
+                (plan_id,),
+            ).fetchone()
+        return dict(row) if row else None
+
+    def list_subscription_plans(
+        self, *, creator_account: str | None = None, status: str | None = None, limit: int = 50
+    ) -> list[dict[str, Any]]:
+        clauses: list[str] = []
+        args: list[Any] = []
+        if creator_account:
+            clauses.append("creator_account = ?")
+            args.append(creator_account)
+        if status:
+            clauses.append("status = ?")
+            args.append(status)
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        with self._lock:
+            rows = self._db.execute(
+                f"SELECT * FROM creator_subscription_plans {where} ORDER BY updated_at DESC LIMIT ?",
+                (*args, max(1, min(int(limit), 100))),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def save_subscription_plan(
+        self, record: dict[str, Any], version_record: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
+        with self._lock, self._db:
+            self._db.execute(
+                """
+                UPDATE creator_subscription_plans
+                SET status = ?, current_version = ?, current_json = ?, updated_at = ?
+                WHERE plan_id = ?
+                """,
+                (
+                    record["status"], int(record["current_version"]), _json(record),
+                    record["updated_at"], record["plan_id"],
+                ),
+            )
+            if version_record is not None:
+                self._db.execute(
+                    """
+                    INSERT INTO creator_subscription_plan_versions
+                    (plan_id, version, creator_account, record_json, created_at)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (
+                        version_record["plan_id"], int(version_record["version"]), version_record["creator_account"],
+                        _json(version_record), version_record["created_at"],
+                    ),
+                )
+        return self.get_subscription_plan(str(record["plan_id"])) or dict(record)
+
+    def list_subscription_plan_versions(self, plan_id: str) -> list[dict[str, Any]]:
+        with self._lock:
+            rows = self._db.execute(
+                "SELECT record_json FROM creator_subscription_plan_versions WHERE plan_id = ? ORDER BY version ASC",
+                (plan_id,),
+            ).fetchall()
+        return [json.loads(row["record_json"]) for row in rows]
+
+    def create_subscription(self, record: dict[str, Any]) -> dict[str, Any]:
+        with self._lock, self._db:
+            try:
+                self._db.execute(
+                    """
+                    INSERT INTO creator_subscriptions
+                    (subscription_id, subscriber_account, creator_account, plan_id, status,
+                     renewal_cancelled, started_at, expires_at, current_plan_version,
+                     last_payment_intent_id, last_tx_hash, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        record["subscription_id"], record["subscriber_account"], record["creator_account"],
+                        record["plan_id"], record.get("status", "PENDING"),
+                        1 if record.get("renewal_cancelled") else 0, record.get("started_at"),
+                        record.get("expires_at"), record.get("current_plan_version"),
+                        record.get("last_payment_intent_id"), record.get("last_tx_hash"),
+                        record["created_at"], record["updated_at"],
+                    ),
+                )
+            except sqlite3.IntegrityError:
+                existing = self._db.execute(
+                    "SELECT * FROM creator_subscriptions WHERE subscriber_account = ? AND plan_id = ?",
+                    (record["subscriber_account"], record["plan_id"]),
+                ).fetchone()
+                if not existing:
+                    raise
+                return dict(existing)
+        return self.get_subscription(str(record["subscription_id"])) or dict(record)
+
+    def get_subscription(self, subscription_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._db.execute(
+                "SELECT * FROM creator_subscriptions WHERE subscription_id = ?",
+                (subscription_id,),
+            ).fetchone()
+        if not row:
+            return None
+        value = dict(row)
+        value["renewal_cancelled"] = bool(value["renewal_cancelled"])
+        return value
+
+    def get_subscription_for_plan(self, subscriber_account: str, plan_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._db.execute(
+                "SELECT * FROM creator_subscriptions WHERE subscriber_account = ? AND plan_id = ?",
+                (subscriber_account, plan_id),
+            ).fetchone()
+        if not row:
+            return None
+        value = dict(row)
+        value["renewal_cancelled"] = bool(value["renewal_cancelled"])
+        return value
+
+    def list_subscriptions(
+        self, *, subscriber_account: str | None = None, creator_account: str | None = None, limit: int = 50
+    ) -> list[dict[str, Any]]:
+        clauses: list[str] = []
+        args: list[Any] = []
+        if subscriber_account:
+            clauses.append("subscriber_account = ?")
+            args.append(subscriber_account)
+        if creator_account:
+            clauses.append("creator_account = ?")
+            args.append(creator_account)
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        with self._lock:
+            rows = self._db.execute(
+                f"SELECT * FROM creator_subscriptions {where} ORDER BY updated_at DESC LIMIT ?",
+                (*args, max(1, min(int(limit), 100))),
+            ).fetchall()
+        values = []
+        for row in rows:
+            item = dict(row)
+            item["renewal_cancelled"] = bool(item["renewal_cancelled"])
+            values.append(item)
+        return values
+
+    def get_latest_subscription_payment_intent(self, subscription_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._db.execute(
+                """
+                SELECT * FROM creator_payment_intents
+                WHERE subscription_id = ? AND payment_kind = 'SUBSCRIPTION'
+                ORDER BY created_at DESC LIMIT 1
+                """,
+                (subscription_id,),
+            ).fetchone()
+        return dict(row) if row else None
+
+    def cancel_subscription(self, subscription_id: str, updated_at: str) -> dict[str, Any] | None:
+        with self._lock, self._db:
+            self._db.execute(
+                """
+                UPDATE creator_subscriptions
+                SET renewal_cancelled = 1, status = CASE WHEN expires_at IS NULL THEN 'CANCELLED' ELSE status END,
+                    updated_at = ?
+                WHERE subscription_id = ?
+                """,
+                (updated_at, subscription_id),
+            )
+        return self.get_subscription(subscription_id)
+
+    def mark_subscription_payment_failed(self, subscription_id: str, updated_at: str) -> dict[str, Any] | None:
+        with self._lock, self._db:
+            self._db.execute(
+                """
+                UPDATE creator_subscriptions
+                SET status = CASE WHEN started_at IS NULL THEN 'FAILED' ELSE status END,
+                    updated_at = ?
+                WHERE subscription_id = ?
+                """,
+                (updated_at, subscription_id),
+            )
+        return self.get_subscription(subscription_id)
+
+    def apply_subscription_payment(
+        self,
+        *,
+        subscription_id: str,
+        payment_intent: dict[str, Any],
+        tx_hash: str,
+        receipt_id: str,
+        now_iso: str,
+        duration_days: int,
+    ) -> dict[str, Any]:
+        with self._lock:
+            try:
+                self._db.execute("BEGIN IMMEDIATE")
+                subscription_row = self._db.execute(
+                    "SELECT * FROM creator_subscriptions WHERE subscription_id = ?",
+                    (subscription_id,),
+                ).fetchone()
+                if not subscription_row:
+                    raise CreatorNotesStoreError("subscription was not found")
+                existing_payment = self._db.execute(
+                    "SELECT * FROM creator_subscription_payments WHERE payment_intent_id = ?",
+                    (payment_intent["intent_id"],),
+                ).fetchone()
+                if existing_payment:
+                    self._db.commit()
+                    return {"created": False, "reason": "IDEMPOTENT", "subscription": dict(subscription_row), "payment": dict(existing_payment)}
+                tx_payment = self._db.execute(
+                    "SELECT * FROM creator_subscription_payments WHERE tx_hash = ?",
+                    (tx_hash,),
+                ).fetchone()
+                if tx_payment:
+                    self._db.commit()
+                    return {"created": False, "reason": "DUPLICATE_TX", "subscription": dict(subscription_row), "payment": dict(tx_payment)}
+                now = _parse_utc_iso(now_iso)
+                current_expiry = _parse_utc_iso(subscription_row["expires_at"])
+                start = current_expiry if current_expiry and current_expiry > now else now
+                expiry = start + timedelta(days=int(duration_days))
+                payment = {
+                    "payment_id": f"subscription_payment_{uuid.uuid4().hex}",
+                    "subscription_id": subscription_id,
+                    "payment_intent_id": payment_intent["intent_id"],
+                    "tx_hash": tx_hash,
+                    "receipt_id": receipt_id,
+                    "plan_version": int(payment_intent["plan_version"]),
+                    "amount_base_units": payment_intent["amount_base_units"],
+                    "token_contract": payment_intent["token_contract"],
+                    "term_started_at": _iso_utc(start),
+                    "term_expires_at": _iso_utc(expiry),
+                    "granted_at": now_iso,
+                    "terms_json": payment_intent.get("terms_json") or "{}",
+                }
+                self._db.execute(
+                    """
+                    INSERT INTO creator_subscription_payments
+                    (payment_id, subscription_id, payment_intent_id, tx_hash, receipt_id,
+                     plan_version, amount_base_units, token_contract, term_started_at,
+                     term_expires_at, granted_at, terms_json)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        payment["payment_id"], payment["subscription_id"], payment["payment_intent_id"],
+                        payment["tx_hash"], payment["receipt_id"], payment["plan_version"],
+                        payment["amount_base_units"], payment["token_contract"], payment["term_started_at"],
+                        payment["term_expires_at"], payment["granted_at"], payment["terms_json"],
+                    ),
+                )
+                self._db.execute(
+                    """
+                    UPDATE creator_subscriptions
+                    SET status = 'ACTIVE', renewal_cancelled = 0, started_at = COALESCE(started_at, ?),
+                        expires_at = ?, current_plan_version = ?, last_payment_intent_id = ?,
+                        last_tx_hash = ?, updated_at = ?
+                    WHERE subscription_id = ?
+                    """,
+                    (
+                        payment["term_started_at"], payment["term_expires_at"], payment["plan_version"],
+                        payment["payment_intent_id"], payment["tx_hash"], now_iso, subscription_id,
+                    ),
+                )
+                self._db.commit()
+                updated = self._db.execute(
+                    "SELECT * FROM creator_subscriptions WHERE subscription_id = ?",
+                    (subscription_id,),
+                ).fetchone()
+                result_subscription = dict(updated) if updated else dict(subscription_row)
+                result_subscription["renewal_cancelled"] = bool(result_subscription.get("renewal_cancelled"))
+                return {"created": True, "reason": "CREATED", "subscription": result_subscription, "payment": payment}
+            except Exception:
+                self._db.rollback()
+                raise
+
+    def list_subscription_payments(self, subscription_id: str) -> list[dict[str, Any]]:
+        with self._lock:
+            rows = self._db.execute(
+                "SELECT * FROM creator_subscription_payments WHERE subscription_id = ? ORDER BY granted_at DESC",
+                (subscription_id,),
+            ).fetchall()
+        return [dict(row) for row in rows]
+
+    def count_active_subscriptions(self, creator_account: str, now_iso: str) -> int:
+        with self._lock:
+            row = self._db.execute(
+                """
+                SELECT COUNT(*) AS count FROM creator_subscriptions
+                WHERE creator_account = ? AND started_at IS NOT NULL AND expires_at > ?
+                """,
+                (creator_account, now_iso),
+            ).fetchone()
+        return int(row["count"] if row else 0)
 
     # ------------------------------------------------------------------
     # Challenge/session material. Only hashes of bearer tokens are stored.

@@ -538,6 +538,85 @@ export interface CreatorPayoutStatus {
   storage_registered: boolean
   verified_at: string | null
 }
+export interface CreatorSubscriptionPlanScope {
+  note_id: string
+  title?: string
+  revision?: number
+  content_digest?: string
+  premium?: CreatorPremiumOffer
+  available?: boolean
+}
+export interface CreatorSubscriptionPlanVersion {
+  version: number
+  title: string
+  description: string
+  duration_days: number
+  price_base_units: string
+  token_symbol: string
+  token_decimals: number
+  scope_note_ids: string[]
+  created_at: string
+}
+export interface CreatorSubscriptionPlan {
+  plan_id: string
+  creator_account: string
+  status: 'ACTIVE' | 'INACTIVE' | string
+  terms_version: number
+  title: string
+  description: string
+  duration_days: 7 | 30 | number
+  price_base_units: string
+  token_contract: string
+  token_symbol: string
+  token_decimals: number
+  scope: CreatorSubscriptionPlanScope[]
+  scope_note_ids?: string[]
+  subscriber_count: number
+  created_at: string
+  updated_at: string
+  version_history?: CreatorSubscriptionPlanVersion[]
+}
+export interface CreatorSubscriptionPayment {
+  payment_id: string
+  payment_intent_id: string
+  plan_version: number
+  amount_base_units: string
+  token_contract: string
+  term_started_at: string
+  term_expires_at: string
+  granted_at: string
+  tx_hash: string
+  receipt_id: string
+  explorer_url: string
+}
+export interface CreatorSubscription {
+  subscription_id: string
+  subscriber_account: string
+  creator_account: string
+  plan_id: string
+  plan_title: string
+  status: 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | 'PAYMENT_PENDING' | 'PAYMENT_FAILED' | 'PENDING' | string
+  access_active: boolean
+  renewal_cancelled: boolean
+  renewal_available: boolean
+  plan_version: number | null
+  duration_days: number
+  price_base_units: string | null
+  token_symbol: string | null
+  token_contract: string | null
+  scope: CreatorSubscriptionPlanScope[]
+  started_at: string | null
+  expires_at: string | null
+  latest_payment_status: string | null
+  latest_payment_intent_id: string | null
+  last_tx_hash: string | null
+  payments: CreatorSubscriptionPayment[]
+  updated_at: string
+}
+export interface CreatorSubscriptions {
+  subscriber_subscriptions: CreatorSubscription[]
+  creator_subscriptions: CreatorSubscription[]
+}
 export interface CreatorPaymentAction {
   receiver_id: string
   method_name: 'ft_transfer' | string
@@ -565,6 +644,7 @@ export interface CreatorEntitlement {
 }
 export interface CreatorPaymentIntent {
   intent_id: string
+  payment_kind?: 'ONE_TIME' | 'SUBSCRIPTION' | string
   status: 'PENDING' | 'VERIFIED' | 'FAILED' | 'EXPIRED' | string
   buyer_account: string
   creator_account: string
@@ -572,6 +652,11 @@ export interface CreatorPaymentIntent {
   note_title: string
   note_revision: number
   content_digest: string
+  plan_id?: string | null
+  plan_version?: number | null
+  subscription_id?: string | null
+  correlation_id?: string | null
+  terms?: Record<string, unknown> | null
   network: 'testnet' | string
   token_contract: string
   token_symbol: string
@@ -590,6 +675,7 @@ export interface CreatorPaymentIntent {
   action: CreatorPaymentAction
   disclosure: { testnet_only: boolean; refund_policy: string; user_approval_required: boolean; notch_signs_or_broadcasts: boolean }
   entitlement?: CreatorEntitlement
+  subscription?: CreatorSubscription
   already_entitled?: boolean
 }
 export interface CreatorPremiumContent {
@@ -598,7 +684,8 @@ export interface CreatorPremiumContent {
   content_digest: string
   premium: { body: string; body_digest: string | null; price_base_units: string | null; token_contract: string | null; token_symbol: string | null; token_decimals: number | null }
   entitlement: CreatorEntitlement | null
-  access: 'creator' | 'purchased_revision' | string
+  subscription?: CreatorSubscription | null
+  access: 'creator' | 'purchased_revision' | 'subscription' | string
 }
 export interface CreatorPurchases {
   buyer_entitlements: CreatorEntitlement[]

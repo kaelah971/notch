@@ -43,6 +43,10 @@ _PREMIUM_BODY_MAX = 50_000
 _PAYMENT_INTENT_TTL = timedelta(minutes=15)
 _PAYMENT_GAS_TGAS = 30
 _PAYMENT_STATUSES = {"PENDING", "VERIFIED", "FAILED", "EXPIRED"}
+_PLAN_DURATIONS = {7, 30}
+_PLAN_STATUSES = {"ACTIVE", "INACTIVE"}
+_PAYMENT_KIND_ONE_TIME = "ONE_TIME"
+_PAYMENT_KIND_SUBSCRIPTION = "SUBSCRIPTION"
 
 
 def _digest(value: Any) -> str:
@@ -479,6 +483,407 @@ class CreatorNotesService:
         return [note.preview() for note in self.store.list_notes(status="PUBLISHED", creator_account=account_id, limit=limit)]
 
     # ------------------------------------------------------------------
+    # Subscription plans and time-bound subscriber access.
+    # ------------------------------------------------------------------
+    def _plan_current(self, row: dict[str, Any]) -> dict[str, Any]:
+        try:
+            value = json.loads(str(row["current_json"]))
+        except (TypeError, json.JSONDecodeError) as exc:
+            raise CreatorNotesError("PLAN_CORRUPT", "stored subscription plan terms are invalid", status=500) from exc
+        if not isinstance(value, dict):
+            raise CreatorNotesError("PLAN_CORRUPT", "stored subscription plan terms are invalid", status=500)
+        return value
+
+    def _note_scope_view(self, note_id: str) -> dict[str, Any] | None:
+        note = self.store.get_note(note_id)
+        if note is None or note.status != "PUBLISHED":
+            return None
+        return {
+            "note_id": note.note_id,
+            "title": note.title,
+            "revision": note.revision,
+            "content_digest": note.content_digest,
+            "premium": note.premium_dict(include_body=False),
+        }
+
+    def _plan_scope_views(self, terms: dict[str, Any], *, available_only: bool) -> list[dict[str, Any]]:
+        views = []
+        for note_id in terms.get("scope_note_ids", []):
+            view = self._note_scope_view(str(note_id))
+            if view is not None or not available_only:
+                views.append(view or {"note_id": str(note_id), "available": False})
+        return views
+
+    def _ensure_plan_scope_available(self, terms: dict[str, Any]) -> None:
+        scope = [str(item) for item in terms.get("scope_note_ids", [])]
+        if not scope:
+            raise CreatorNotesError("PLAN_SCOPE_REQUIRED", "a subscription plan must cover at least one published premium note")
+        unavailable = [note_id for note_id in scope if self._note_scope_view(note_id) is None]
+        if unavailable:
+            raise CreatorNotesError(
+                "PLAN_SCOPE_UNAVAILABLE",
+                "all subscriber-only notes in an active plan must remain published premium revisions",
+                status=409,
+                details={"note_ids": unavailable},
+            )
+
+    def _plan_terms(self, payload: dict[str, Any], *, creator_account: str, existing: dict[str, Any] | None = None) -> dict[str, Any]:
+        existing = existing or {}
+        title = _clean_text(payload.get("title", existing.get("title")), "plan.title", max_length=120)
+        description = _clean_text(payload.get("description", existing.get("description")), "plan.description", max_length=1200)
+        duration = payload.get("duration_days", existing.get("duration_days"))
+        if isinstance(duration, bool):
+            raise CreatorNotesError("INVALID_PLAN_DURATION", "duration_days must be 7 or 30")
+        try:
+            duration = int(duration)
+        except (TypeError, ValueError) as exc:
+            raise CreatorNotesError("INVALID_PLAN_DURATION", "duration_days must be 7 or 30") from exc
+        if duration not in _PLAN_DURATIONS:
+            raise CreatorNotesError("INVALID_PLAN_DURATION", "duration_days must be 7 or 30")
+        raw_scope = payload.get("note_ids", existing.get("scope_note_ids"))
+        if not isinstance(raw_scope, list):
+            raise CreatorNotesError("PLAN_SCOPE_REQUIRED", "note_ids must be a non-empty list of published premium note IDs")
+        note_ids = list(dict.fromkeys(_clean_text(item, "note_ids[]", max_length=160) for item in raw_scope))
+        if not note_ids or len(note_ids) > 50:
+            raise CreatorNotesError("PLAN_SCOPE_REQUIRED", "a plan must cover between 1 and 50 notes")
+        for note_id in note_ids:
+            note = self.store.get_note(note_id)
+            if note is None or note.creator_account != creator_account:
+                raise CreatorNotesError("PLAN_NOTE_FORBIDDEN", "a plan may only cover notes owned by the verified creator", status=403)
+            if note.status != "PUBLISHED" or not note.premium_enabled or not note.premium_body:
+                raise CreatorNotesError("PLAN_SCOPE_UNAVAILABLE", "a plan may only cover published premium notes", status=409)
+        metadata = self._payment_token_metadata()
+        if "price" in payload:
+            price_base_units = self._decimal_to_base_units(payload.get("price"), metadata["decimals"])
+        elif "price_base_units" in payload:
+            raw_price = _clean_text(payload.get("price_base_units"), "plan.price_base_units", max_length=80)
+            if not re.fullmatch(r"[0-9]+", raw_price) or int(raw_price) <= 0:
+                raise CreatorNotesError("INVALID_PLAN_PRICE", "plan.price_base_units must be a positive integer")
+            price_base_units = raw_price
+        else:
+            price_base_units = str(existing.get("price_base_units") or "")
+            if not re.fullmatch(r"[0-9]+", price_base_units) or int(price_base_units) <= 0:
+                raise CreatorNotesError("INVALID_PLAN_PRICE", "plan price is required")
+            if existing.get("token_contract") != metadata["contract"] or int(existing.get("token_decimals", -1)) != metadata["decimals"]:
+                raise CreatorNotesError("PAYMENT_TOKEN_MISMATCH", "the plan pricing terms do not match the configured Testnet token", status=409)
+        return {
+            "title": title,
+            "description": description,
+            "duration_days": duration,
+            "price_base_units": price_base_units,
+            "token_contract": metadata["contract"],
+            "token_symbol": metadata["symbol"],
+            "token_decimals": metadata["decimals"],
+            "scope_note_ids": note_ids,
+        }
+
+    def _plan_view(self, row: dict[str, Any], *, private: bool) -> dict[str, Any]:
+        terms = self._plan_current(row)
+        now = self._now_iso()
+        value = {
+            "plan_id": row["plan_id"],
+            "creator_account": row["creator_account"],
+            "status": row["status"],
+            "terms_version": int(row["current_version"]),
+            "title": terms["title"],
+            "description": terms["description"],
+            "duration_days": int(terms["duration_days"]),
+            "price_base_units": terms["price_base_units"],
+            "token_contract": terms["token_contract"],
+            "token_symbol": terms["token_symbol"],
+            "token_decimals": int(terms["token_decimals"]),
+            "scope": self._plan_scope_views(terms, available_only=not private),
+            "scope_note_ids": list(terms.get("scope_note_ids", [])) if private else None,
+            "subscriber_count": self.store.count_active_subscriptions(str(row["creator_account"]), now),
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
+        if not private:
+            value.pop("scope_note_ids", None)
+        if private:
+            value["version_history"] = [
+                {
+                    "version": int(item.get("version", 0)),
+                    "title": item.get("title"),
+                    "description": item.get("description"),
+                    "duration_days": item.get("duration_days"),
+                    "price_base_units": item.get("price_base_units"),
+                    "token_symbol": item.get("token_symbol"),
+                    "token_decimals": item.get("token_decimals"),
+                    "scope_note_ids": item.get("scope_note_ids", []),
+                    "created_at": item.get("created_at"),
+                }
+                for item in self.store.list_subscription_plan_versions(str(row["plan_id"]))
+            ]
+        return value
+
+    def public_subscription_plans(self, limit: int = 20) -> list[dict[str, Any]]:
+        return [
+            view for row in self.store.list_subscription_plans(status="ACTIVE", limit=limit)
+            for view in [self._plan_view(row, private=False)]
+            if view["scope"]
+        ]
+
+    def public_subscription_plan(self, plan_id: str) -> dict[str, Any]:
+        row = self.store.get_subscription_plan(plan_id)
+        if row is None or row["status"] != "ACTIVE":
+            raise CreatorNotesError("PLAN_NOT_FOUND", "active subscription plan was not found", status=404)
+        view = self._plan_view(row, private=False)
+        if not view["scope"]:
+            raise CreatorNotesError("PLAN_NOT_FOUND", "active subscription plan was not found", status=404)
+        return view
+
+    def public_creator_subscription_plans(self, account_id: str, limit: int = 20) -> list[dict[str, Any]]:
+        if not is_near_account(account_id):
+            raise CreatorNotesError("INVALID_ACCOUNT", "account_id is not a valid NEAR account")
+        return [
+            view for row in self.store.list_subscription_plans(creator_account=account_id, status="ACTIVE", limit=limit)
+            for view in [self._plan_view(row, private=False)]
+            if view["scope"]
+        ]
+
+    def creator_subscription_plans(self, token: str | None, limit: int = 50) -> list[dict[str, Any]]:
+        session = self._session(token)
+        return [self._plan_view(row, private=True) for row in self.store.list_subscription_plans(creator_account=session["account_id"], limit=limit)]
+
+    def create_subscription_plan(self, token: str | None, payload: dict[str, Any]) -> dict[str, Any]:
+        session = self._session(token)
+        status = str(payload.get("status", "ACTIVE")).upper()
+        if status not in _PLAN_STATUSES:
+            raise CreatorNotesError("INVALID_PLAN_STATUS", "plan status must be ACTIVE or INACTIVE")
+        terms = self._plan_terms(payload, creator_account=session["account_id"])
+        if status == "ACTIVE":
+            self._ensure_payout_usable(self.store.get_payout_account(session["account_id"]), {
+                "contract": terms["token_contract"], "symbol": terms["token_symbol"], "decimals": terms["token_decimals"],
+            })
+        now = self._now_iso()
+        plan_id = f"plan_{uuid.uuid4().hex}"
+        terms = {**terms, "version": 1, "created_at": now}
+        version_record = {**terms, "plan_id": plan_id, "creator_account": session["account_id"]}
+        record = {
+            **terms,
+            "plan_id": plan_id,
+            "creator_account": session["account_id"],
+            "status": status,
+            "current_version": 1,
+            "created_at": now,
+            "updated_at": now,
+        }
+        self.store.create_subscription_plan(record, version_record)
+        return self._plan_view(self.store.get_subscription_plan(plan_id) or record, private=True)
+
+    def update_subscription_plan(self, token: str | None, plan_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+        session = self._session(token)
+        row = self.store.get_subscription_plan(plan_id)
+        if row is None:
+            raise CreatorNotesError("PLAN_NOT_FOUND", "subscription plan was not found", status=404)
+        if row["creator_account"] != session["account_id"]:
+            raise CreatorNotesError("PLAN_FORBIDDEN", "only the verified creator can edit this plan", status=403)
+        status = str(payload.get("status", row["status"])).upper()
+        if status not in _PLAN_STATUSES:
+            raise CreatorNotesError("INVALID_PLAN_STATUS", "plan status must be ACTIVE or INACTIVE")
+        current = self._plan_current(row)
+        terms_fields = {"title", "description", "duration_days", "price", "price_base_units", "note_ids"}
+        terms_changed = any(field in payload for field in terms_fields)
+        if terms_changed:
+            terms = self._plan_terms(payload, creator_account=session["account_id"], existing=current)
+            version = int(row["current_version"]) + 1
+            now = self._now_iso()
+            terms = {**terms, "version": version, "created_at": now}
+            version_record = {**terms, "plan_id": plan_id, "creator_account": session["account_id"]}
+        else:
+            terms = current
+            version = int(row["current_version"])
+            now = self._now_iso()
+            version_record = None
+        if status == "ACTIVE":
+            self._ensure_payout_usable(self.store.get_payout_account(session["account_id"]), {
+                "contract": terms["token_contract"], "symbol": terms["token_symbol"], "decimals": terms["token_decimals"],
+            })
+            self._ensure_plan_scope_available(terms)
+        record = {
+            **terms,
+            "plan_id": plan_id,
+            "creator_account": session["account_id"],
+            "status": status,
+            "current_version": version,
+            "created_at": row["created_at"],
+            "updated_at": now,
+        }
+        self.store.save_subscription_plan(record, version_record)
+        return self._plan_view(self.store.get_subscription_plan(plan_id) or record, private=True)
+
+    def _subscription_plan_version(self, subscription: dict[str, Any]) -> dict[str, Any] | None:
+        versions = self.store.list_subscription_plan_versions(str(subscription["plan_id"]))
+        selected = int(subscription.get("current_plan_version") or 0)
+        for version in versions:
+            if int(version.get("version", 0)) == selected:
+                return version
+        return None
+
+    def _subscription_history_view(self, subscription_id: str) -> list[dict[str, Any]]:
+        return [
+            {
+                "payment_id": row["payment_id"],
+                "payment_intent_id": row["payment_intent_id"],
+                "plan_version": int(row["plan_version"]),
+                "amount_base_units": row["amount_base_units"],
+                "token_contract": row["token_contract"],
+                "term_started_at": row["term_started_at"],
+                "term_expires_at": row["term_expires_at"],
+                "granted_at": row["granted_at"],
+                "tx_hash": row["tx_hash"],
+                "receipt_id": row["receipt_id"],
+                "explorer_url": f"https://testnet.nearblocks.io/txns/{row['tx_hash']}",
+            }
+            for row in self.store.list_subscription_payments(subscription_id)
+        ]
+
+    def _subscription_view(self, row: dict[str, Any]) -> dict[str, Any]:
+        plan_row = self.store.get_subscription_plan(str(row["plan_id"]))
+        plan_terms = self._plan_current(plan_row) if plan_row else {}
+        latest_intent = self.store.get_latest_subscription_payment_intent(str(row["subscription_id"]))
+        now = self._utc_now()
+        expires = _safe_parse_iso(row.get("expires_at"))
+        active = bool(expires and expires > now)
+        if active:
+            status = "CANCELLED" if row.get("renewal_cancelled") else "ACTIVE"
+        elif not row.get("started_at"):
+            status = "PAYMENT_PENDING" if latest_intent and latest_intent.get("status") == "PENDING" else "PAYMENT_FAILED" if latest_intent and latest_intent.get("status") in {"FAILED", "EXPIRED"} else "PENDING"
+        else:
+            status = "EXPIRED"
+        selected_terms = self._subscription_plan_version(row) or plan_terms
+        return {
+            "subscription_id": row["subscription_id"],
+            "subscriber_account": row["subscriber_account"],
+            "creator_account": row["creator_account"],
+            "plan_id": row["plan_id"],
+            "plan_title": selected_terms.get("title", plan_terms.get("title", "Research subscription")),
+            "status": status,
+            "access_active": active,
+            "renewal_cancelled": bool(row.get("renewal_cancelled")),
+            "renewal_available": bool(plan_row and plan_row["status"] == "ACTIVE" and selected_terms),
+            "plan_version": int(row["current_plan_version"] or 0) if row.get("current_plan_version") else None,
+            "duration_days": int(selected_terms.get("duration_days", plan_terms.get("duration_days", 0)) or 0),
+            "price_base_units": selected_terms.get("price_base_units"),
+            "token_symbol": selected_terms.get("token_symbol"),
+            "token_contract": selected_terms.get("token_contract"),
+            "scope": self._plan_scope_views(selected_terms, available_only=False),
+            "started_at": row.get("started_at"),
+            "expires_at": row.get("expires_at"),
+            "latest_payment_status": latest_intent.get("status") if latest_intent else None,
+            "latest_payment_intent_id": row.get("last_payment_intent_id"),
+            "last_tx_hash": row.get("last_tx_hash"),
+            "payments": self._subscription_history_view(str(row["subscription_id"])),
+            "updated_at": row["updated_at"],
+        }
+
+    def subscriptions(self, token: str | None, limit: int = 50) -> dict[str, Any]:
+        session = self._session(token)
+        return {
+            "subscriber_subscriptions": [self._subscription_view(row) for row in self.store.list_subscriptions(subscriber_account=session["account_id"], limit=limit)],
+            "creator_subscriptions": [self._subscription_view(row) for row in self.store.list_subscriptions(creator_account=session["account_id"], limit=limit)],
+        }
+
+    def create_subscription_payment_intent(self, token: str | None, plan_id: str) -> dict[str, Any]:
+        session = self._session(token)
+        if not is_near_account(session["account_id"]):
+            raise CreatorNotesError("INVALID_ACCOUNT", "subscriber account is not a valid NEAR account")
+        with self._payment_lock:
+            row = self.store.get_subscription_plan(plan_id)
+            if row is None or row["status"] != "ACTIVE":
+                raise CreatorNotesError("PLAN_NOT_FOUND", "active subscription plan was not found", status=404)
+            if row["creator_account"] == session["account_id"]:
+                raise CreatorNotesError("CREATOR_ACCESS", "the verified creator cannot subscribe to their own plan", status=409)
+            terms = self._plan_current(row)
+            self._ensure_plan_scope_available(terms)
+            metadata = self._payment_token_metadata()
+            self._ensure_payout_usable(self.store.get_payout_account(row["creator_account"]), metadata)
+            if terms["token_contract"] != metadata["contract"] or int(terms["token_decimals"]) != metadata["decimals"]:
+                raise CreatorNotesError("PAYMENT_TOKEN_MISMATCH", "the plan pricing terms do not match the configured Testnet token", status=409)
+            subscription = self.store.get_subscription_for_plan(session["account_id"], plan_id)
+            now = self._utc_now()
+            if subscription is None:
+                now_iso = iso_utc(now) or ""
+                subscription = self.store.create_subscription({
+                    "subscription_id": f"subscription_{uuid.uuid4().hex}",
+                    "subscriber_account": session["account_id"],
+                    "creator_account": row["creator_account"],
+                    "plan_id": plan_id,
+                    "status": "PENDING",
+                    "created_at": now_iso,
+                    "updated_at": now_iso,
+                })
+            latest = self.store.get_latest_subscription_payment_intent(subscription["subscription_id"])
+            if latest and latest.get("status") == "PENDING":
+                if now < (_safe_parse_iso(latest.get("expires_at")) or now):
+                    return self._intent_view(latest, note_title=terms["title"])
+                self.store.update_payment_intent(
+                    latest["intent_id"], status="EXPIRED", updated_at=self._now_iso(),
+                    failure_code="INTENT_EXPIRED", failure_message="subscription payment intent expired",
+                )
+            amount = str(terms.get("price_base_units") or "")
+            if not re.fullmatch(r"[0-9]+", amount) or int(amount) <= 0:
+                raise CreatorNotesError("INVALID_PLAN_PRICE", "the plan has no valid stored base-unit price", status=409)
+            self._ensure_buyer_funded(session["account_id"], metadata["contract"], int(amount))
+            anchor_note = self.store.get_note(str(terms["scope_note_ids"][0]))
+            if anchor_note is None:
+                raise CreatorNotesError("PLAN_SCOPE_UNAVAILABLE", "the plan scope is no longer available", status=409)
+            now_iso = iso_utc(now) or ""
+            intent_id = f"intent_{uuid.uuid4().hex}"
+            terms_json = json.dumps(terms, sort_keys=True, separators=(",", ":"))
+            record = {
+                "intent_id": intent_id,
+                "buyer_account": session["account_id"],
+                "creator_account": row["creator_account"],
+                "note_id": anchor_note.note_id,
+                "note_revision": anchor_note.revision,
+                "content_digest": _digest({"plan_id": plan_id, "version": int(row["current_version"]), "terms": terms}),
+                "token_contract": metadata["contract"],
+                "token_symbol": metadata["symbol"],
+                "token_decimals": metadata["decimals"],
+                "amount_base_units": amount,
+                "recipient_account": self.store.get_payout_account(row["creator_account"])["payout_account"],
+                "memo": f"notch:subscription:{plan_id}:{subscription['subscription_id']}:{intent_id}",
+                "status": "PENDING",
+                "created_at": now_iso,
+                "expires_at": iso_utc(now + _PAYMENT_INTENT_TTL) or "",
+                "updated_at": now_iso,
+                "payment_kind": _PAYMENT_KIND_SUBSCRIPTION,
+                "plan_id": plan_id,
+                "plan_version": int(row["current_version"]),
+                "subscription_id": subscription["subscription_id"],
+                "terms_json": terms_json,
+                "correlation_id": f"subscription:{subscription['subscription_id']}:{int(row['current_version'])}:{intent_id}",
+            }
+            try:
+                intent = self.store.create_payment_intent(record)
+            except CreatorNotesStoreError as exc:
+                raise CreatorNotesError("PAYMENT_INTENT_CONFLICT", str(exc), status=409) from exc
+            return self._intent_view(intent, note_title=terms["title"])
+
+    def cancel_subscription(self, token: str | None, subscription_id: str) -> dict[str, Any]:
+        session = self._session(token)
+        row = self.store.get_subscription(subscription_id)
+        if row is None:
+            raise CreatorNotesError("SUBSCRIPTION_NOT_FOUND", "subscription was not found", status=404)
+        if row["subscriber_account"] != session["account_id"]:
+            raise CreatorNotesError("SUBSCRIPTION_FORBIDDEN", "only the subscriber can cancel future renewal", status=403)
+        updated = self.store.cancel_subscription(subscription_id, self._now_iso()) or row
+        return self._subscription_view(updated)
+
+    def _subscription_for_note(self, account_id: str, creator_account: str, note_id: str) -> dict[str, Any] | None:
+        now = self._utc_now()
+        for row in self.store.list_subscriptions(subscriber_account=account_id, creator_account=creator_account, limit=100):
+            expires = _safe_parse_iso(row.get("expires_at"))
+            if not row.get("started_at") or not expires or expires <= now:
+                continue
+            terms = self._subscription_plan_version(row)
+            if terms and note_id in {str(item) for item in terms.get("scope_note_ids", [])}:
+                return row
+        return None
+
+    # ------------------------------------------------------------------
     # Paid research intents, receipt verification and protected content.
     # ------------------------------------------------------------------
     def _ensure_buyer_funded(self, account_id: str, token_contract: str, amount_base_units: int) -> None:
@@ -557,6 +962,8 @@ class CreatorNotesService:
         if session["account_id"] not in {intent["buyer_account"], intent["creator_account"]}:
             raise CreatorNotesError("PAYMENT_INTENT_FORBIDDEN", "only the buyer or creator can inspect this payment intent", status=403)
         if intent["status"] == "PENDING" and self._utc_now() >= _parse_required(intent["expires_at"]):
+            if intent.get("payment_kind") == _PAYMENT_KIND_SUBSCRIPTION and intent.get("subscription_id"):
+                self.store.mark_subscription_payment_failed(intent["subscription_id"], self._now_iso())
             intent = self.store.update_payment_intent(
                 intent_id, status="EXPIRED", updated_at=self._now_iso(), failure_code="INTENT_EXPIRED", failure_message="payment intent expired"
             ) or intent
@@ -575,13 +982,25 @@ class CreatorNotesService:
         if current is None:
             raise CreatorNotesError("NOTE_NOT_FOUND", "research note was not found", status=404)
         entitlement: dict[str, Any] | None = None
+        subscription: dict[str, Any] | None = None
         if session["account_id"] == current.creator_account:
             target = self.store.get_revision(note_id, revision) if revision is not None else current
+            access = "creator"
         else:
             entitlement = self.store.get_entitlement_for_note(session["account_id"], note_id, revision)
-            if entitlement is None:
-                raise CreatorNotesError("PREMIUM_ACCESS_REQUIRED", "a verified purchase entitlement is required", status=403)
-            target = self.store.get_revision(note_id, int(entitlement["note_revision"]))
+            if entitlement is not None:
+                target = self.store.get_revision(note_id, int(entitlement["note_revision"]))
+                access = "purchased_revision"
+            else:
+                if revision is not None and revision != current.revision:
+                    raise CreatorNotesError("PREMIUM_ACCESS_REQUIRED", "a subscription only grants the current published revision", status=403)
+                if current.status != "PUBLISHED":
+                    raise CreatorNotesError("PREMIUM_ACCESS_REQUIRED", "a verified purchase entitlement or active subscription entitlement is required; subscriber-only research is unavailable after note withdrawal", status=403)
+                subscription = self._subscription_for_note(session["account_id"], current.creator_account, note_id)
+                if subscription is None:
+                    raise CreatorNotesError("PREMIUM_ACCESS_REQUIRED", "a verified purchase entitlement or active subscription entitlement is required", status=403)
+                target = current
+                access = "subscription"
         if target is None or not target.premium_enabled or target.premium_body is None:
             raise CreatorNotesError("PREMIUM_NOT_AVAILABLE", "the requested premium revision is not available", status=404)
         return {
@@ -597,7 +1016,8 @@ class CreatorNotesService:
                 "token_decimals": target.premium_token_decimals,
             },
             "entitlement": self._entitlement_view(entitlement) if entitlement else None,
-            "access": "creator" if entitlement is None else "purchased_revision",
+            "subscription": self._subscription_view(subscription) if subscription else None,
+            "access": access,
         }
 
     def verify_payment(self, token: str | None, intent_id: str, tx_hash: str) -> dict[str, Any]:
@@ -640,6 +1060,8 @@ class CreatorNotesService:
                 ) or intent
                 return self._intent_view(updated)
             if result["status"] == "FAILED":
+                if intent.get("payment_kind") == _PAYMENT_KIND_SUBSCRIPTION and intent.get("subscription_id"):
+                    self.store.mark_subscription_payment_failed(intent["subscription_id"], self._now_iso())
                 updated = self.store.update_payment_intent(
                     intent_id,
                     status="FAILED",
@@ -650,6 +1072,8 @@ class CreatorNotesService:
                     failure_message=result.get("failure_message"),
                 ) or intent
                 return self._intent_view(updated)
+            if intent.get("payment_kind") == _PAYMENT_KIND_SUBSCRIPTION:
+                return self._grant_subscription_payment(intent, tx_hash, result)
             entitlement = self.store.create_entitlement(
                 {
                     "entitlement_id": f"entitlement_{uuid.uuid4().hex}",
@@ -685,6 +1109,47 @@ class CreatorNotesService:
                 failure_message=None,
             ) or intent
             return self._intent_view(updated, entitlement=entitlement)
+
+    def _grant_subscription_payment(self, intent: dict[str, Any], tx_hash: str, result: dict[str, Any]) -> dict[str, Any]:
+        try:
+            terms = json.loads(str(intent.get("terms_json") or "{}"))
+        except json.JSONDecodeError as exc:
+            raise CreatorNotesError("PLAN_CORRUPT", "subscription payment terms are invalid", status=500) from exc
+        try:
+            duration_days = int(terms["duration_days"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise CreatorNotesError("PLAN_CORRUPT", "subscription payment duration is invalid", status=500) from exc
+        if duration_days not in _PLAN_DURATIONS:
+            raise CreatorNotesError("PLAN_CORRUPT", "subscription payment duration is invalid", status=500)
+        try:
+            applied = self.store.apply_subscription_payment(
+                subscription_id=str(intent["subscription_id"]),
+                payment_intent=intent,
+                tx_hash=tx_hash,
+                receipt_id=str(result["receipt_id"]),
+                now_iso=self._now_iso(),
+                duration_days=duration_days,
+            )
+        except CreatorNotesStoreError as exc:
+            raise CreatorNotesError("SUBSCRIPTION_PAYMENT_CONFLICT", str(exc), status=409) from exc
+        if applied["reason"] == "DUPLICATE_TX":
+            updated = self.store.update_payment_intent(
+                intent["intent_id"], status="FAILED", updated_at=self._now_iso(), tx_hash=tx_hash,
+                receipt_id=result.get("receipt_id"), failure_code="TX_ALREADY_USED",
+                failure_message="transaction evidence is already attached to another subscription payment",
+            ) or intent
+            return self._intent_view(updated)
+        payment = applied["payment"]
+        updated = self.store.update_payment_intent(
+            intent["intent_id"], status="VERIFIED", updated_at=self._now_iso(), tx_hash=payment["tx_hash"],
+            receipt_id=payment["receipt_id"], failure_code=None, failure_message=None,
+        ) or intent
+        subscription = self.store.get_subscription(str(intent["subscription_id"]))
+        return self._intent_view(
+            updated,
+            note_title=str(terms.get("title") or "Research subscription"),
+            subscription=subscription,
+        )
 
     def _inspect_payment_transaction(self, intent: dict[str, Any], tx_hash: str) -> dict[str, Any]:
         status = self._transaction_status(tx_hash, intent["buyer_account"])
@@ -766,12 +1231,25 @@ class CreatorNotesService:
         *,
         note_title: str | None = None,
         entitlement: dict[str, Any] | None = None,
+        subscription: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
+        payment_kind = intent.get("payment_kind") or _PAYMENT_KIND_ONE_TIME
         if note_title is None:
-            note = self.store.get_note(str(intent["note_id"]))
-            note_title = note.title if note else "Research note"
+            if payment_kind == _PAYMENT_KIND_SUBSCRIPTION and intent.get("plan_id"):
+                if intent.get("terms_json"):
+                    try:
+                        note_title = json.loads(str(intent["terms_json"])).get("title") or "Research subscription"
+                    except json.JSONDecodeError:
+                        note_title = "Research subscription"
+                else:
+                    plan = self.store.get_subscription_plan(str(intent["plan_id"]))
+                    note_title = self._plan_current(plan).get("title") if plan else "Research subscription"
+            else:
+                note = self.store.get_note(str(intent["note_id"]))
+                note_title = note.title if note else "Research note"
         value = {
             "intent_id": intent["intent_id"],
+            "payment_kind": payment_kind,
             "status": intent["status"],
             "buyer_account": intent["buyer_account"],
             "creator_account": intent["creator_account"],
@@ -779,6 +1257,10 @@ class CreatorNotesService:
             "note_title": note_title,
             "note_revision": int(intent["note_revision"]),
             "content_digest": intent["content_digest"],
+            "plan_id": intent.get("plan_id"),
+            "plan_version": int(intent["plan_version"]) if intent.get("plan_version") is not None else None,
+            "subscription_id": intent.get("subscription_id"),
+            "correlation_id": intent.get("correlation_id"),
             "network": self.payment_network,
             "token_contract": intent["token_contract"],
             "token_symbol": intent["token_symbol"],
@@ -813,10 +1295,15 @@ class CreatorNotesService:
         }
         if entitlement:
             value["entitlement"] = self._entitlement_view(entitlement)
-        elif intent["status"] == "VERIFIED":
+        elif payment_kind == _PAYMENT_KIND_ONE_TIME and intent["status"] == "VERIFIED":
             existing = self.store.get_entitlement_for_note(intent["buyer_account"], intent["note_id"], int(intent["note_revision"]))
             if existing:
                 value["entitlement"] = self._entitlement_view(existing)
+        if payment_kind == _PAYMENT_KIND_SUBSCRIPTION and intent.get("subscription_id"):
+            subscription = subscription or self.store.get_subscription(str(intent["subscription_id"]))
+            if subscription:
+                value["subscription"] = self._subscription_view(subscription)
+                value["terms"] = json.loads(intent.get("terms_json") or "{}") if intent.get("terms_json") else None
         if intent.get("tx_hash"):
             value["explorer_url"] = f"https://testnet.nearblocks.io/txns/{intent['tx_hash']}"
         return value

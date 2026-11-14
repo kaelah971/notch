@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { ArrowUpRight, ExternalLink, FileText, LockKeyhole, ShieldCheck } from 'lucide-react'
+import { ArrowUpRight, CalendarClock, ExternalLink, FileText, LockKeyhole, ShieldCheck } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { api, ApiError } from '../api/client'
-import type { CreatorPremiumContent, CreatorPaymentIntent, CreatorResearchNote } from '../api/types'
+import type { CreatorPremiumContent, CreatorPaymentIntent, CreatorResearchNote, CreatorSubscriptionPlan } from '../api/types'
 import { useApi } from '../api/useApi'
 import { clearCreatorSession, readCreatorSession, verifyCreatorOwnership, type StoredCreatorSession } from '../creator/session'
 import { useWallet } from '../wallet/WalletProvider'
@@ -25,6 +25,28 @@ function NoteCard({ note }: { note: CreatorResearchNote }) {
     {note.premium.enabled && <span className="creator-premium-chip"><LockKeyhole size={12} aria-hidden="true" /> Premium Testnet unlock</span>}
     <div className="creator-public-card-meta"><span>{note.creator_account} · rev {note.revision}</span><span>Inspect <ArrowUpRight size={13} aria-hidden="true" /></span></div>
   </Link>
+}
+
+function PlanCard({ plan }: { plan: CreatorSubscriptionPlan }) {
+  const price = formatBaseUnits(plan.price_base_units, plan.token_decimals)
+  return <Link className="creator-public-card subscription-plan-card" to={`/app/research/plans/${encodeURIComponent(plan.plan_id)}`}>
+    <div className="creator-note-row-top"><span className="creator-label">{plan.creator_account}</span><span className="creator-status creator-status-published">ACTIVE</span></div>
+    <h3>{plan.title}</h3>
+    <p>{plan.description}</p>
+    <div className="subscription-plan-meta"><span><CalendarClock size={13} aria-hidden="true" /> {plan.duration_days} days</span><strong>{price} {plan.token_symbol}</strong></div>
+    <div className="creator-public-card-meta"><span>{plan.scope.length} research note{plan.scope.length === 1 ? '' : 's'} · terms v{plan.terms_version}</span><span>Review <ArrowUpRight size={13} aria-hidden="true" /></span></div>
+  </Link>
+}
+
+export function PublicSubscriptionPlans({ limit = 6 }: { limit?: number }) {
+  const [state, reload] = useApi(() => api.subscriptionPlans(limit), [limit])
+  if (state.status === 'loading') return <section className="creator-public-section"><div className="creator-section-head"><div><span className="creator-label">RESEARCH SUBSCRIPTIONS</span><h2>Loading active plans…</h2></div></div></section>
+  if (state.status === 'error') return <section className="creator-public-section"><ErrorState error={state.error} onRetry={reload} /></section>
+  if (state.data.data.length === 0) return null
+  return <section className="creator-public-section" aria-label="Active creator subscription plans">
+    <div className="creator-section-head"><div><span className="creator-label">RESEARCH SUBSCRIPTIONS / TESTNET</span><h2>Manual access to creator research</h2></div></div>
+    <div className="creator-public-grid">{state.data.data.map((plan) => <PlanCard key={plan.plan_id} plan={plan} />)}</div>
+  </section>
 }
 
 export function PublicResearchNotes({ limit = 6 }: { limit?: number }) {

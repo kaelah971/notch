@@ -197,6 +197,16 @@ class WebAPI:
             return 200, self._creator_public_notes(query)
         if parts == ["api", "research", "notes", "mine"]:
             return 200, self._creator_mine(query, headers)
+        if parts == ["api", "research", "plans"]:
+            return 200, {"data": self._creator_public_plans(query), "meta": {"status": "ACTIVE"}}
+        if parts == ["api", "research", "plans", "mine"]:
+            return 200, {"data": self._creator_plans(query, headers), "meta": {"private": True}}
+        if len(parts) == 4 and parts[:3] == ["api", "research", "plans"]:
+            return 200, {"data": self._creator_public_plan(parts[3])}
+        if parts == ["api", "research", "subscriptions"]:
+            return 200, {"data": self._creator_subscriptions(query, headers)}
+        if len(parts) == 4 and parts[:3] == ["api", "research", "subscriptions"]:
+            return 200, {"data": self._creator_subscription(parts[3], headers)}
         if parts == ["api", "research", "payout"]:
             return 200, {"data": self._creator_payout(headers)}
         if parts == ["api", "research", "purchases"]:
@@ -212,6 +222,9 @@ class WebAPI:
             return 200, {"data": self._creator_premium(parts[3], revision_number, headers)}
         if len(parts) == 4 and parts[:3] == ["api", "research", "notes"]:
             return 200, {"data": self._creator_public_note(parts[3])}
+        if len(parts) == 4 and parts[:2] == ["api", "creators"] and parts[3] == "plans":
+            data = self._creator_service().public_creator_subscription_plans(parts[2], self._limit(query))
+            return 200, {"data": data, "meta": {"count": len(data), "creator_account": parts[2]}}
         if len(parts) == 4 and parts[:2] == ["api", "creators"] and parts[3] == "notes":
             return 200, self._creator_profile(parts[2], query)
         if parts == ["api", "research", "me"]:
@@ -247,6 +260,14 @@ class WebAPI:
             return 200, {"data": self._creator_revoke(headers)}
         if parts == ["api", "research", "payout", "configure"]:
             return 200, {"data": self._creator_configure_payout(body, headers)}
+        if parts == ["api", "research", "plans"]:
+            return 201, {"data": self._creator_create_plan(body, headers)}
+        if len(parts) == 5 and parts[:3] == ["api", "research", "plans"] and parts[4] == "update":
+            return 200, {"data": self._creator_update_plan(parts[3], body, headers)}
+        if len(parts) == 5 and parts[:3] == ["api", "research", "plans"] and parts[4] == "payment-intents":
+            return 201, {"data": self._creator_create_subscription_intent(parts[3], headers)}
+        if len(parts) == 5 and parts[:3] == ["api", "research", "subscriptions"] and parts[4] == "cancel":
+            return 200, {"data": self._creator_cancel_subscription(parts[3], headers)}
         if parts == ["api", "research", "notes"]:
             return 201, {"data": self._creator_create(body, headers)}
         if len(parts) == 5 and parts[:3] == ["api", "research", "notes"] and parts[4] == "payment-intents":
@@ -314,6 +335,38 @@ class WebAPI:
 
     def _creator_payout(self, headers: dict[str, str]) -> dict[str, Any]:
         return self._creator_service().payout_status(self._authorization(headers))
+
+    def _creator_public_plans(self, query: dict[str, str]) -> list[dict[str, Any]]:
+        return self._creator_service().public_subscription_plans(self._limit(query))
+
+    def _creator_public_plan(self, plan_id: str) -> dict[str, Any]:
+        return self._creator_service().public_subscription_plan(plan_id)
+
+    def _creator_plans(self, query: dict[str, str], headers: dict[str, str]) -> list[dict[str, Any]]:
+        return self._creator_service().creator_subscription_plans(self._authorization(headers), self._limit(query, 50))
+
+    def _creator_create_plan(self, body: dict[str, Any], headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().create_subscription_plan(self._authorization(headers), body)
+
+    def _creator_update_plan(self, plan_id: str, body: dict[str, Any], headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().update_subscription_plan(self._authorization(headers), plan_id, body)
+
+    def _creator_subscriptions(self, query: dict[str, str], headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().subscriptions(self._authorization(headers), self._limit(query, 50))
+
+    def _creator_subscription(self, subscription_id: str, headers: dict[str, str]) -> dict[str, Any]:
+        result = self._creator_service().subscriptions(self._authorization(headers), 100)
+        matches = result["subscriber_subscriptions"] + result["creator_subscriptions"]
+        for item in matches:
+            if item["subscription_id"] == subscription_id:
+                return item
+        raise CreatorNotesError("SUBSCRIPTION_NOT_FOUND", "subscription was not found", status=404)
+
+    def _creator_create_subscription_intent(self, plan_id: str, headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().create_subscription_payment_intent(self._authorization(headers), plan_id)
+
+    def _creator_cancel_subscription(self, subscription_id: str, headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().cancel_subscription(self._authorization(headers), subscription_id)
 
     def _creator_configure_payout(self, body: dict[str, Any], headers: dict[str, str]) -> dict[str, Any]:
         requested = body.get("payout_account")

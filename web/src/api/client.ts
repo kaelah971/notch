@@ -1,6 +1,6 @@
 import type {
   ApiErrorBody, Brief, EntryIntent, Envelope, FundingTokens, MainnetFundingDiscovery, Market, MarketDetail, MarketEvidence,
-  CreatorIdentitySession, CreatorNoteChallenge, CreatorPaymentIntent, CreatorPremiumContent, CreatorPurchases, CreatorPayoutStatus, CreatorResearchNote, CreatorNotesMeta, FundingQuoteResult, FundingStatusResult, PoolSnapshot, Position, PulseData, PulseWindow, QuoteRequest, Readiness, ResearchCouncil, ScoutCandidate, ScoutDirection, ScoutMeta, Trend, WalletBalances,
+  CreatorIdentitySession, CreatorNoteChallenge, CreatorPaymentIntent, CreatorPremiumContent, CreatorPurchases, CreatorPayoutStatus, CreatorResearchNote, CreatorNotesMeta, CreatorSubscription, CreatorSubscriptionPlan, CreatorSubscriptions, FundingQuoteResult, FundingStatusResult, PoolSnapshot, Position, PulseData, PulseWindow, QuoteRequest, Readiness, ResearchCouncil, ScoutCandidate, ScoutDirection, ScoutMeta, Trend, WalletBalances,
 } from './types'
 
 const BASE = ((import.meta.env.VITE_API_BASE as string | undefined) ?? '').replace(/\/$/, '')
@@ -80,6 +80,12 @@ export const api = {
   creatorPayout: (token: string) => request<CreatorPayoutStatus>('/api/research/payout', { headers: bearer(token) }),
   creatorConfigurePayout: (token: string, payoutAccount?: string) => request<CreatorPayoutStatus>('/api/research/payout/configure', { method: 'POST', headers: bearer(token), body: JSON.stringify(payoutAccount ? { payout_account: payoutAccount } : {}) }),
   creatorPublicNotes: (limit = 12) => request<CreatorResearchNote[], CreatorNotesMeta>(`/api/research/notes?limit=${limit}`),
+  subscriptionPlans: (limit = 20) => request<CreatorSubscriptionPlan[]>(`/api/research/plans?limit=${limit}`),
+  subscriptionPlan: (planId: string) => request<CreatorSubscriptionPlan>(`/api/research/plans/${enc(planId)}`),
+  creatorPlans: (token: string, limit = 50) => request<CreatorSubscriptionPlan[]>(`/api/research/plans/mine?limit=${limit}`, { headers: bearer(token) }),
+  creatorPlansForAccount: (accountId: string, limit = 20) => request<CreatorSubscriptionPlan[], CreatorNotesMeta>(`/api/creators/${enc(accountId)}/plans?limit=${limit}`),
+  creatorPlanCreate: (token: string, body: Record<string, unknown>) => request<CreatorSubscriptionPlan>('/api/research/plans', { method: 'POST', headers: bearer(token), body: JSON.stringify(body) }),
+  creatorPlanUpdate: (token: string, planId: string, body: Record<string, unknown>) => request<CreatorSubscriptionPlan>(`/api/research/plans/${enc(planId)}/update`, { method: 'POST', headers: bearer(token), body: JSON.stringify(body) }),
   creatorPublicNote: (noteId: string) => request<CreatorResearchNote>(`/api/research/notes/${enc(noteId)}`),
   creatorProfile: (accountId: string, limit = 20) => request<CreatorResearchNote[], CreatorNotesMeta>(`/api/creators/${enc(accountId)}/notes?limit=${limit}`),
   creatorMine: (token: string, limit = 20) => request<CreatorResearchNote[], CreatorNotesMeta>(`/api/research/notes/mine?limit=${limit}`, { headers: bearer(token) }),
@@ -87,6 +93,10 @@ export const api = {
   creatorPremium: (noteId: string, token: string, revision?: number) => request<CreatorPremiumContent>(`/api/research/notes/${enc(noteId)}/premium${revision ? `?revision=${revision}` : ''}`, { headers: bearer(token) }),
   creatorCreatePaymentIntent: (token: string, noteId: string) => request<CreatorPaymentIntent>(`/api/research/notes/${enc(noteId)}/payment-intents`, { method: 'POST', headers: bearer(token), body: '{}' }),
   creatorPaymentStatus: (token: string, intentId: string) => request<CreatorPaymentIntent>(`/api/research/payment-intents/${enc(intentId)}`, { headers: bearer(token) }),
+  subscriptionCreatePaymentIntent: (token: string, planId: string) => request<CreatorPaymentIntent>(`/api/research/plans/${enc(planId)}/payment-intents`, { method: 'POST', headers: bearer(token), body: '{}' }),
+  subscriptions: (token: string, limit = 50) => request<CreatorSubscriptions>(`/api/research/subscriptions?limit=${limit}`, { headers: bearer(token) }),
+  subscription: (token: string, subscriptionId: string) => request<CreatorSubscription>(`/api/research/subscriptions/${enc(subscriptionId)}`, { headers: bearer(token) }),
+  subscriptionCancel: (token: string, subscriptionId: string) => request<CreatorSubscription>(`/api/research/subscriptions/${enc(subscriptionId)}/cancel`, { method: 'POST', headers: bearer(token), body: '{}' }),
   creatorVerifyPayment: (token: string, intentId: string, txHash: string) => request<CreatorPaymentIntent>(`/api/research/payment-intents/${enc(intentId)}/verify`, { method: 'POST', headers: bearer(token), body: JSON.stringify({ tx_hash: txHash }) }),
   creatorCreate: (token: string, body: Record<string, unknown>) => request<CreatorResearchNote>('/api/research/notes', { method: 'POST', headers: bearer(token), body: JSON.stringify(body) }),
   creatorUpdate: (token: string, noteId: string, body: Record<string, unknown>) => request<CreatorResearchNote>(`/api/research/notes/${enc(noteId)}/update`, { method: 'POST', headers: bearer(token), body: JSON.stringify(body) }),
