@@ -100,7 +100,7 @@ function Connected({ accountId }: { accountId: string }) {
 
       <section className="msec" id="fund" aria-labelledby="fund-h">
         <h2 id="fund-h" className="msec-h">Get test-USDC</h2>
-        <Funding accountId={accountId} onFunded={reloadBal} />
+        <Funding accountId={accountId} />
       </section>
     </>
   )

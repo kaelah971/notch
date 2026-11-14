@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from urllib.parse import urlparse
 
 from .models import (
     DEFAULT_BASE_URL,
@@ -39,6 +40,15 @@ class IntentsConfig:
     poll_interval_seconds: float = 2.0
     min_market_entry_base_units: int = 1_000_000
     storage_deposit_yocto: str = "1250000000000000000000"  # 0.00125 NEAR
+
+    def __post_init__(self) -> None:
+        host = (urlparse(self.base_url).hostname or "").lower()
+        if host not in {"usetidepool.tech", "www.usetidepool.tech"}:
+            raise ValueError(
+                "funding provider must be the Tidepool Testnet sandbox; Mainnet 1Click is not supported"
+            )
+        if self.destination_asset != DESTINATION_ASSET or not self.destination_asset.endswith(".testnet"):
+            raise ValueError("funding destination must be the configured NEAR Testnet collateral")
 
     @classmethod
     def from_env(cls) -> "IntentsConfig":

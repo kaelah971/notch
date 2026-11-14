@@ -26,6 +26,12 @@ from .models import (
 
 NEAR_ACCOUNT_RE = re.compile(r"^(?:[a-z0-9][a-z0-9._-]{1,62}[a-z0-9]|[0-9a-f]{64})$")
 BASE58_SIGNATURE_RE = re.compile(r"^ed25519:[1-9A-HJ-NP-Za-km-z]{80,100}$")
+EVM_ADDRESS_RE = re.compile(r"^0x[0-9a-fA-F]{40}$")
+SOLANA_ADDRESS_RE = re.compile(r"^[1-9A-HJ-NP-Za-km-z]{32,44}$")
+STELLAR_ADDRESS_RE = re.compile(r"^G[A-Z2-7]{55}$")
+SUI_ADDRESS_RE = re.compile(r"^0x[0-9a-fA-F]{64}$")
+XRP_ADDRESS_RE = re.compile(r"^r[1-9A-HJ-NP-Za-km-z]{24,34}$")
+BITCOIN_ADDRESS_RE = re.compile(r"^(?:bc1|tb1)[a-z0-9]{11,87}$|^[mn2][1-9A-HJ-NP-Za-km-z]{25,39}$")
 INTEGER_RE = re.compile(r"^[0-9]+$")
 
 
@@ -76,6 +82,25 @@ def is_valid_signature_shape(value: str) -> bool:
     return bool(BASE58_SIGNATURE_RE.fullmatch(value or ""))
 
 
+def is_valid_refund_address(value: str, blockchain: str) -> bool:
+    """Validate a user-controlled refund address for the selected origin chain."""
+    if blockchain == "near":
+        return is_near_account(value)
+    if blockchain in {"base", "arb", "eth", "bsc", "aurora", "hypercore"}:
+        return bool(EVM_ADDRESS_RE.fullmatch(value or ""))
+    if blockchain == "sol":
+        return bool(SOLANA_ADDRESS_RE.fullmatch(value or ""))
+    if blockchain == "stellar":
+        return bool(STELLAR_ADDRESS_RE.fullmatch(value or ""))
+    if blockchain == "sui":
+        return bool(SUI_ADDRESS_RE.fullmatch(value or ""))
+    if blockchain == "xrp":
+        return bool(XRP_ADDRESS_RE.fullmatch(value or ""))
+    if blockchain == "btc":
+        return bool(BITCOIN_ADDRESS_RE.fullmatch(value or ""))
+    return False
+
+
 def parse_base_units(value: str, *, field: str = "amount") -> int:
     if not isinstance(value, str) or not INTEGER_RE.fullmatch(value):
         raise ValidationError(
@@ -106,7 +131,13 @@ def usd_value(amount: str | int, token: Token) -> Decimal:
         raise ValidationError("INVALID_AMOUNT", "amount cannot be priced", field="amount") from exc
 
 
-def select_route(tokens: list[Token], source_asset: str, config: IntentsConfig) -> Route:
+def select_route(
+    tokens: list[Token],
+    source_asset: str,
+    config: IntentsConfig,
+    *,
+    source_chain: str | None = None,
+) -> Route:
     by_id = {token.asset_id: token for token in tokens}
     source = by_id.get(source_asset)
     destination = by_id.get(config.destination_asset)
@@ -134,10 +165,18 @@ def select_route(tokens: list[Token], source_asset: str, config: IntentsConfig) 
             "source and destination assets must differ",
             field="originAsset",
         )
-    if source.blockchain != config.source_chain:
+    expected_chain = source_chain or config.source_chain
+    if expected_chain == "external":
+        if source.blockchain == "near":
+            raise ValidationError(
+                "UNSUPPORTED_SOURCE_CHAIN",
+                "initial funding route requires an external testnet source chain",
+                field="originAsset",
+            )
+    elif source.blockchain != expected_chain:
         raise ValidationError(
             "UNSUPPORTED_SOURCE_CHAIN",
-            f"initial funding route supports {config.source_chain} only; got {source.blockchain}",
+            f"initial funding route supports {expected_chain} only; got {source.blockchain}",
             field="originAsset",
         )
     if destination.blockchain != "near":
@@ -149,14 +188,21 @@ def select_route(tokens: list[Token], source_asset: str, config: IntentsConfig) 
     return Route(source=source, destination=destination)
 
 
-def supported_routes(tokens: list[Token], config: IntentsConfig) -> list[Route]:
+def supported_routes(
+    tokens: list[Token],
+    config: IntentsConfig,
+    *,
+    source_chain: str | None = None,
+) -> list[Route]:
     destination = next((t for t in tokens if t.asset_id == config.destination_asset), None)
     if destination is None:
         return []
+    expected_chain = source_chain or config.source_chain
     return [
         Route(source=token, destination=destination)
         for token in tokens
-        if token.blockchain == config.source_chain and token.asset_id != destination.asset_id
+        if token.asset_id != destination.asset_id
+        and (token.blockchain != "near" if expected_chain == "external" else token.blockchain == expected_chain)
     ]
 
 
@@ -166,6 +212,7 @@ def validate_request(
     config: IntentsConfig,
     *,
     now: datetime,
+    source_chain: str | None = None,
 ) -> Route:
     if request.destination_asset != config.destination_asset:
         raise ValidationError(
@@ -221,13 +268,24 @@ def validate_request(
             "recipient must be a NEAR testnet account",
             field="recipient",
         )
-    if not is_near_account(request.refund_to):
+    route = select_route(tokens, request.origin_asset, config, source_chain=source_chain)
+    expected_refund_type = (
+        RefundType.ORIGIN_CHAIN.value
+        if request.deposit_type == DepositType.ORIGIN_CHAIN.value
+        else RefundType.INTENTS.value
+    )
+    if request.refund_type != expected_refund_type:
+        raise ValidationError(
+            "UNSUPPORTED_REFUND_TYPE",
+            f"refundType must be {expected_refund_type} for depositType {request.deposit_type}",
+            field="refundType",
+        )
+    if not is_valid_refund_address(request.refund_to, route.source.blockchain):
         raise ValidationError(
             "INVALID_REFUND_TO",
-            "refundTo must be a NEAR testnet account",
+            f"refundTo is not a valid {route.source.blockchain} testnet address",
             field="refundTo",
         )
-    route = select_route(tokens, request.origin_asset, config)
     amount = parse_base_units(request.amount)
     usd = usd_value(amount, route.source)
     if usd < Decimal(str(config.min_amount_usd)):
@@ -271,6 +329,7 @@ def validate_quote_response(
         "amount": (echoed.amount, request.amount),
         "depositType": (echoed.deposit_type, request.deposit_type),
         "refundType": (echoed.refund_type, request.refund_type),
+        "refundTo": (echoed.refund_to, request.refund_to),
         "recipient": (echoed.recipient, request.recipient),
         "recipientType": (echoed.recipient_type, request.recipient_type),
         "swapType": (echoed.swap_type, request.swap_type),

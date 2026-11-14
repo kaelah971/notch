@@ -76,7 +76,7 @@ class FundingStore:
         return quote
 
     def _write_quote_row(self, quote: FundingQuote) -> None:
-        payload = json.dumps(quote.to_dict(), ensure_ascii=False, sort_keys=True)
+        payload = json.dumps(quote.to_storage_dict(), ensure_ascii=False, sort_keys=True)
         self.conn.execute(
             """
             INSERT INTO funding_quotes(

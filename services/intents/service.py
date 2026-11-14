@@ -92,8 +92,13 @@ class IntentsFundingService:
     def discover_tokens(self, *, include_ondo: bool = False) -> list[Token]:
         return self.client.get_tokens(include_ondo=include_ondo)
 
-    def supported_routes(self) -> list[Route]:
-        return supported_routes(self.discover_tokens(), self.config)
+    def supported_routes(self, *, source_chain: str | None = None) -> list[Route]:
+        return supported_routes(
+            self.discover_tokens(), self.config, source_chain=source_chain
+        )
+
+    def external_routes(self) -> list[Route]:
+        return self.supported_routes(source_chain="external")
 
     def destination_token(self, tokens: list[Token] | None = None) -> Token:
         tokens = tokens or self.discover_tokens()
@@ -116,6 +121,7 @@ class IntentsFundingService:
         amount: str,
         recipient: str,
         refund_to: str | None = None,
+        source_chain: str | None = None,
         dry: bool,
         deposit_type: str = DepositType.INTENTS.value,
         slippage_bps: int | None = None,
@@ -123,7 +129,9 @@ class IntentsFundingService:
     ) -> tuple[QuoteRequest, Route, list[Token]]:
         now = self.now_fn()
         tokens = self.discover_tokens()
-        route = select_route(tokens, source_asset, self.config)
+        route = select_route(
+            tokens, source_asset, self.config, source_chain=source_chain
+        )
         ttl_seconds = (
             int(deadline_minutes) * 60
             if deadline_minutes is not None
@@ -153,7 +161,13 @@ class IntentsFundingService:
             deadline=iso_utc(now + timedelta(seconds=ttl_seconds)) or "",
             deposit_mode=DepositMode.SIMPLE.value,
         )
-        validate_request(request, tokens, self.config, now=now)
+        validate_request(
+            request,
+            tokens,
+            self.config,
+            now=now,
+            source_chain=source_chain,
+        )
         return request, route, tokens
 
     def dry_quote(
@@ -163,6 +177,7 @@ class IntentsFundingService:
         amount: str,
         recipient: str,
         refund_to: str | None = None,
+        source_chain: str | None = None,
         deposit_type: str = DepositType.INTENTS.value,
         slippage_bps: int | None = None,
         deadline_minutes: int | None = None,
@@ -172,6 +187,7 @@ class IntentsFundingService:
             amount=amount,
             recipient=recipient,
             refund_to=refund_to,
+            source_chain=source_chain,
             dry=True,
             deposit_type=deposit_type,
             slippage_bps=slippage_bps,
@@ -200,6 +216,7 @@ class IntentsFundingService:
         amount: str,
         recipient: str,
         refund_to: str | None = None,
+        source_chain: str | None = None,
         deposit_type: str = DepositType.INTENTS.value,
         slippage_bps: int | None = None,
         deadline_minutes: int | None = None,
@@ -209,6 +226,7 @@ class IntentsFundingService:
             amount=amount,
             recipient=recipient,
             refund_to=refund_to,
+            source_chain=source_chain,
             dry=False,
             deposit_type=deposit_type,
             slippage_bps=slippage_bps,

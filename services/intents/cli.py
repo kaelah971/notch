@@ -80,6 +80,7 @@ def _add_quote_args(parser: argparse.ArgumentParser) -> None:
         default=os.environ.get("NOTCH_ACCOUNT", "notch-dev.testnet"),
     )
     parser.add_argument("--refund-to", default=None)
+    parser.add_argument("--source-chain", default=None, help="live token blockchain, or external")
     parser.add_argument(
         "--deposit-type",
         default=DepositType.INTENTS.value,
@@ -105,7 +106,8 @@ def main(argv: list[str] | None = None) -> int:
     tokens = sub.add_parser("tokens", help="List live /v0/tokens")
     tokens.add_argument("--include-ondo", action="store_true")
 
-    sub.add_parser("routes", help="List supported NEAR-testnet routes to USDC")
+    sub.add_parser("routes", help="List supported legacy NEAR-testnet routes to USDC")
+    sub.add_parser("external-routes", help="List live external-testnet routes to USDC")
 
     dry = sub.add_parser("dry-quote", help="Request a dry quote (no deposit address)")
     _add_quote_args(dry)
@@ -156,12 +158,16 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "routes":
             _print_json([route.to_dict() for route in service.supported_routes()])
             return 0
+        if args.command == "external-routes":
+            _print_json([route.to_dict() for route in service.external_routes()])
+            return 0
         if args.command == "dry-quote":
             prepared = service.dry_quote(
                 source_asset=args.source_asset,
                 amount=args.amount,
                 recipient=args.recipient,
                 refund_to=args.refund_to,
+                source_chain=args.source_chain,
                 deposit_type=args.deposit_type,
                 slippage_bps=args.slippage_bps,
                 deadline_minutes=args.deadline_minutes,

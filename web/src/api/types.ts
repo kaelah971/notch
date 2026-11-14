@@ -397,14 +397,23 @@ export interface Position {
   resolution_kind: string | null
 }
 
-export interface FundingAsset { asset_id: string; decimals: number; blockchain: string; symbol: string; contract_address?: string }
+export interface FundingAsset {
+  asset_id: string; decimals: number; blockchain: string; symbol: string
+  contract_address?: string; price?: number; price_updated_at?: string | null
+}
+export interface FundingRoute { source: FundingAsset; destination: FundingAsset; label: string }
 export interface FundingTokens {
   tokens: FundingAsset[]
-  routes: { source: FundingAsset; destination: FundingAsset; label: string }[]
+  routes: FundingRoute[]
   destination_asset: string
+  destination_chain: string
+  source_chains: string[]
+  network: string
+  provider: string
+  observed_at: string | null
 }
 export interface QuoteRequest {
-  source_asset: string; amount: string; recipient: string; refund_to: string
+  source_asset: string; source_chain?: string; amount: string; recipient: string; refund_to: string
   deposit_type: 'INTENTS' | 'ORIGIN_CHAIN'; slippage_bps: number; deadline_minutes: number; dry: boolean
 }
 export interface FundingStep {
@@ -418,21 +427,42 @@ export interface FundingInstructions {
 }
 export interface FundingQuote {
   quote_id: string
+  correlation_id?: string
   state: string
   dry: boolean
-  source_asset: string; source_symbol: string; source_decimals: number
-  destination_symbol: string; destination_decimals: number
+  source_asset: string; source_symbol: string; source_chain: string; source_decimals: number
+  destination_asset?: string; destination_symbol: string; destination_decimals: number
   amount_in: string; amount_out: string; min_amount_out: string
-  deposit_type: string
+  deposit_type: string; refund_type?: string; recipient?: string; refund_to?: string
   deposit_address: string | null
   deposit_memo: string | null
   deadline: string
   expires_at: string
+  quote_timestamp?: string
+  slippage_bps?: number
   provider_status: string | null
   balance_verified: boolean
   balance_delta: string | null
   last_error: string | null
   deposit_submitted: boolean
+}
+export interface ProviderQuoteDetails {
+  amount_in: string; amount_in_formatted: string; amount_in_usd: string
+  min_amount_in: string; amount_out: string; amount_out_formatted: string; amount_out_usd: string
+  min_amount_out: string; time_estimate: number
+  refund_fee?: string | null; withdraw_fee?: string | null
+  deadline?: string | null
+}
+export interface FundingQuoteValidation {
+  route: FundingRoute
+  expires_at: string
+  implied_fee_usd: string
+  warnings: string[]
+}
+export interface FundingQuoteResult {
+  quote: FundingQuote
+  provider_quote: { correlation_id: string; timestamp: string; quote_request: Record<string, unknown>; quote: ProviderQuoteDetails }
+  validation: FundingQuoteValidation
 }
 
 /** A pool-totals value the S6 API actually read from the contract, at NEAR block time. */

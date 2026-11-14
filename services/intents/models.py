@@ -603,6 +603,12 @@ class FundingQuote:
             "refunded_amount": self.refunded_amount,
             "poll_count": self.poll_count,
             "expires_at": self.expires_at,
+        }
+
+    def to_storage_dict(self) -> dict[str, Any]:
+        """Include provider bodies only for the private server-side store."""
+        return {
+            **self.to_dict(),
             "raw_quote": self.raw_quote,
             "raw_status": self.raw_status,
         }

@@ -552,6 +552,38 @@ class APITests(unittest.TestCase):
         self.assertEqual(status, 400)
         self.assertEqual(payload["error"]["code"], "INVALID_AMOUNT")
 
+    def test_funding_wet_quote_is_disabled(self):
+        status, payload = self.call(
+            "POST",
+            "/api/funding/quote",
+            {
+                "source_asset": "nep141:usdt.tidepool-sandbox.testnet",
+                "amount": "1000000",
+                "recipient": "notch-dev.testnet",
+                "refund_to": "notch-dev.testnet",
+                "dry": False,
+            },
+        )
+        self.assertEqual(status, 409)
+        self.assertEqual(payload["error"]["code"], "WET_QUOTES_DISABLED")
+
+    def test_funding_api_boundary_is_unsigned_and_quote_only(self):
+        status, payload = self.call(
+            "POST",
+            "/api/funding/quote",
+            {
+                "source_asset": "nep141:usdt.tidepool-sandbox.testnet",
+                "amount": "1000000",
+                "recipient": "notch-dev.testnet",
+                "refund_to": "notch-dev.testnet",
+                "dry": True,
+            },
+        )
+        self.assertEqual(status, 200)
+        self.assertFalse(payload["meta"]["signed"])
+        self.assertFalse(payload["meta"]["broadcast"])
+        self.assertTrue(payload["meta"]["quote_only"])
+
     def test_entry_intent_preparation(self):
         status, payload = self.call(
             "POST",

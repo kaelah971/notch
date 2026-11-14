@@ -661,12 +661,38 @@ class WebAPI:
             "funding", "funding-tokens", self.config.quote_rate_limit_per_minute
         )
         tokens = self.funding_service.discover_tokens()
-        routes = self.funding_service.supported_routes()
+        external_routes_method = getattr(self.funding_service, "external_routes", None)
+        routes = (
+            external_routes_method()
+            if callable(external_routes_method)
+            else self.funding_service.supported_routes()
+        )
+        source_chains = sorted(
+            {
+                route.source.blockchain
+                for route in routes
+                if getattr(route, "source", None) is not None
+                and getattr(route.source, "blockchain", None)
+            }
+        )
+        observed_at = max(
+            (
+                getattr(token, "price_updated_at", None)
+                for token in tokens
+                if getattr(token, "price_updated_at", None)
+            ),
+            default=None,
+        )
         return {
             "data": {
                 "tokens": [token.to_dict() for token in tokens],
                 "routes": [route.to_dict() for route in routes],
                 "destination_asset": self.funding_service.config.destination_asset,
+                "destination_chain": "near",
+                "source_chains": source_chains,
+                "network": "Tidepool Testnet → NEAR Testnet",
+                "provider": "Tidepool · community-operated 1Click-compatible testnet sandbox",
+                "observed_at": observed_at,
             }
         }
 
@@ -679,6 +705,7 @@ class WebAPI:
             "amount",
             "recipient",
             "refund_to",
+            "source_chain",
             "deposit_type",
             "slippage_bps",
             "deadline_minutes",
@@ -694,11 +721,20 @@ class WebAPI:
         for field in ("source_asset", "amount", "recipient"):
             if not isinstance(body.get(field), str) or not body[field]:
                 raise ApiError("INVALID_BODY", f"{field} is required", status=400)
+        for field in ("refund_to", "source_chain"):
+            if field in body and body[field] is not None and not isinstance(body[field], str):
+                raise ApiError("INVALID_BODY", f"{field} must be a string", status=400)
         dry_value = body.get("dry", False)
         if not isinstance(dry_value, bool):
             raise ApiError("INVALID_BODY", "dry must be a boolean", status=400)
         dry = dry_value
-        deposit_type = str(body.get("deposit_type") or DepositType.INTENTS.value)
+        if not dry:
+            raise ApiError(
+                "WET_QUOTES_DISABLED",
+                "Phase 7A exposes dry quotes only; no deposit address or transfer can be initiated",
+                status=409,
+            )
+        deposit_type = str(body.get("deposit_type") or DepositType.ORIGIN_CHAIN.value)
         try:
             deadline_minutes = int(body.get("deadline_minutes") or 30)
         except (TypeError, ValueError) as exc:
@@ -711,29 +747,26 @@ class WebAPI:
                 slippage = int(slippage)
             except (TypeError, ValueError) as exc:
                 raise ApiError("INVALID_BODY", "slippage_bps must be an integer", status=400) from exc
-        if dry:
-            prepared = self.funding_service.dry_quote(
-                source_asset=body["source_asset"],
-                amount=body["amount"],
-                recipient=body["recipient"],
-                refund_to=body.get("refund_to"),
-                deposit_type=deposit_type,
-                slippage_bps=slippage,
-                deadline_minutes=deadline_minutes,
-            )
-        else:
-            prepared = self.funding_service.prepare_swap(
-                source_asset=body["source_asset"],
-                amount=body["amount"],
-                recipient=body["recipient"],
-                refund_to=body.get("refund_to"),
-                deposit_type=deposit_type,
-                slippage_bps=slippage,
-                deadline_minutes=deadline_minutes,
-            )
+        prepared = self.funding_service.dry_quote(
+            source_asset=body["source_asset"],
+            amount=body["amount"],
+            recipient=body["recipient"],
+            refund_to=body.get("refund_to"),
+            source_chain=body.get("source_chain"),
+            deposit_type=deposit_type,
+            slippage_bps=slippage,
+            deadline_minutes=deadline_minutes,
+        )
         return {
             "data": prepared.to_dict(),
-            "meta": {"signed": False, "broadcast": False, "dry": dry},
+            "meta": {
+                "signed": False,
+                "broadcast": False,
+                "dry": True,
+                "provider": "tidepool-testnet",
+                "network": "NEAR Testnet",
+                "quote_only": True,
+            },
         }
 
     def _funding_status(self, quote_id: str, query: dict[str, str]) -> dict[str, Any]:

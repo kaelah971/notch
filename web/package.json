@@ -15,6 +15,7 @@
     "test:strategy-evaluation": "node --experimental-strip-types --test tests/strategy-evaluation.test.mjs",
     "test:arena": "node --experimental-strip-types --test tests/arena.test.mjs",
     "test:autopilot": "node --experimental-strip-types --test tests/autopilot.test.mjs",
+    "test:funding": "node --experimental-strip-types --test tests/funding.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
