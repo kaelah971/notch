@@ -7,6 +7,7 @@ from typing import Any
 
 
 NOTE_SCHEMA = "notch.creator-research-note/1"
+PRIVATE_RESEARCH_SCHEMA = "notch.private-research/1"
 NOTE_STATUSES = {"DRAFT", "PUBLISHED", "WITHDRAWN"}
 
 
@@ -147,4 +148,36 @@ class CreatorResearchNote:
             "updated_at": self.updated_at,
             "published_at": self.published_at,
             "premium": self.premium_dict(include_body=False),
+        }
+
+
+@dataclass(frozen=True)
+class PrivateResearchRecord:
+    research_id: str
+    owner_account: str
+    market_id: str | None
+    title: str
+    thesis: str
+    predicted_outcome: str
+    confidence: float | None
+    source_references: list[str]
+    invalidation_condition: str
+    created_at: str
+    updated_at: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "schema": PRIVATE_RESEARCH_SCHEMA,
+            "research_id": self.research_id,
+            "owner_account": self.owner_account,
+            "visibility": "PRIVATE",
+            "market_id": self.market_id,
+            "title": self.title,
+            "thesis": self.thesis,
+            "predicted_outcome": self.predicted_outcome,
+            "confidence": self.confidence,
+            "source_references": list(self.source_references),
+            "invalidation_condition": self.invalidation_condition,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
         }

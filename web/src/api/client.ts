@@ -1,6 +1,6 @@
 import type {
   ApiErrorBody, Brief, EntryIntent, Envelope, FundingTokens, MainnetFundingDiscovery, Market, MarketDetail, MarketEvidence,
-  CreatorIdentitySession, CreatorNoteChallenge, CreatorPaymentIntent, CreatorPremiumContent, CreatorPurchases, CreatorPayoutStatus, CreatorResearchNote, CreatorNotesMeta, CreatorSubscription, CreatorSubscriptionPlan, CreatorSubscriptions, FundingQuoteResult, FundingStatusResult, PoolSnapshot, Position, PulseData, PulseWindow, QuoteRequest, Readiness, ResearchCouncil, ScoutCandidate, ScoutDirection, ScoutMeta, Trend, WalletBalances,
+  CreatorIdentitySession, CreatorNoteChallenge, CreatorPaymentIntent, CreatorPremiumContent, CreatorPurchases, CreatorPayoutStatus, CreatorResearchNote, CreatorNotesMeta, CreatorSubscription, CreatorSubscriptionPlan, CreatorSubscriptions, FundingQuoteResult, FundingStatusResult, PoolSnapshot, Position, PrivateResearchRecord, PulseData, PulseWindow, QuoteRequest, Readiness, ResearchCouncil, ScoutCandidate, ScoutDirection, ScoutMeta, Trend, WalletBalances,
 } from './types'
 
 const BASE = ((import.meta.env.VITE_API_BASE as string | undefined) ?? '').replace(/\/$/, '')
@@ -89,6 +89,11 @@ export const api = {
   creatorPublicNote: (noteId: string) => request<CreatorResearchNote>(`/api/research/notes/${enc(noteId)}`),
   creatorProfile: (accountId: string, limit = 20) => request<CreatorResearchNote[], CreatorNotesMeta>(`/api/creators/${enc(accountId)}/notes?limit=${limit}`),
   creatorMine: (token: string, limit = 20) => request<CreatorResearchNote[], CreatorNotesMeta>(`/api/research/notes/mine?limit=${limit}`, { headers: bearer(token) }),
+  vaultMine: (token: string, limit = 50) => request<PrivateResearchRecord[], CreatorNotesMeta>(`/api/research/vault?limit=${limit}`, { headers: bearer(token) }),
+  vaultGet: (token: string, researchId: string) => request<PrivateResearchRecord>(`/api/research/vault/${enc(researchId)}`, { headers: bearer(token) }),
+  vaultCreate: (token: string, body: Record<string, unknown>) => request<PrivateResearchRecord>('/api/research/vault', { method: 'POST', headers: bearer(token), body: JSON.stringify(body) }),
+  vaultUpdate: (token: string, researchId: string, body: Record<string, unknown>) => request<PrivateResearchRecord>(`/api/research/vault/${enc(researchId)}/update`, { method: 'POST', headers: bearer(token), body: JSON.stringify(body) }),
+  vaultDelete: (token: string, researchId: string) => request<{ research_id: string; deleted: boolean; visibility: string }>(`/api/research/vault/${enc(researchId)}/delete`, { method: 'POST', headers: bearer(token), body: '{}' }),
   creatorPurchases: (token: string, limit = 50) => request<CreatorPurchases>(`/api/research/purchases?limit=${limit}`, { headers: bearer(token) }),
   creatorPremium: (noteId: string, token: string, revision?: number) => request<CreatorPremiumContent>(`/api/research/notes/${enc(noteId)}/premium${revision ? `?revision=${revision}` : ''}`, { headers: bearer(token) }),
   creatorCreatePaymentIntent: (token: string, noteId: string) => request<CreatorPaymentIntent>(`/api/research/notes/${enc(noteId)}/payment-intents`, { method: 'POST', headers: bearer(token), body: '{}' }),

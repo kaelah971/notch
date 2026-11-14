@@ -12,7 +12,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-from .models import CreatorResearchNote
+from .models import CreatorResearchNote, PrivateResearchRecord
 
 
 class CreatorNotesStoreError(RuntimeError):
@@ -74,6 +74,24 @@ class CreatorNotesStore:
                     ON creator_notes(status, updated_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_creator_notes_creator
                     ON creator_notes(creator_account, updated_at DESC);
+                CREATE TABLE IF NOT EXISTS private_research_vault (
+                    research_id TEXT PRIMARY KEY,
+                    owner_account TEXT NOT NULL,
+                    market_id TEXT,
+                    title TEXT NOT NULL,
+                    thesis TEXT NOT NULL,
+                    predicted_outcome TEXT NOT NULL,
+                    confidence REAL,
+                    source_references_json TEXT NOT NULL,
+                    invalidation_condition TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    visibility TEXT NOT NULL DEFAULT 'PRIVATE'
+                );
+                CREATE INDEX IF NOT EXISTS idx_private_research_vault_owner
+                    ON private_research_vault(owner_account, updated_at DESC);
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_private_research_vault_private
+                    ON private_research_vault(research_id, owner_account);
                 CREATE UNIQUE INDEX IF NOT EXISTS idx_creator_notes_published_digest
                     ON creator_notes(creator_account, content_digest, status)
                     WHERE status = 'PUBLISHED';
@@ -360,6 +378,123 @@ class CreatorNotesStore:
                 "SELECT current_json FROM creator_notes WHERE note_id = ?", (note_id,)
             ).fetchone()
         return CreatorResearchNote.from_dict(json.loads(row["current_json"])) if row else None
+
+    def create_private_research(self, record: PrivateResearchRecord) -> PrivateResearchRecord:
+        with self._lock, self._db:
+            self._db.execute(
+                """
+                INSERT INTO private_research_vault
+                (research_id, owner_account, market_id, title, thesis, predicted_outcome,
+                 confidence, source_references_json, invalidation_condition, created_at,
+                 updated_at, visibility)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PRIVATE')
+                """,
+                (
+                    record.research_id,
+                    record.owner_account,
+                    record.market_id,
+                    record.title,
+                    record.thesis,
+                    record.predicted_outcome,
+                    record.confidence,
+                    _json(record.source_references),
+                    record.invalidation_condition,
+                    record.created_at,
+                    record.updated_at,
+                ),
+            )
+        return record
+
+    @staticmethod
+    def _private_research_row(row: sqlite3.Row | None) -> PrivateResearchRecord | None:
+        if row is None:
+            return None
+        try:
+            references = json.loads(row["source_references_json"])
+        except (TypeError, json.JSONDecodeError) as exc:
+            raise CreatorNotesStoreError("private research source references are corrupt") from exc
+        if not isinstance(references, list):
+            raise CreatorNotesStoreError("private research source references are corrupt")
+        return PrivateResearchRecord(
+            research_id=str(row["research_id"]),
+            owner_account=str(row["owner_account"]),
+            market_id=str(row["market_id"]) if row["market_id"] is not None else None,
+            title=str(row["title"]),
+            thesis=str(row["thesis"]),
+            predicted_outcome=str(row["predicted_outcome"]),
+            confidence=float(row["confidence"]) if row["confidence"] is not None else None,
+            source_references=[str(item) for item in references],
+            invalidation_condition=str(row["invalidation_condition"]),
+            created_at=str(row["created_at"]),
+            updated_at=str(row["updated_at"]),
+        )
+
+    def get_private_research(self, research_id: str, owner_account: str) -> PrivateResearchRecord | None:
+        with self._lock:
+            row = self._db.execute(
+                """
+                SELECT research_id, owner_account, market_id, title, thesis, predicted_outcome,
+                       confidence, source_references_json, invalidation_condition, created_at,
+                       updated_at
+                FROM private_research_vault
+                WHERE research_id = ? AND owner_account = ? AND visibility = 'PRIVATE'
+                """,
+                (research_id, owner_account),
+            ).fetchone()
+        return self._private_research_row(row)
+
+    def list_private_research(self, owner_account: str, limit: int = 50) -> list[PrivateResearchRecord]:
+        limit = max(1, min(int(limit), 50))
+        with self._lock:
+            rows = self._db.execute(
+                """
+                SELECT research_id, owner_account, market_id, title, thesis, predicted_outcome,
+                       confidence, source_references_json, invalidation_condition, created_at,
+                       updated_at
+                FROM private_research_vault
+                WHERE owner_account = ? AND visibility = 'PRIVATE'
+                ORDER BY updated_at DESC LIMIT ?
+                """,
+                (owner_account, limit),
+            ).fetchall()
+        return [record for row in rows if (record := self._private_research_row(row)) is not None]
+
+    def update_private_research(self, record: PrivateResearchRecord) -> PrivateResearchRecord:
+        with self._lock, self._db:
+            cursor = self._db.execute(
+                """
+                UPDATE private_research_vault
+                SET market_id = ?, title = ?, thesis = ?, predicted_outcome = ?, confidence = ?,
+                    source_references_json = ?, invalidation_condition = ?, updated_at = ?
+                WHERE research_id = ? AND owner_account = ? AND visibility = 'PRIVATE'
+                """,
+                (
+                    record.market_id,
+                    record.title,
+                    record.thesis,
+                    record.predicted_outcome,
+                    record.confidence,
+                    _json(record.source_references),
+                    record.invalidation_condition,
+                    record.updated_at,
+                    record.research_id,
+                    record.owner_account,
+                ),
+            )
+            if cursor.rowcount != 1:
+                raise CreatorNotesStoreError("private research was not found")
+        return record
+
+    def delete_private_research(self, research_id: str, owner_account: str) -> bool:
+        with self._lock, self._db:
+            cursor = self._db.execute(
+                """
+                DELETE FROM private_research_vault
+                WHERE research_id = ? AND owner_account = ? AND visibility = 'PRIVATE'
+                """,
+                (research_id, owner_account),
+            )
+        return cursor.rowcount == 1
 
     def list_notes(
         self,

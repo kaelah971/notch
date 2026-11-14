@@ -1,4 +1,4 @@
-import { Radar, Swords, Wallet, Trophy, User, SlidersHorizontal, Ellipsis, Dices, Bot, Gauge, FileText, type LucideIcon } from 'lucide-react'
+import { Radar, Swords, Wallet, Trophy, User, SlidersHorizontal, Ellipsis, Dices, Bot, Gauge, FileText, LockKeyhole, type LucideIcon } from 'lucide-react'
 import { MarketsIcon } from './icons'
 import type { ComponentType, SVGProps } from 'react'
 
@@ -14,6 +14,7 @@ export const primaryNav: NavItem[] = [
   { to: '/app/arena', label: 'Agent Arena', icon: Bot },
   { to: '/app/autopilot', label: 'Paper Autopilot', icon: Gauge },
   { to: '/app/studio', label: 'Creator Studio', icon: FileText },
+  { to: '/app/vault', label: 'Private Vault', icon: LockKeyhole },
   { to: '/app/battles', label: 'Trend Battles', icon: Swords },
   { to: '/app/portfolio', label: 'Portfolio', icon: Wallet },
   { to: '/app/leaderboard', label: 'Leaderboard', icon: Trophy },

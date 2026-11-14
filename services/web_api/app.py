@@ -193,6 +193,10 @@ class WebAPI:
             return 200, self._market_brief(parts[2])
         if len(parts) == 4 and parts[:2] == ["api", "markets"] and parts[3] == "council":
             return 200, self._market_council_latest(parts[2])
+        if parts == ["api", "research", "vault"]:
+            return 200, self._private_research_mine(query, headers)
+        if len(parts) == 4 and parts[:3] == ["api", "research", "vault"]:
+            return 200, {"data": self._private_research_get(parts[3], headers)}
         if parts == ["api", "research", "notes"]:
             return 200, self._creator_public_notes(query)
         if parts == ["api", "research", "notes", "mine"]:
@@ -268,6 +272,12 @@ class WebAPI:
             return 201, {"data": self._creator_create_subscription_intent(parts[3], headers)}
         if len(parts) == 5 and parts[:3] == ["api", "research", "subscriptions"] and parts[4] == "cancel":
             return 200, {"data": self._creator_cancel_subscription(parts[3], headers)}
+        if parts == ["api", "research", "vault"]:
+            return 201, {"data": self._private_research_create(body, headers)}
+        if len(parts) == 5 and parts[:3] == ["api", "research", "vault"] and parts[4] == "update":
+            return 200, {"data": self._private_research_update(parts[3], body, headers)}
+        if len(parts) == 5 and parts[:3] == ["api", "research", "vault"] and parts[4] == "delete":
+            return 200, {"data": self._private_research_delete(parts[3], headers)}
         if parts == ["api", "research", "notes"]:
             return 201, {"data": self._creator_create(body, headers)}
         if len(parts) == 5 and parts[:3] == ["api", "research", "notes"] and parts[4] == "payment-intents":
@@ -337,6 +347,34 @@ class WebAPI:
 
     def _creator_payout(self, headers: dict[str, str]) -> dict[str, Any]:
         return self._creator_service().payout_status(self._authorization(headers))
+
+    def _private_research_mine(self, query: dict[str, str], headers: dict[str, str]) -> dict[str, Any]:
+        data = self._creator_service().private_research_mine(
+            self._authorization(headers), self._limit(query, 50)
+        )
+        return {"data": data, "meta": {"count": len(data), "private": True}}
+
+    def _private_research_get(self, research_id: str, headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().private_research_get(
+            self._authorization(headers), research_id
+        )
+
+    def _private_research_create(self, body: dict[str, Any], headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().private_research_create(
+            self._authorization(headers), body
+        )
+
+    def _private_research_update(
+        self, research_id: str, body: dict[str, Any], headers: dict[str, str]
+    ) -> dict[str, Any]:
+        return self._creator_service().private_research_update(
+            self._authorization(headers), research_id, body
+        )
+
+    def _private_research_delete(self, research_id: str, headers: dict[str, str]) -> dict[str, Any]:
+        return self._creator_service().private_research_delete(
+            self._authorization(headers), research_id
+        )
 
     def _creator_public_plans(self, query: dict[str, str]) -> list[dict[str, Any]]:
         return self._creator_service().public_subscription_plans(self._limit(query))

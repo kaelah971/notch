@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import math
 import re
 import threading
 import uuid
@@ -19,7 +20,7 @@ from services.trend_radar.canonical import canonical_json, normalize_name
 from services.trend_radar.models import iso_utc, now_utc, parse_iso
 
 from .identity import CreatorIdentityError, CreatorIdentityService
-from .models import CreatorResearchNote
+from .models import CreatorResearchNote, PrivateResearchRecord
 from .store import CreatorNotesStore, CreatorNotesStoreError
 
 
@@ -467,6 +468,69 @@ class CreatorNotesService:
     def mine(self, token: str | None, limit: int = 20) -> list[dict[str, Any]]:
         session = self._session(token)
         return [self._with_history(note, private=True) for note in self.store.list_notes(creator_account=session["account_id"], limit=limit)]
+
+    def private_research_create(self, token: str | None, payload: dict[str, Any]) -> dict[str, Any]:
+        session = self._session(token)
+        self._reject_private_research_protected_fields(payload)
+        now = self._now_iso()
+        record = self._private_research_from_payload(
+            payload,
+            owner_account=session["account_id"],
+            research_id=f"research_{uuid.uuid4().hex}",
+            created_at=now,
+            updated_at=now,
+            existing=None,
+        )
+        try:
+            saved = self.store.create_private_research(record)
+        except CreatorNotesStoreError as exc:
+            raise CreatorNotesError("PRIVATE_RESEARCH_CONFLICT", "private research could not be saved", status=409) from exc
+        return self._private_research_view(saved)
+
+    def private_research_mine(self, token: str | None, limit: int = 50) -> list[dict[str, Any]]:
+        session = self._session(token)
+        return [
+            self._private_research_view(record)
+            for record in self.store.list_private_research(session["account_id"], limit)
+        ]
+
+    def private_research_get(self, token: str | None, research_id: str) -> dict[str, Any]:
+        session = self._session(token)
+        record = self.store.get_private_research(research_id, session["account_id"])
+        if record is None:
+            raise CreatorNotesError("PRIVATE_RESEARCH_NOT_FOUND", "private research was not found", status=404)
+        return self._private_research_view(record)
+
+    def private_research_update(
+        self, token: str | None, research_id: str, payload: dict[str, Any]
+    ) -> dict[str, Any]:
+        session = self._session(token)
+        self._reject_private_research_protected_fields(payload)
+        current = self.store.get_private_research(research_id, session["account_id"])
+        if current is None:
+            raise CreatorNotesError("PRIVATE_RESEARCH_NOT_FOUND", "private research was not found", status=404)
+        merged = current.to_dict()
+        merged.update(payload)
+        now = self._now_iso()
+        record = self._private_research_from_payload(
+            merged,
+            owner_account=session["account_id"],
+            research_id=current.research_id,
+            created_at=current.created_at,
+            updated_at=now,
+            existing=current,
+        )
+        try:
+            saved = self.store.update_private_research(record)
+        except CreatorNotesStoreError as exc:
+            raise CreatorNotesError("PRIVATE_RESEARCH_NOT_FOUND", "private research was not found", status=404) from exc
+        return self._private_research_view(saved)
+
+    def private_research_delete(self, token: str | None, research_id: str) -> dict[str, Any]:
+        session = self._session(token)
+        if not self.store.delete_private_research(research_id, session["account_id"]):
+            raise CreatorNotesError("PRIVATE_RESEARCH_NOT_FOUND", "private research was not found", status=404)
+        return {"research_id": research_id, "deleted": True, "visibility": "PRIVATE"}
 
     def public_list(self, limit: int = 20) -> list[dict[str, Any]]:
         return [note.preview() for note in self.store.list_notes(status="PUBLISHED", limit=limit)]
@@ -1643,6 +1707,128 @@ class CreatorNotesService:
             "id": identifier,
             required_hash: digest,
             "integrity": "as_supplied",
+        }
+
+    def _reject_private_research_protected_fields(self, payload: dict[str, Any]) -> None:
+        protected = {
+            "account_id",
+            "owner",
+            "owner_account",
+            "creator_account",
+            "research_id",
+            "visibility",
+            "created_at",
+            "updated_at",
+        }
+        if protected.intersection(payload):
+            raise CreatorNotesError(
+                "PRIVATE_RESEARCH_OWNER_IMMUTABLE",
+                "private research ownership and visibility are controlled by the verified wallet session",
+                status=403,
+            )
+        if payload.get("public") is True or payload.get("published") is True:
+            raise CreatorNotesError(
+                "PRIVATE_RESEARCH_PRIVATE_ONLY",
+                "private research cannot be published through the vault",
+                status=403,
+            )
+
+    def _private_research_from_payload(
+        self,
+        payload: dict[str, Any],
+        *,
+        owner_account: str,
+        research_id: str,
+        created_at: str,
+        updated_at: str,
+        existing: PrivateResearchRecord | None,
+    ) -> PrivateResearchRecord:
+        title = _clean_text(payload.get("title"), "title", max_length=160)
+        thesis = _clean_text(payload.get("thesis"), "thesis", max_length=10_000)
+        predicted = payload.get(
+            "predicted_outcome",
+            payload.get("directional_stance", payload.get("position")),
+        )
+        predicted_outcome = _clean_text(predicted, "predicted_outcome", max_length=160)
+        invalidation = _clean_text(
+            payload.get("invalidation_condition"),
+            "invalidation_condition",
+            max_length=2_000,
+        )
+        market_value = payload.get(
+            "market_id",
+            payload.get("market_reference", existing.market_id if existing else None),
+        )
+        if isinstance(market_value, dict):
+            market_value = market_value.get("id")
+        if market_value in (None, ""):
+            market_id = None
+        else:
+            market_id = _clean_text(market_value, "market_id", max_length=200)
+        confidence_value = payload.get("confidence", existing.confidence if existing else None)
+        if confidence_value in (None, ""):
+            confidence = None
+        else:
+            if isinstance(confidence_value, bool):
+                raise CreatorNotesError("INVALID_CONFIDENCE", "confidence must be a number from 0 to 100")
+            try:
+                confidence = float(confidence_value)
+            except (TypeError, ValueError) as exc:
+                raise CreatorNotesError("INVALID_CONFIDENCE", "confidence must be a number from 0 to 100") from exc
+            if not math.isfinite(confidence) or confidence < 0 or confidence > 100:
+                raise CreatorNotesError("INVALID_CONFIDENCE", "confidence must be a number from 0 to 100")
+        references_value = payload.get(
+            "source_references",
+            payload.get(
+                "supporting_source_references", existing.source_references if existing else []
+            ),
+        )
+        if references_value is None:
+            references_value = []
+        if not isinstance(references_value, list) or len(references_value) > 20:
+            raise CreatorNotesError("INVALID_SOURCE_REFERENCES", "source_references must contain at most 20 items")
+        source_references: list[str] = []
+        for index, reference in enumerate(references_value):
+            source_references.append(
+                _clean_text(reference, f"source_references[{index}]", max_length=500)
+            )
+        return PrivateResearchRecord(
+            research_id=research_id,
+            owner_account=owner_account,
+            market_id=market_id,
+            title=title,
+            thesis=thesis,
+            predicted_outcome=predicted_outcome,
+            confidence=confidence,
+            source_references=list(dict.fromkeys(source_references)),
+            invalidation_condition=invalidation,
+            created_at=created_at,
+            updated_at=updated_at,
+        )
+
+    def _private_research_view(self, record: PrivateResearchRecord) -> dict[str, Any]:
+        result = record.to_dict()
+        result["market"] = self._private_research_market_context(record.market_id)
+        return result
+
+    def _private_research_market_context(self, market_id: str | None) -> dict[str, Any] | None:
+        if not market_id:
+            return None
+        try:
+            market = self.chain.get_market(market_id)
+        except Exception:
+            return None
+        if not isinstance(market, dict):
+            return None
+        return {
+            "market_id": str(market.get("market_id") or market_id),
+            "question": market.get("question"),
+            "status": market.get("status"),
+            "winning_choice": market.get("winning_choice"),
+            "entries_open": market.get("entries_open"),
+            "close_at": market.get("close_at"),
+            "resolve_after": market.get("resolve_after"),
+            "resolved_at": market.get("resolved_at"),
         }
 
     def _with_history(self, note: CreatorResearchNote, *, private: bool) -> dict[str, Any]:

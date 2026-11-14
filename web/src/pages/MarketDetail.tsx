@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft, ShieldCheck, ShieldQuestion, ExternalLink } from 'lucide-react'
 import { ApiError, api } from '../api/client'
 import { useApi } from '../api/useApi'
@@ -97,7 +97,7 @@ export function MarketDetail() {
             <h2 className="card-h">Activity</h2>
             <p className="dim">Per-entry history isn’t available yet: the contract exposes pool totals and per-account positions, not an entry log or participant count. Indexing the market’s <span className="mono">ft_on_transfer</span> receipts would add it without contract changes.</p>
           </section>
-          <ResearchPanel fallbackBrief={br.status === 'ok' ? br.data : null} research={researchForMarket} onRequest={requestResearch} />
+          <ResearchPanel marketId={id} fallbackBrief={br.status === 'ok' ? br.data : null} research={researchForMarket} onRequest={requestResearch} />
           <ResearchCouncilPanel council={councilForMarket} onRequest={requestCouncil} />
         </div>
         <aside className="md-side">
@@ -188,7 +188,8 @@ const BRIEF_LABEL: Record<string, string> = {
   AI_UNAVAILABLE_FALLBACK: 'DETERMINISTIC_FALLBACK · AI unavailable',
 }
 
-function ResearchPanel({ fallbackBrief, research, onRequest }: { fallbackBrief: Brief | null; research: ResearchState; onRequest: () => void }) {
+function ResearchPanel({ marketId, fallbackBrief, research, onRequest }: { marketId: string; fallbackBrief: Brief | null; research: ResearchState; onRequest: () => void }) {
+  const navigate = useNavigate()
   const brief = research.status === 'ok' ? research.brief : fallbackBrief
   const inference = brief?.inference
   const inferenceStatus = inference?.status ?? brief?.generation_status ?? 'UNAVAILABLE'
@@ -205,9 +206,12 @@ function ResearchPanel({ fallbackBrief, research, onRequest }: { fallbackBrief: 
     <section className="card md-research" aria-labelledby="market-research-title">
       <div className="card-hrow"><h2 className="card-h" id="market-research-title">AI market research</h2><span className="badge">{BRIEF_LABEL[inferenceStatus] ?? inferenceStatus}</span></div>
       <p className="md-research-intro">Request a bounded brief grounded in this market’s published rule, available Wikimedia observations, and matching historical context. AI interpretation is separate from verified source data and never places a prediction. This is read-only: no wallet, signature, or transaction is requested.</p>
-      <button type="button" className="btn btn-primary md-research-trigger" onClick={onRequest} disabled={research.status === 'loading'} aria-busy={research.status === 'loading'}>
-        {research.status === 'loading' ? 'Inspecting evidence…' : 'Request research brief'}
-      </button>
+      <div className="creator-actions">
+        <button type="button" className="btn btn-primary md-research-trigger" onClick={onRequest} disabled={research.status === 'loading'} aria-busy={research.status === 'loading'}>
+          {research.status === 'loading' ? 'Inspecting evidence…' : 'Request research brief'}
+        </button>
+        {brief && <button type="button" className="btn btn-quiet" onClick={() => navigate('/app/vault', { state: { marketId, title: brief.headline, thesis: brief.summary ?? '', sourceReferences: brief.evidence_references.flatMap((reference) => [reference.ref_id, reference.url ?? '']).filter(Boolean) } })}>Save privately</button>}
+      </div>
       {research.status === 'loading' && <p className="md-research-status" role="status">Reading the published rule and source observations. No wallet or signing call is made.</p>}
       {errorText && <div className="md-research-error" role="alert"><strong>{errorText}</strong><button type="button" className="btn btn-quiet" onClick={onRequest}>Try again</button></div>}
       {!brief && research.status !== 'loading' && !errorText && <p className="dim md-research-empty">No source-only brief is available yet. Request research to inspect this market’s evidence package.</p>}

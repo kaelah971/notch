@@ -20,6 +20,7 @@ import { Practice } from './pages/Practice'
 import { Arena } from './pages/Arena'
 import { Autopilot } from './pages/Autopilot'
 import { CreatorStudio } from './pages/CreatorStudio'
+import { PrivateVault } from './pages/PrivateVault'
 import { ResearchNote } from './pages/ResearchNote'
 import { SubscriptionPlan } from './pages/SubscriptionPlan'
 
@@ -37,6 +38,7 @@ const router = createBrowserRouter([
       { path: 'arena', element: <Arena /> },
       { path: 'autopilot', element: <Autopilot /> },
       { path: 'studio', element: <CreatorStudio /> },
+      { path: 'vault', element: <PrivateVault /> },
       { path: 'research/notes/:id', element: <ResearchNote /> },
       { path: 'research/plans/:id', element: <SubscriptionPlan /> },
       { path: 'battles', element: <Markets battlesOnly /> },

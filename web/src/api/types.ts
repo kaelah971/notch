@@ -734,6 +734,31 @@ export interface CreatorResearchNote {
   premium: CreatorPremiumOffer
   revision_history?: CreatorNoteRevision[]
 }
+export interface PrivateResearchRecord {
+  schema: string
+  research_id: string
+  owner_account: string
+  visibility: 'PRIVATE' | string
+  market_id: string | null
+  title: string
+  thesis: string
+  predicted_outcome: string
+  confidence: number | null
+  source_references: string[]
+  invalidation_condition: string
+  created_at: string
+  updated_at: string
+  market: {
+    market_id: string
+    question: string | null
+    status: string | null
+    winning_choice?: string | null
+    entries_open?: boolean | null
+    close_at?: string | null
+    resolve_after?: string | null
+    resolved_at?: string | null
+  } | null
+}
 export interface CreatorNoteChallenge {
   challenge_id: string
   account_id: string
