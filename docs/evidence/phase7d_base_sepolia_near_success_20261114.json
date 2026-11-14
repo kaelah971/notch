@@ -1,0 +1,130 @@
+{
+  "schema_version": "notch.phase7d.funding-proof/1",
+  "phase": "7D",
+  "status": "DESTINATION_VERIFIED",
+  "recorded_at_utc": "2026-11-14T13:51:16.335122Z",
+  "network_scope": "Base Sepolia -> NEAR Testnet only; test tokens have no value",
+  "quote": {
+    "quote_id": "f1085af2-5848-47e6-b9af-39ac86e2dec0",
+    "source_chain": "Base Sepolia",
+    "source_chain_id": 84532,
+    "source_asset": "USDC",
+    "source_asset_id": "nep141:base-0x38d81431b9f76d9699af7517040d5221d9dea252.tp-omft.testnet",
+    "source_token_contract": "0x38d81431B9f76d9699AF7517040D5221D9dEA252",
+    "destination_chain": "NEAR Testnet",
+    "destination_asset": "nep141:usdc.tidepool-sandbox.testnet",
+    "recipient": "4c9c0572fedb185055adb0acce14c2cf0f8652f07f3500fba7bacd3dadfad2c0",
+    "provider_deposit_address": "0x20c06F7615C4b7a3020d5AE0cCa85CA1d24A8809",
+    "quoted_input_base_units": "1050000",
+    "quoted_input_formatted": "1.050000",
+    "quoted_output_base_units": "1047270",
+    "quoted_output_formatted": "1.047270",
+    "minimum_output_base_units": "1036797",
+    "quote_deadline_utc": "2026-11-14T13:45:09.850Z",
+    "provider_status": "SUCCESS"
+  },
+  "source_transaction": {
+    "wallet": "0x51c63A4bcF8E622D686bF1D7ec5ae5b77D50E677",
+    "hash": "0x39623909068e564ad2304091dbe1477688e5e51f4e908674ff219f84217c2d7b",
+    "explorer": "https://sepolia.basescan.org/tx/0x39623909068e564ad2304091dbe1477688e5e51f4e908674ff219f84217c2d7b",
+    "receipt_status": "SUCCESS",
+    "block_number": 58709487,
+    "block_hash": "0x8245b33e1c266962ea4f908344a178ef4ffba6a7a67b8f33cc9bc206126abc4e",
+    "timestamp_utc": "2026-11-14T13:42:46Z",
+    "erc20_transfer": {
+      "token_contract": "0x38d81431B9f76d9699AF7517040D5221D9dEA252",
+      "from": "0x51c63A4bcF8E622D686bF1D7ec5ae5b77D50E677",
+      "to": "0x20c06F7615C4b7a3020d5AE0cCa85CA1d24A8809",
+      "amount_base_units": "1500000",
+      "amount_formatted": "1.500000",
+      "receipt_log_index": 1
+    },
+    "verification_rpc": "https://base-sepolia-rpc.publicnode.com"
+  },
+  "provider_settlement": {
+    "status": "SUCCESS",
+    "actual_deposited_base_units": "1500000",
+    "actual_deposited_formatted": "1.500000",
+    "quoted_input_base_units": "1050000",
+    "destination_output_base_units": "1047270",
+    "destination_output_formatted": "1.047270",
+    "excess_refunded_base_units": "450000",
+    "excess_refunded_formatted": "0.450000",
+    "withdraw_fee_base_units": "0",
+    "intent_hashes": [
+      "GfYm9axF5ubakHrLt6K8uUMYTVD2cVVTNZki4MV2fR7n",
+      "Hiz36w7qTGgXtcuYwatazvQk3tyhWzeSKTNzY7kK9fnK"
+    ],
+    "near_provenance_transactions": [
+      {
+        "label": "mint bridged USDC",
+        "hash": "5UND98iuRJqHrskkfjr9g7RV3tLCt6VHiBd7wBsMsSne",
+        "explorer": "https://testnet.nearblocks.io/txns/5UND98iuRJqHrskkfjr9g7RV3tLCt6VHiBd7wBsMsSne"
+      },
+      {
+        "label": "credit deposit into verifier",
+        "hash": "BR3sTKVtUYhXujqL33H32fE7QaEu4Ap87JxKvQQEkbeb",
+        "explorer": "https://testnet.nearblocks.io/txns/BR3sTKVtUYhXujqL33H32fE7QaEu4Ap87JxKvQQEkbeb"
+      },
+      {
+        "label": "Tidepool execute_intents settlement",
+        "hash": "8b5WKmEqBpVu8mLDAbKHmrDHEiJCZEwBkHYqbryPKfum",
+        "explorer": "https://testnet.nearblocks.io/txns/8b5WKmEqBpVu8mLDAbKHmrDHEiJCZEwBkHYqbryPKfum",
+        "status": "SuccessValue"
+      }
+    ],
+    "near_settlement_transaction": {
+      "hash": "8b5WKmEqBpVu8mLDAbKHmrDHEiJCZEwBkHYqbryPKfum",
+      "explorer": "https://testnet.nearblocks.io/txns/8b5WKmEqBpVu8mLDAbKHmrDHEiJCZEwBkHYqbryPKfum",
+      "status": "SuccessValue"
+    },
+    "refund_transaction": {
+      "hash": "0x21acf175808d9c05b2b67dcee4b1dd18ebef0f73892037cd0411699b8145f49c",
+      "explorer": "https://sepolia.basescan.org/tx/0x21acf175808d9c05b2b67dcee4b1dd18ebef0f73892037cd0411699b8145f49c",
+      "receipt_status": "SUCCESS",
+      "block_number": 58709594,
+      "block_hash": "0xc0d1de76517b249da2e3c056ca9048f95016c2826e6126991b843d2ad14566b4",
+      "timestamp_utc": "2026-11-14T13:43:07Z",
+      "erc20_transfer": {
+        "token_contract": "0x38d81431B9f76d9699AF7517040D5221D9dEA252",
+        "from": "0x2e6ad9e6d59bb4585ea0e6762c3b637dde29dad2",
+        "to": "0x51c63A4bcF8E622D686bF1D7ec5ae5b77D50E677",
+        "amount_base_units": "450000",
+        "amount_formatted": "0.450000",
+        "receipt_log_index": 0
+      }
+    },
+    "persisted_provider_record": "var/intents/funding.sqlite3"
+  },
+  "destination_verification": {
+    "status": "DESTINATION_VERIFIED",
+    "token_contract": "usdc.tidepool-sandbox.testnet",
+    "recipient": "4c9c0572fedb185055adb0acce14c2cf0f8652f07f3500fba7bacd3dadfad2c0",
+    "persistent_observation_id": "f1085af2-5848-47e6-b9af-39ac86e2dec0:pre-transfer",
+    "before_base_units": "99000000",
+    "before_formatted": "99.000000",
+    "before_block": 277663231,
+    "before_block_hash": "4qzsCTYrxRMNUy29DFDgbqzT5pNgFdQohZfsTdg1BvKA",
+    "after_base_units": "100047270",
+    "after_formatted": "100.047270",
+    "after_finalized_block": 277665477,
+    "after_finalized_block_hash": "EaViN3tNY5bf2S76jZBQSDT6CpkBGZVvDh2YqoowjQUM",
+    "delta_base_units": "1047270",
+    "delta_formatted": "1.047270",
+    "required_minimum_base_units": "1036797",
+    "finality": "final",
+    "rpc_source": "https://archival-rpc.testnet.fastnear.com"
+  },
+  "related_links": {
+    "source_account": "https://sepolia.basescan.org/address/0x51c63A4bcF8E622D686bF1D7ec5ae5b77D50E677",
+    "destination_account": "https://testnet.nearblocks.io/address/4c9c0572fedb185055adb0acce14c2cf0f8652f07f3500fba7bacd3dadfad2c0",
+    "destination_token": "https://explorer.testnet.near.org/accounts/usdc.tidepool-sandbox.testnet",
+    "market_contract": "https://explorer.testnet.near.org/accounts/market.notch-dev.testnet"
+  },
+  "limitations": [
+    "Tidepool is a community-operated testnet sandbox, not official NEAR Intents mainnet.",
+    "Base Sepolia and NEAR Testnet assets have no real-world value.",
+    "This record proves funding and destination receipt only; it does not prove market entry, resolution, payout, or production readiness.",
+    "No mainnet asset, private key, or signed transaction material is stored here."
+  ]
+}
