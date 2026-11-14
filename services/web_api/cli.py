@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 import argparse
 from dataclasses import replace
 from pathlib import Path
@@ -21,6 +23,7 @@ from services.near_ai.store import BriefStore
 from services.research_council.service import ResearchCouncilService
 from services.research_council.store import ResearchCouncilStore
 from services.trend_radar.http import LiveFetcher
+from services.web_api.snapshots import SnapshotStore
 from services.web_api.app import WebAPI
 from services.web_api.chain import MarketChainReader
 from services.web_api.config import WebAPIConfig
@@ -88,6 +91,7 @@ def build_default_app(config: WebAPIConfig | None = None) -> WebAPI:
         timeout_seconds=config.request_timeout_seconds,
         max_retries=1,
     )
+    snapshot_path = os.environ.get("WEB_API_SNAPSHOT_DB", "var/web_api/snapshots.sqlite3")
     creator_notes = CreatorNotesService(
         store=CreatorNotesStore(config.creator_notes_db_path),
         reader=chain_reader,
@@ -109,6 +113,7 @@ def build_default_app(config: WebAPIConfig | None = None) -> WebAPI:
         chain=chain,
     )
     return WebAPI(
+        snapshots=SnapshotStore(snapshot_path),
         attention_fetcher=attention_fetcher,
         config=config,
         chain=chain,

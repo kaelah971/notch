@@ -78,12 +78,15 @@ class WebAPI:
         official_funding_service: Any = None,
         creator_notes_service: CreatorNotesService | None = None,
         rate_limiter: RateLimiter | None = None,
+        snapshots: Any = None,
         attention_fetcher: Any = None,
         pulse: PulseIndexer | None = None,
         council_service: ResearchCouncilService | None = None,
         notifications: NotificationService | None = None,
     ) -> None:
         self.config = config
+        # Optional SnapshotStore; None disables participation history (e.g. in unit tests).
+        self.snapshots = snapshots
         self.attention_fetcher = attention_fetcher
         self.chain = chain
         self.radar = radar
@@ -196,6 +199,8 @@ class WebAPI:
             return 200, self._market_evidence(parts[2])
         if len(parts) == 4 and parts[:2] == ["api", "markets"] and parts[3] == "brief":
             return 200, self._market_brief(parts[2])
+        if len(parts) == 4 and parts[:2] == ["api", "markets"] and parts[3] == "history":
+            return 200, self._market_history(parts[2])
         if len(parts) == 4 and parts[:2] == ["api", "markets"] and parts[3] == "council":
             return 200, self._market_council_latest(parts[2])
         if parts == ["api", "research", "vault"]:
@@ -722,6 +727,8 @@ class WebAPI:
     def _markets(self) -> dict[str, Any]:
         now_ns = self.chain.now_ns()
         markets = self.chain.list_markets()
+        for market in markets:
+            self._snapshot(market, now_ns)
         data = []
         for market in markets:
             rule, evidence = self.oracle.find(str(market.get("market_id")))
@@ -730,11 +737,42 @@ class WebAPI:
             )
         return {"data": data, "meta": {"count": len(data), "network": self.config.network}}
 
+    def _snapshot(self, market: dict[str, Any], now_ns: int) -> None:
+        if self.snapshots is None:
+            return
+        try:
+            self.snapshots.record(market, now_ns)
+        except Exception:  # never let history recording break a read
+            pass
+
+    def _market_history(self, market_id: str) -> dict[str, Any]:
+        if self.chain.get_market(market_id) is None:
+            raise ApiError("MARKET_NOT_FOUND", f"unknown market: {market_id}", status=404)
+        if self.snapshots is None:
+            raise ApiError(
+                "HISTORY_UNAVAILABLE",
+                "market history recording is not configured on this API",
+                status=503,
+            )
+        points = self.snapshots.history(market_id)
+        for p in points:
+            p["observed_at_utc"] = _ns_to_iso(int(p["block_ts_ns"]))
+        return {
+            "data": points,
+            "meta": {
+                "market_id": market_id,
+                "count": len(points),
+                "source": "pool totals read from the market contract by this API, stamped with NEAR block time",
+                "recording": True,
+            },
+        }
+
     def _market_detail(self, market_id: str) -> dict[str, Any]:
         market = self.chain.get_market(market_id)
         if market is None:
             raise ApiError("MARKET_NOT_FOUND", f"unknown market: {market_id}", status=404)
         now_ns = self.chain.now_ns()
+        self._snapshot(market, now_ns)
         rule, evidence = self.oracle.find(market_id)
         summary = self._market_summary(market, now_ns, rule=rule, evidence=evidence)
         totals = self.chain.get_market_totals(market_id)
