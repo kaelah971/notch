@@ -79,7 +79,7 @@ Do not request another quote or deposit.
 
 The entry already exists and must not be repeated:
 
-- Transaction: [`1JEFnWsuh2jWpYPZV957WgNFdwbv7kTTQ7GUs7t72oh`](https://testnet.nearblocks.io/txns/1JEFnWsuh2jWpYPZV957WgNFdwbv7kTTQ7GUs7t72oh)
+- Transaction candidate: `1JEFnWsuh2jWpYPZV957WgNFdwbv7kTTQ7GUs7t72oh`
 - Method: `usdc.tidepool-sandbox.testnet.ft_transfer_call`
 - Amount: `1,000,000` base units
 - Market: `s3b-future-btc-20261116-20261123`
@@ -87,10 +87,13 @@ The entry already exists and must not be repeated:
 - Receipt: `SuccessValue`
 - Contract event: `position_entered`
 
-The current finalized contract read is stakes `[1000000, 0]`, claimable `0`,
-and claim state `open`. The entry predates the Phase 7D funding transfer; this
-walkthrough makes no unsupported claim that the later bridge funding paid for
-that earlier entry.
+The current public API read is stakes `[1000000, 0]`, claimable `0`, claim
+state `open`, and Passport status `PENDING`. The account index lists an
+`ft_transfer_call` in the recorded block, but the transaction candidate was not
+independently resolved as a standalone explorer record in the documentation
+pass; see [`docs/PROOF.md`](PROOF.md). The entry predates the Phase 7D funding
+transfer, so this walkthrough makes no unsupported claim that the later bridge
+funding paid for that earlier entry.
 
 ## 4. Forecast Passport — pending, not resolved
 
@@ -165,7 +168,7 @@ collateral recovery, not profit and not a current-wallet claim.
 - Phase 6 Arena → Paper Autopilot browser proof and deterministic fixture audit.
 - Private Research Vault owner boundary and no-public-feed isolation.
 - Phase 7D Base Sepolia → NEAR Testnet funding proof.
-- Existing real future-market entry and onchain `UP` position.
+- Documented future-market `UP` position and finalized public API read.
 - Forecast Passport pending classification path.
 - Two resolved historical replay outcomes.
 - Historical replay claim transactions and payout accounting.
@@ -176,13 +179,12 @@ collateral recovery, not profit and not a current-wallet claim.
 - No current-wallet claim or refund has occurred.
 - No current future-market outcome is known.
 - No successful AI inference should be claimed as part of the proof; the live provider remained unavailable/time-out prone.
-- No public browser/API deployment exists in the repository. Local browser verification used the API with `NEAR_RPC_URL=https://archival-rpc.testnet.fastnear.com` because the default public RPC was rate-limited.
+- The public browser/API demo is available at <https://notch-blond-psi.vercel.app>. Its `/api/*` calls use a temporary Cloudflare Quick Tunnel to the isolated Hermes API; the hostname can rotate if the tunnel restarts.
 - The Vault is owner-restricted application privacy, not cryptographic encryption.
 
 ## Recommended three-minute judge order
 
-1. **0:00 — Discover and rule.** Open `/app/discover`, show a deterministic
-Scout candidate, then open `/app/markets/s3b-future-btc-20261116-20261123`.
+1. **0:00 — Discover and rule.** Open <https://notch-blond-psi.vercel.app/app/markets>, then open `/app/markets/s3b-future-btc-20261116-20261123`.
 Show the locked Bitcoin Wikimedia rule, actual attention chart, open deadline,
 and the honest missing-evidence / unavailable research boundary.
 2. **0:35 — Private research boundary.** Open `/app/vault` and show `PRIVATE ·
