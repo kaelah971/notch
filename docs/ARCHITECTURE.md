@@ -4,7 +4,7 @@ Notch is a split system: NEAR owns prediction-market accounting and finality;
 Hermes owns read aggregation, evidence services and durable application state;
 the browser owns presentation and explicitly bounded paper workflows.
 
-- **Live frontend:** [notch-blond-psi.vercel.app](https://notch-blond-psi.vercel.app)
+- **Live frontend:** [trynotch.vercel.app](https://trynotch.vercel.app)
 - **NEAR Testnet market:** [`market.notch-dev.testnet`](https://testnet.nearblocks.io/address/market.notch-dev.testnet)
 - **Contract source:** [`contracts/market/`](../contracts/market/)
 - **API contract:** [`FRONTEND_INTEGRATION_CONTRACT.md`](FRONTEND_INTEGRATION_CONTRACT.md)

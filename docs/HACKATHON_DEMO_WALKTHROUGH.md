@@ -179,12 +179,12 @@ collateral recovery, not profit and not a current-wallet claim.
 - No current-wallet claim or refund has occurred.
 - No current future-market outcome is known.
 - No successful AI inference should be claimed as part of the proof; the live provider remained unavailable/time-out prone.
-- The public browser/API demo is available at <https://notch-blond-psi.vercel.app>. Its `/api/*` calls use a temporary Cloudflare Quick Tunnel to the isolated Hermes API; the hostname can rotate if the tunnel restarts.
+- The public browser/API demo is available at <https://trynotch.vercel.app>. Its `/api/*` calls use a temporary Cloudflare Quick Tunnel to the isolated Hermes API; the hostname can rotate if the tunnel restarts.
 - The Vault is owner-restricted application privacy, not cryptographic encryption.
 
 ## Recommended three-minute judge order
 
-1. **0:00 — Discover and rule.** Open <https://notch-blond-psi.vercel.app/app/markets>, then open `/app/markets/s3b-future-btc-20261116-20261123`.
+1. **0:00 — Discover and rule.** Open <https://trynotch.vercel.app/app/markets>, then open `/app/markets/s3b-future-btc-20261116-20261123`.
 Show the locked Bitcoin Wikimedia rule, actual attention chart, open deadline,
 and the honest missing-evidence / unavailable research boundary.
 2. **0:35 — Private research boundary.** Open `/app/vault` and show `PRIVATE ·

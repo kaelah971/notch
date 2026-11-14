@@ -1,6 +1,6 @@
 # Notch — five-minute judge path
 
-**Live app:** [notch-blond-psi.vercel.app](https://notch-blond-psi.vercel.app)<br>
+**Live app:** [trynotch.vercel.app](https://trynotch.vercel.app)<br>
 **Proof ledger:** [`PROOF.md`](PROOF.md)<br>
 **Architecture:** [`ARCHITECTURE.md`](ARCHITECTURE.md)
 
@@ -12,19 +12,19 @@ create a market, enter a position, resolve a market or claim a payout during the
 
 Have these tabs ready:
 
-- [Live Notch](https://notch-blond-psi.vercel.app)
-- [Future Bitcoin market](https://notch-blond-psi.vercel.app/app/markets/s3b-future-btc-20261116-20261123)
-- [Historical Nvidia replay](https://notch-blond-psi.vercel.app/app/markets/s3b-short-trend-nvidia-20261112T040029Z)
-- [Verified demo Passport](https://notch-blond-psi.vercel.app/app/p/4c9c0572fedb185055adb0acce14c2cf0f8652f07f3500fba7bacd3dadfad2c0)
-- [Agent Arena](https://notch-blond-psi.vercel.app/app/arena)
-- [Paper Autopilot](https://notch-blond-psi.vercel.app/app/autopilot?agent=bot_attention_momentum_v1)
+- [Live Notch](https://trynotch.vercel.app)
+- [Future Bitcoin market](https://trynotch.vercel.app/app/markets/s3b-future-btc-20261116-20261123)
+- [Historical Nvidia replay](https://trynotch.vercel.app/app/markets/s3b-short-trend-nvidia-20261112T040029Z)
+- [Verified demo Passport](https://trynotch.vercel.app/app/p/4c9c0572fedb185055adb0acce14c2cf0f8652f07f3500fba7bacd3dadfad2c0)
+- [Agent Arena](https://trynotch.vercel.app/app/arena)
+- [Paper Autopilot](https://trynotch.vercel.app/app/autopilot?agent=bot_attention_momentum_v1)
 
 The Passport URL is a public chain read for the documented demo account. It is
 not a private session and does not expose a key.
 
 ## 0:00 — Establish the product
 
-Open the [landing page](https://notch-blond-psi.vercel.app).
+Open the [landing page](https://trynotch.vercel.app).
 
 **Show:**
 
@@ -37,7 +37,7 @@ Open the [landing page](https://notch-blond-psi.vercel.app).
 
 ## 0:30 — Discover the market set
 
-Open [Markets](https://notch-blond-psi.vercel.app/app/markets).
+Open [Markets](https://trynotch.vercel.app/app/markets).
 
 **Show:**
 
@@ -53,7 +53,7 @@ outcome yet.
 
 ## 1:05 — Open genuine historical evidence
 
-Open the [Nvidia historical replay](https://notch-blond-psi.vercel.app/app/markets/s3b-short-trend-nvidia-20261112T040029Z).
+Open the [Nvidia historical replay](https://trynotch.vercel.app/app/markets/s3b-short-trend-nvidia-20261112T040029Z).
 
 **Show:**
 
@@ -68,7 +68,7 @@ The replay is evidence of settlement mechanics, not a claim of future accuracy.
 
 ## 1:45 — Show the live forecast boundary
 
-Open the [future Bitcoin market](https://notch-blond-psi.vercel.app/app/markets/s3b-future-btc-20261116-20261123).
+Open the [future Bitcoin market](https://trynotch.vercel.app/app/markets/s3b-future-btc-20261116-20261123).
 
 **Show:**
 
@@ -82,7 +82,7 @@ market remains unresolved until its legitimate eligibility time.
 
 ## 2:25 — Inspect Forecast Passport / Portfolio
 
-Open the [documented demo Passport](https://notch-blond-psi.vercel.app/app/p/4c9c0572fedb185055adb0acce14c2cf0f8652f07f3500fba7bacd3dadfad2c0).
+Open the [documented demo Passport](https://trynotch.vercel.app/app/p/4c9c0572fedb185055adb0acce14c2cf0f8652f07f3500fba7bacd3dadfad2c0).
 
 **Show:**
 
@@ -91,7 +91,7 @@ Open the [documented demo Passport](https://notch-blond-psi.vercel.app/app/p/4c9
 - Accuracy unavailable because the market has not resolved.
 - The public NEAR Testnet account link if the page exposes it.
 
-Then optionally open [Portfolio](https://notch-blond-psi.vercel.app/app/portfolio).
+Then optionally open [Portfolio](https://trynotch.vercel.app/app/portfolio).
 Without a connected wallet it correctly asks for a wallet instead of showing
 simulated holdings.
 
@@ -101,7 +101,7 @@ new wallet action for this walkthrough.
 
 ## 3:05 — Show private research boundaries
 
-Open [Private Research Vault](https://notch-blond-psi.vercel.app/app/vault).
+Open [Private Research Vault](https://trynotch.vercel.app/app/vault).
 
 **Show:**
 
@@ -115,7 +115,7 @@ remain locked. Do not sign or create a record during the judge path.
 
 ## 3:35 — Compare strategies in Agent Arena
 
-Open [Agent Arena](https://notch-blond-psi.vercel.app/app/arena).
+Open [Agent Arena](https://trynotch.vercel.app/app/arena).
 
 **Show:**
 
@@ -131,7 +131,7 @@ The browser proof records match `arena_match_935505c1` and strategy hash
 
 ## 4:05 — Follow the paper-only handoff
 
-Open [Paper Autopilot](https://notch-blond-psi.vercel.app/app/autopilot?agent=bot_attention_momentum_v1).
+Open [Paper Autopilot](https://trynotch.vercel.app/app/autopilot?agent=bot_attention_momentum_v1).
 
 **Show:**
 

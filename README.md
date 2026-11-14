@@ -10,14 +10,14 @@
 </p>
 
 <p align="center">
-  <a href="https://notch-blond-psi.vercel.app"><img src="https://img.shields.io/badge/live_demo-Notch-111111?style=flat-square" alt="Live demo"></a>
+  <a href="https://trynotch.vercel.app"><img src="https://img.shields.io/badge/live_demo-Notch-111111?style=flat-square" alt="Live demo"></a>
   <a href="https://testnet.nearblocks.io/address/market.notch-dev.testnet"><img src="https://img.shields.io/badge/network-NEAR_Testnet-00C08B?style=flat-square" alt="NEAR Testnet"></a>
   <a href="contracts/market"><img src="https://img.shields.io/badge/contract-Rust-DEA584?style=flat-square" alt="Rust contract"></a>
   <a href="docs/JUDGE.md"><img src="https://img.shields.io/badge/judge_path-5_minutes-fceb53?style=flat-square&labelColor=111111" alt="Five minute judge path"></a>
 </p>
 
 <p align="center">
-  <a href="https://notch-blond-psi.vercel.app">Open the live app</a> ·
+  <a href="https://trynotch.vercel.app">Open the live app</a> ·
   <a href="docs/JUDGE.md">Judge guide</a> ·
   <a href="docs/PROOF.md">Testnet proof ledger</a> ·
   <a href="docs/ARCHITECTURE.md">Architecture</a>
@@ -87,7 +87,7 @@ The surrounding surfaces make that journey usable without pretending every capab
 
 ## Product tour
 
-These screenshots were captured from the public deployment at [notch-blond-psi.vercel.app](https://notch-blond-psi.vercel.app) on 2026-11-14 UTC. They are rendered product screens, not mockups.
+These screenshots were captured from the public Notch deployment on 2026-11-14 UTC and remain representative of the current product. Open the current official live URL at [trynotch.vercel.app](https://trynotch.vercel.app). They are rendered product screens, not mockups.
 
 <table>
   <tr>
@@ -190,7 +190,7 @@ The proof ledger separates what a transaction establishes from what it cannot es
 | Claim | Network | Verifiable evidence | Meaning |
 | --- | --- | --- | --- |
 | Market contract deployed | NEAR Testnet | [`EFJvJ...`](https://testnet.nearblocks.io/txns/EFJvJVmBMWAh4Rqaxh7s2uCn72Hm1uXV3yc9zmEaEeDj) to `market.notch-dev.testnet` | Contract deployment and initialization; not a claim of Mainnet operation |
-| Future market exists and is still open | NEAR Testnet | [`ALVPQ...`](https://testnet.nearblocks.io/txns/ALVPQpRCwngtpLPtG94SrXb9Y4jogaFToTzvGusveXDA), [live market API](https://notch-blond-psi.vercel.app/app/markets/s3b-future-btc-20261116-20261123) | A real open forecast with no outcome yet; not a resolved result |
+| Future market exists and is still open | NEAR Testnet | [`ALVPQ...`](https://testnet.nearblocks.io/txns/ALVPQpRCwngtpLPtG94SrXb9Y4jogaFToTzvGusveXDA), [live market API](https://trynotch.vercel.app/app/markets/s3b-future-btc-20261116-20261123) | A real open forecast with no outcome yet; not a resolved result |
 | Historical resolution and claims | NEAR Testnet | Nvidia [`C4b882...`](https://testnet.nearblocks.io/txns/C4b882jAwpnZgo1ofHwAhQz55rFR7pjPyyGTMS1SD7pr), Battle [`C2sVEw...`](https://testnet.nearblocks.io/txns/C2sVEw9poAa9wqf4zGkkkXcrF1YxXw1yTPskBmoTntNU) | Settlement and stake recovery for one-sided historical replays; not profit |
 | Base Sepolia → NEAR Testnet funding | Base Sepolia + NEAR Testnet | [source transfer](https://sepolia.basescan.org/tx/0x39623909068e564ad2304091dbe1477688e5e51f4e908674ff219f84217c2d7b), [refund](https://sepolia.basescan.org/tx/0x21acf175808d9c05b2b67dcee4b1dd18ebef0f73892037cd0411699b8145f49c), [NEAR settlement](https://testnet.nearblocks.io/txns/8b5WKmEqBpVu8mLDAbKHmrDHEiJCZEwBkHYqbryPKfum) | Finalized `1.047270` test-USDC destination delta plus `0.450000` excess refund; not market entry or payout |
 
@@ -240,11 +240,11 @@ Common truthful failures include `AUTH_REQUIRED` (`401`), `MARKET_NOT_FOUND` (`4
 
 ### No wallet needed
 
-1. Open the [live app](https://notch-blond-psi.vercel.app).
+1. Open the [live app](https://trynotch.vercel.app).
 2. Choose **Markets** and open the resolved Nvidia card. It is a historical replay, not a current forecast; inspect the Wikimedia chart, rule, outcome and evidence boundary.
 3. Open the future Bitcoin market. It is a real open Testnet market with a locked question and deadline, but it has no outcome yet.
-4. Open [Agent Arena](https://notch-blond-psi.vercel.app/app/arena), then [Paper Autopilot](https://notch-blond-psi.vercel.app/app/autopilot?agent=bot_attention_momentum_v1). The labels explain that the workflow is deterministic and paper-only.
-5. Open the [Private Research Vault](https://notch-blond-psi.vercel.app/app/vault) to see the NEP-413 ownership requirement and the explicit non-encryption disclosure.
+4. Open [Agent Arena](https://trynotch.vercel.app/app/arena), then [Paper Autopilot](https://trynotch.vercel.app/app/autopilot?agent=bot_attention_momentum_v1). The labels explain that the workflow is deterministic and paper-only.
+5. Open the [Private Research Vault](https://trynotch.vercel.app/app/vault) to see the NEP-413 ownership requirement and the explicit non-encryption disclosure.
 
 ### With a NEAR Testnet wallet
 
@@ -254,7 +254,7 @@ Common truthful failures include `AUTH_REQUIRED` (`401`), `MARKET_NOT_FOUND` (`4
 - A wallet action opens a signing prompt. Review the receiver, method, market ID, outcome and amount before approving.
 - The existing public proof already contains a future-wallet position. Judges do **not** need to repeat it, request a quote, transfer collateral, create a market, claim or resolve anything.
 
-For a predictable read-only path, use [`docs/JUDGE.md`](docs/JUDGE.md). For a public account snapshot, the verified demo account's Passport route is [here](https://notch-blond-psi.vercel.app/app/p/4c9c0572fedb185055adb0acce14c2cf0f8652f07f3500fba7bacd3dadfad2c0); it shows a real `UP` position that remains `PENDING`.
+For a predictable read-only path, use [`docs/JUDGE.md`](docs/JUDGE.md). For a public account snapshot, the verified demo account's Passport route is [here](https://trynotch.vercel.app/app/p/4c9c0572fedb185055adb0acce14c2cf0f8652f07f3500fba7bacd3dadfad2c0); it shows a real `UP` position that remains `PENDING`.
 
 ## Local development
 
@@ -326,7 +326,7 @@ No `pytest` dependency is required; Python coverage is run with `unittest` in th
 ## License, author and hackathon
 
 - **Author / maintainer:** [Kaelah971](https://github.com/kaelah971), the GitHub owner of this repository.
-- **Repository visibility:** private at the time of this documentation pass. The [live application](https://notch-blond-psi.vercel.app) is public; GitHub judges need repository access to inspect source and tests.
+- **Repository visibility:** private at the time of this documentation pass. The [live application](https://trynotch.vercel.app) is public; GitHub judges need repository access to inspect source and tests.
 - **License:** no root `LICENSE` file is present. The Rust contract package declares `MIT` in [`contracts/market/Cargo.toml`](contracts/market/Cargo.toml); confirm repository-wide reuse terms before redistributing the full project.
 - **Hackathon context:** the project brief targets **NEAR Hackathon 2026** and documents the **Unstoppable DeFi** and **Open Innovation** tracks. This README does not claim official track selection, sponsorship eligibility or an award.
 
