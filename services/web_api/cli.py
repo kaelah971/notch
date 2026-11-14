@@ -25,6 +25,7 @@ from services.web_api.app import WebAPI
 from services.web_api.chain import MarketChainReader
 from services.web_api.config import WebAPIConfig
 from services.web_api.repositories import OracleRepository, RadarRepository
+from services.web_api.notifications import NotificationService, NotificationStore
 from services.web_api.pulse import PulseIndexer, PulseStore
 from services.web_api.server import serve
 
@@ -103,6 +104,10 @@ def build_default_app(config: WebAPIConfig | None = None) -> WebAPI:
         start_block=config.pulse_start_block,
         max_blocks=config.pulse_max_blocks_per_request,
     )
+    notifications = NotificationService(
+        store=NotificationStore(config.notifications_db_path),
+        chain=chain,
+    )
     return WebAPI(
         attention_fetcher=attention_fetcher,
         config=config,
@@ -115,6 +120,7 @@ def build_default_app(config: WebAPIConfig | None = None) -> WebAPI:
         creator_notes_service=creator_notes,
         council_service=council_service,
         pulse=pulse,
+        notifications=notifications,
     )
 
 

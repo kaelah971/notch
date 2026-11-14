@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import { Pin, PinOff } from 'lucide-react'
 import { NotchMark } from './icons'
+import { useNotifications } from '../notifications/NotificationsProvider'
 import { accountNav, primaryNav, type NavItem } from './nav'
 import './Sidebar.css'
 
@@ -21,11 +22,14 @@ export function useSidebarPinned() {
 
 function Item({ item }: { item: NavItem }) {
   const Icon = item.icon
+  const { unreadCount } = useNotifications()
+  const isNotifications = item.to === '/app/notifications'
   return (
     <li>
       <NavLink to={item.to} className={({ isActive }) => `sb-item${isActive ? ' is-active' : ''}`} aria-label={item.label}>
         <span className="sb-icon"><Icon width={22} height={22} strokeWidth={1.6} /></span>
         <span className="sb-label">{item.label}</span>
+        {isNotifications && unreadCount > 0 && <span className="sb-badge" aria-label={`${unreadCount} unread`}>{unreadCount > 9 ? '9+' : unreadCount}</span>}
       </NavLink>
     </li>
   )

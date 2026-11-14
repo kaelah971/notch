@@ -69,6 +69,34 @@ class MarketChainReader:
         )
         return value if isinstance(value, dict) else None
 
+    def get_finalized_market_position(
+        self, market_id: str, account_id: str
+    ) -> tuple[dict[str, Any] | None, dict[str, Any] | None, dict[str, Any]]:
+        """Read market and wallet position with explicit final-block provenance."""
+        market, market_height, market_hash = self.reader.view_finalized(
+            self.config.market_contract,
+            "get_market",
+            {"market_id": market_id},
+        )
+        position, position_height, position_hash = self.reader.view_finalized(
+            self.config.market_contract,
+            "get_position",
+            {"market_id": market_id, "account_id": account_id},
+        )
+        provenance = {
+            "finality": "final",
+            "rpc_source": self.reader.rpc_url,
+            "market_block_height": market_height,
+            "market_block_hash": market_hash,
+            "position_block_height": position_height,
+            "position_block_hash": position_hash,
+        }
+        return (
+            market if isinstance(market, dict) else None,
+            position if isinstance(position, dict) else None,
+            provenance,
+        )
+
     def ft_metadata(self, contract: str) -> dict[str, Any]:
         value = self.reader.view(contract, "ft_metadata", {})
         if not isinstance(value, dict):

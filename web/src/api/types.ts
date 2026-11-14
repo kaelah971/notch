@@ -412,6 +412,41 @@ export interface Position {
   resolution_kind: string | null
 }
 
+export type NotificationType = 'MARKET_RESOLVED' | 'CLAIM_READY' | 'REFUND_READY'
+export interface NotificationProvenance {
+  finality: 'final' | string
+  observed_at: string
+  market_block_height: number | null
+  market_block_hash: string | null
+  position_block_height: number | null
+  position_block_hash: string | null
+}
+export interface Notification {
+  notification_id: string
+  type: NotificationType
+  market_id: string
+  title: string
+  body: string
+  href: string
+  created_at: string
+  read_at: string | null
+  unread: boolean
+  outcome: string | null
+  prediction_status: PredictionStatus | null
+  amount: string | null
+  provenance: NotificationProvenance
+}
+export interface NotificationMeta {
+  unread_count: number
+  reconciliation: {
+    mode: 'ON_RETURN' | string
+    finality: 'final' | string
+    inspected_markets: number
+    created: number
+    observed_at: string
+  }
+}
+
 export interface FundingAsset {
   asset_id: string; decimals: number; blockchain: string; symbol: string
   contract_address?: string; price?: number; price_updated_at?: string | null

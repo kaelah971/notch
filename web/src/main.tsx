@@ -23,6 +23,7 @@ import { CreatorStudio } from './pages/CreatorStudio'
 import { PrivateVault } from './pages/PrivateVault'
 import { ResearchNote } from './pages/ResearchNote'
 import { SubscriptionPlan } from './pages/SubscriptionPlan'
+import { Notifications } from './pages/Notifications'
 
 const router = createBrowserRouter([
   { path: '/', element: <Landing /> },
@@ -48,6 +49,7 @@ const router = createBrowserRouter([
       { path: 'strategy-lab', element: <StrategyLab /> },
       { path: 'radar', element: <Radar /> },
       { path: 'portfolio', element: <Portfolio /> },
+      { path: 'notifications', element: <Notifications /> },
       { path: 'leaderboard', element: <SignalsHub /> },
       { path: 'p/:accountId', element: <Predictor /> },
       { path: 'profile', element: <Profile /> },

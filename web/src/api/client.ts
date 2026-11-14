@@ -1,6 +1,6 @@
 import type {
   ApiErrorBody, Brief, EntryIntent, Envelope, FundingTokens, MainnetFundingDiscovery, Market, MarketDetail, MarketEvidence,
-  CreatorIdentitySession, CreatorNoteChallenge, CreatorPaymentIntent, CreatorPremiumContent, CreatorPurchases, CreatorPayoutStatus, CreatorResearchNote, CreatorNotesMeta, CreatorSubscription, CreatorSubscriptionPlan, CreatorSubscriptions, FundingQuoteResult, FundingStatusResult, PoolSnapshot, Position, PrivateResearchRecord, PulseData, PulseWindow, QuoteRequest, Readiness, ResearchCouncil, ScoutCandidate, ScoutDirection, ScoutMeta, Trend, WalletBalances,
+  CreatorIdentitySession, CreatorNoteChallenge, CreatorPaymentIntent, CreatorPremiumContent, CreatorPurchases, CreatorPayoutStatus, CreatorResearchNote, CreatorNotesMeta, CreatorSubscription, CreatorSubscriptionPlan, CreatorSubscriptions, FundingQuoteResult, FundingStatusResult, Notification, NotificationMeta, PoolSnapshot, Position, PrivateResearchRecord, PulseData, PulseWindow, QuoteRequest, Readiness, ResearchCouncil, ScoutCandidate, ScoutDirection, ScoutMeta, Trend, WalletBalances,
 } from './types'
 
 const BASE = ((import.meta.env.VITE_API_BASE as string | undefined) ?? '').replace(/\/$/, '')
@@ -60,6 +60,9 @@ export const api = {
   marketHistory: (id: string) => request<PoolSnapshot[], { count: number; source: string; recording: boolean }>(`/api/markets/${enc(id)}/history`),
   balances: (accountId: string) => request<WalletBalances>(`/api/wallets/${enc(accountId)}/balances`),
   positions: (accountId: string) => request<Position[]>(`/api/wallets/${enc(accountId)}/positions`),
+  notifications: (token: string, limit = 50) => request<Notification[], NotificationMeta>(`/api/notifications?limit=${limit}`, { headers: bearer(token) }),
+  notificationRead: (token: string, notificationId: string) => request<{ notification_id: string; read: boolean }>(`/api/notifications/${enc(notificationId)}/read`, { method: 'POST', headers: bearer(token), body: '{}' }),
+  notificationsReadAll: (token: string) => request<{ marked_read: number }>('/api/notifications/read-all', { method: 'POST', headers: bearer(token), body: '{}' }),
   fundingTokens: () => request<FundingTokens>('/api/funding/tokens'),
   fundingMainnetTokens: () => request<MainnetFundingDiscovery>('/api/funding/mainnet/tokens'),
   fundingQuote: (body: QuoteRequest) => request<FundingQuoteResult>('/api/funding/quote', { method: 'POST', body: JSON.stringify(body) }),

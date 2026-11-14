@@ -1,0 +1,45 @@
+.notifications-head { align-items: flex-start; }
+.notification-proof-badge { display: inline-flex; align-items: center; gap: 9px; flex: 0 0 auto; padding: 10px 12px; border: 1px solid rgba(74, 222, 128, .25); border-radius: 999px; color: var(--chart-up); font: 11px var(--font-mono); letter-spacing: .04em; }
+.notification-auth-card, .notification-demo-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 18px; border: 1px solid var(--hairline); border-radius: var(--radius-lg); background: var(--surface-1); }
+.notification-auth-card { margin-top: 24px; }
+.notification-auth-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; color: var(--sunburst); background: var(--accent-tint); }
+.notification-auth-card h2, .notification-demo-card h2 { margin-top: 4px; font-size: 18px; font-weight: var(--w-title); }
+.notification-auth-card p, .notification-demo-card p { margin-top: 5px; color: var(--text-2); font-size: 13px; line-height: 1.5; }
+.notification-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 24px; padding: 12px 14px; border: 1px solid var(--hairline); border-radius: var(--radius-md); background: var(--surface-1); color: var(--text-2); font-size: 13px; }
+.notification-toolbar strong { color: var(--sunburst); font: 18px var(--font-mono); }
+.notification-toolbar-account { color: var(--text-3); font-family: var(--font-mono); }
+.notification-toolbar-actions { display: flex; gap: 8px; }
+.notification-toolbar .btn, .notification-demo-card .btn { display: inline-flex; align-items: center; gap: 6px; }
+.notification-reconcile-note { margin: 12px 2px 0; color: var(--text-3); font: 11px var(--font-mono); }
+.notification-list { display: grid; gap: 9px; margin-top: 12px; }
+.notification-row { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; padding: 16px; border: 1px solid var(--hairline); border-radius: var(--radius-md); background: var(--surface-1); }
+.notification-row.is-unread { border-color: var(--accent-ring); background: linear-gradient(90deg, rgba(255, 197, 66, .06), var(--surface-1)); }
+.notification-row-mark { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; color: var(--sunburst); background: var(--accent-tint); }
+.notification-row-main { min-width: 0; }
+.notification-row-top { display: flex; align-items: center; gap: 8px; color: var(--text-3); font: 10px var(--font-mono); letter-spacing: .04em; }
+.notification-row-top time { margin-left: auto; letter-spacing: 0; }
+.notification-kind { color: var(--sunburst); }
+.notification-kind-claim_ready { color: var(--chart-up); }
+.notification-kind-refund_ready { color: var(--warn); }
+.notification-unread { padding: 2px 5px; border-radius: 4px; color: var(--text); background: var(--accent-tint); }
+.notification-row h2 { margin-top: 7px; font-size: 16px; font-weight: var(--w-strong); }
+.notification-row p { margin-top: 4px; color: var(--text-2); font-size: 13px; line-height: 1.45; }
+.notification-row-bottom { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 12px; }
+.notification-row-bottom a { display: inline-flex; align-items: center; gap: 5px; color: var(--sunburst); font-size: 12px; }
+.notification-provenance { color: var(--text-3); font: 10px var(--font-mono); }
+.notification-empty { display: grid; justify-items: center; gap: 7px; padding: 40px 20px; border: 1px dashed var(--hairline); border-radius: var(--radius-md); color: var(--text-2); text-align: center; }
+.notification-empty svg { color: var(--chart-up); }
+.notification-empty strong { color: var(--text); }
+.notification-empty p { max-width: 520px; font-size: 13px; line-height: 1.5; }
+.notification-demo-card { grid-template-columns: minmax(0, 1fr) auto; margin-top: 24px; }
+.notification-demo-card > .notification-row { grid-column: 1 / -1; width: 100%; }
+@media (max-width: 720px) {
+  .notification-auth-card, .notification-demo-card { grid-template-columns: auto minmax(0, 1fr); }
+  .notification-auth-card .btn, .notification-demo-card > .btn { grid-column: 2; justify-self: start; }
+  .notification-toolbar { align-items: flex-start; flex-direction: column; }
+  .notification-toolbar-actions { width: 100%; }
+  .notification-toolbar-actions .btn { flex: 1; justify-content: center; }
+  .notification-row-top { flex-wrap: wrap; }
+  .notification-row-top time { width: 100%; margin-left: 0; }
+  .notification-row-bottom { align-items: flex-start; flex-direction: column; }
+}

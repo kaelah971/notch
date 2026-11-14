@@ -17,4 +17,6 @@
   transition: color .15s;
 }
 .tab.is-active { color: var(--sunburst); }
+.tab-icon-wrap { position: relative; display: inline-grid; }
+.tab-badge { position: absolute; top: -7px; right: -10px; display: grid; place-items: center; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 999px; color: var(--bg); background: var(--sunburst); font: 9px var(--font-mono); }
 @media (min-width: 900px) { .tabbar { display: none; } }

@@ -42,6 +42,7 @@ class WebAPIConfig:
     pulse_db_path: str = "var/web_api/pulse.sqlite3"
     council_db_path: str = "var/web_api/research_council.sqlite3"
     creator_notes_db_path: str = "var/web_api/creator_notes.sqlite3"
+    notifications_db_path: str = "var/web_api/notifications.sqlite3"
     pulse_start_block: int | None = None
     pulse_max_blocks_per_request: int = 25
 
@@ -96,6 +97,9 @@ class WebAPIConfig:
             ),
             creator_notes_db_path=os.environ.get(
                 "CREATOR_NOTES_DB_PATH", "var/web_api/creator_notes.sqlite3"
+            ),
+            notifications_db_path=os.environ.get(
+                "NOTIFICATIONS_DB_PATH", "var/web_api/notifications.sqlite3"
             ),
             pulse_start_block=(
                 int(os.environ["PULSE_START_BLOCK"])

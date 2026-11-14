@@ -30,6 +30,7 @@ from services.trend_radar.models import iso_utc, now_utc, parse_iso
 from services.trend_radar.scout import build_scout_feed, scout_metadata
 from services.web_api.chain import ChainReadError, MarketChainReader
 from services.web_api.config import WebAPIConfig
+from services.web_api.notifications import NotificationError, NotificationService
 from services.web_api.pulse import WINDOW_SECONDS, PulseIndexer, empty_pulse_payload
 from services.web_api.predictions import classify_prediction
 from services.web_api.repositories import OracleRepository, RadarRepository, RepositoryError
@@ -80,6 +81,7 @@ class WebAPI:
         attention_fetcher: Any = None,
         pulse: PulseIndexer | None = None,
         council_service: ResearchCouncilService | None = None,
+        notifications: NotificationService | None = None,
     ) -> None:
         self.config = config
         self.attention_fetcher = attention_fetcher
@@ -90,6 +92,7 @@ class WebAPI:
         self.funding_service = funding_service
         self.official_funding_service = official_funding_service
         self.creator_notes_service = creator_notes_service
+        self.notifications = notifications
         self.rate_limiter = rate_limiter or RateLimiter()
         self.pulse = pulse
         self.council_service = council_service
@@ -101,6 +104,8 @@ class WebAPI:
             self.council_service.close()
         if self.creator_notes_service is not None:
             self.creator_notes_service.close()
+        if self.notifications is not None:
+            self.notifications.close()
         self.brief_service.store.close()
         self.funding_service.store.close()
 
@@ -148,7 +153,7 @@ class WebAPI:
                 status=status,
                 details={"provider": "near-ai", "retryable": exc.retryable},
             ).to_dict()
-        except (ChainReadError, NearRpcError, RepositoryError, GroundingError, TidepoolError) as exc:
+        except (ChainReadError, NearRpcError, RepositoryError, GroundingError, TidepoolError, NotificationError) as exc:
             return 503, ApiError(
                 "DEPENDENCY_UNAVAILABLE", str(exc), status=503
             ).to_dict()
@@ -245,6 +250,8 @@ class WebAPI:
             return 200, self._wallet_balances(parts[2])
         if len(parts) == 4 and parts[:2] == ["api", "wallets"] and parts[3] == "positions":
             return 200, self._wallet_positions(parts[2])
+        if parts == ["api", "notifications"]:
+            return 200, self._notifications(query, headers)
         raise ApiError("NOT_FOUND", "endpoint not found", status=404)
 
     def _post(
@@ -291,6 +298,10 @@ class WebAPI:
             return 200, {"data": self._creator_publish(parts[3], headers)}
         if len(parts) == 5 and parts[:3] == ["api", "research", "notes"] and parts[4] == "withdraw":
             return 200, {"data": self._creator_withdraw(parts[3], body, headers)}
+        if parts == ["api", "notifications", "read-all"]:
+            return 200, self._notifications_read_all(headers)
+        if len(parts) == 4 and parts[:2] == ["api", "notifications"] and parts[3] == "read":
+            return 200, self._notification_read(parts[2], headers)
         if parts == ["api", "funding", "quote"]:
             return 200, self._funding_quote(body)
         if parts == ["api", "funding", "live-quote"]:
@@ -472,6 +483,47 @@ class WebAPI:
                 "verified": True,
             }
         }
+
+    # ------------------------------------------------------------------
+    # Wallet-scoped notifications
+    # ------------------------------------------------------------------
+    def _notification_account(self, headers: dict[str, str]) -> str:
+        if self.notifications is None:
+            raise ApiError(
+                "NOTIFICATIONS_UNAVAILABLE",
+                "notifications are not configured on this API",
+                status=503,
+            )
+        if self.creator_notes_service is None:
+            raise ApiError(
+                "AUTH_REQUIRED",
+                "a verified wallet session is required for notifications",
+                status=401,
+            )
+        row = self.creator_notes_service.identity.session(self._authorization(headers))
+        return str(row["account_id"])
+
+    def _notifications(self, query: dict[str, str], headers: dict[str, str]) -> dict[str, Any]:
+        account_id = self._notification_account(headers)
+        result = self.notifications.inbox(account_id, limit=self._limit(query, 50))  # type: ignore[union-attr]
+        return {
+            "data": result["notifications"],
+            "meta": {
+                "unread_count": result["unread_count"],
+                "reconciliation": result["reconciliation"],
+            },
+        }
+
+    def _notification_read(self, notification_id: str, headers: dict[str, str]) -> dict[str, Any]:
+        account_id = self._notification_account(headers)
+        if not self.notifications.mark_read(account_id, notification_id):  # type: ignore[union-attr]
+            raise ApiError("NOTIFICATION_NOT_FOUND", "notification was not found", status=404)
+        return {"data": {"notification_id": notification_id, "read": True}}
+
+    def _notifications_read_all(self, headers: dict[str, str]) -> dict[str, Any]:
+        account_id = self._notification_account(headers)
+        count = self.notifications.mark_all_read(account_id)  # type: ignore[union-attr]
+        return {"data": {"marked_read": count}}
 
     # ------------------------------------------------------------------
     # Health

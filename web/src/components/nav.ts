@@ -1,4 +1,4 @@
-import { Radar, Swords, Wallet, Trophy, User, SlidersHorizontal, Ellipsis, Dices, Bot, Gauge, FileText, LockKeyhole, type LucideIcon } from 'lucide-react'
+import { Radar, Swords, Wallet, Trophy, User, SlidersHorizontal, Ellipsis, Dices, Bot, Gauge, FileText, LockKeyhole, Bell, type LucideIcon } from 'lucide-react'
 import { MarketsIcon } from './icons'
 import type { ComponentType, SVGProps } from 'react'
 
@@ -20,6 +20,7 @@ export const primaryNav: NavItem[] = [
   { to: '/app/leaderboard', label: 'Leaderboard', icon: Trophy },
 ]
 export const accountNav: NavItem[] = [
+  { to: '/app/notifications', label: 'Notifications', icon: Bell },
   { to: '/app/profile', label: 'Profile', icon: User },
   { to: '/app/settings', label: 'Settings', icon: SlidersHorizontal },
 ]
@@ -28,7 +29,7 @@ export const accountNav: NavItem[] = [
 export const mobileTabs: NavItem[] = [
   { to: '/app/markets', label: 'Markets', icon: MarketsIcon },
   { to: '/app/discover', label: 'Discover', icon: Radar },
+  { to: '/app/notifications', label: 'Notifications', icon: Bell },
   { to: '/app/portfolio', label: 'Portfolio', icon: Wallet },
-  { to: '/app/leaderboard', label: 'Leaderboard', icon: Trophy },
   { to: '/app/more', label: 'More', icon: Ellipsis },
 ]
