@@ -4,9 +4,9 @@ Status: implemented as controlled, browser-local paper execution. No on-chain ex
 
 ## User journey
 
-`Saved strategy → historical review → risk configuration → activate → Evaluate Now → inspect decisions → pause/stop`
+`Arena agent or saved strategy → historical review → risk configuration → activate → Evaluate Now → inspect decisions → pause/stop`
 
-The route is `/app/autopilot`. It accepts one validated saved `notch.strategy/1` revision at a time. The selected revision is evaluated against the genuine frozen Nvidia Wikimedia fixture before activation. Unsupported topics such as Bitcoin remain blocked because the current supported fixture does not match them.
+The route is `/app/autopilot`. It accepts one deterministic Arena agent or one validated saved `notch.strategy/1` revision at a time. The selected strategy is evaluated against the genuine frozen Nvidia Wikimedia fixture before activation. Unsupported topics such as Bitcoin remain blocked because the current supported fixture does not match them.
 
 Evaluate Now is a user-triggered action. There is no browser timer, server scheduler, background worker, 24/7 claim, wallet call, signer, broadcast, market publication, contract interaction or paid NEAR AI request. Closing the browser stops forward evaluation.
 
@@ -93,12 +93,13 @@ Configuration and audit state are stored under `notch.autopilot.v1` in browser l
 
 ## Reproducible blocked-action demonstration
 
-Browser verification used the saved strategy:
+The browser verification used the Arena handoff for the deterministic agent:
 
+- agent: `bot_attention_momentum_v1` / `Attention Momentum`;
 - strategy: `strategy_d7382362`;
 - rule: Nvidia falling attention by 5% over 7 days → DOWN over 7 days;
-- strategy revision hash: `fnv1a32:0ed0a683`;
-- mode: Manual review;
+- strategy revision hash: `fnv1a32:7d6d7c32`;
+- mode: Paper auto;
 - budget: 1,000 credits;
 - allocation: 10% / 100 requested credits;
 - maximum exposure: 250 credits;
@@ -116,6 +117,8 @@ The current published-market API returned three market definitions. The run reco
 - no eligible market was fabricated.
 
 The policy remained at 1,000 available credits and zero exposure. A repeated evaluation is covered by tests and produces `ALREADY_PROCESSED` for the same idempotency key. A paused or stopped policy produces `PAUSED` and refuses new actions.
+
+The browser proof is preserved in [`docs/evidence/phase6_agent_arena_autopilot_browser_20261114.json`](evidence/phase6_agent_arena_autopilot_browser_20261114.json). The eligible historical `PAPER_EXECUTED` fixture and persisted audit are covered by `web/tests/autopilot.test.mjs`; the current published market set correctly produced only blocked forward decisions.
 
 The genuine evidence fixture is:
 

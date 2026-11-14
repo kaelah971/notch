@@ -35,6 +35,30 @@ Use the market detail page to show:
 historical Nvidia replay has a preserved source-only research record in
 `docs/evidence/s5_market_nvidia_replay_20261112.json`.
 
+## 1A. Private research, strategy and paper workflow
+
+These routes are local/browser or wallet-session surfaces; they do not create a
+market or place a token-backed entry:
+
+- `/app/discover` — deterministic Scout candidates and source references.
+- `/app/vault` — owner-restricted application storage. It is **not** end-to-end
+encryption, anonymity, or on-chain storage. A new save requires the existing
+NEP-413 wallet ownership session; do not sign during a read-only demo unless the
+judge has explicitly approved it.
+- `/app/strategy-lab` — replay a saved rule against the frozen Nvidia fixture.
+- `/app/arena` — run the four deterministic participants and inspect
+`arena_match_935505c1` / `fnv1a32:dfb6611a`.
+- `/app/autopilot?agent=bot_attention_momentum_v1` — activate browser-local
+paper policy and inspect risk/audit rows. The current published market set is
+expected to produce `BLOCKED`; the separate historical `PAPER_EXECUTED` proof
+is preserved in
+[`docs/evidence/phase6_agent_arena_autopilot_browser_20261114.json`](evidence/phase6_agent_arena_autopilot_browser_20261114.json).
+
+The future market detail also exposes **AI MARKET RESEARCH** and **RESEARCH
+COUNCIL** controls. For this read-only proof, show their truthful `UNAVAILABLE`
+state when no cached record exists; do not trigger a new NEAR AI request and do
+not describe deterministic fallback as live inference.
+
 ## 2. Cross-chain Testnet funding
 
 **Best UI route:** `/app/portfolio` (show the balance; do not start a new
@@ -138,6 +162,8 @@ collateral recovery, not profit and not a current-wallet claim.
 
 ### Verified today
 
+- Phase 6 Arena → Paper Autopilot browser proof and deterministic fixture audit.
+- Private Research Vault owner boundary and no-public-feed isolation.
 - Phase 7D Base Sepolia → NEAR Testnet funding proof.
 - Existing real future-market entry and onchain `UP` position.
 - Forecast Passport pending classification path.
@@ -149,16 +175,30 @@ collateral recovery, not profit and not a current-wallet claim.
 - The future Bitcoin market has not resolved.
 - No current-wallet claim or refund has occurred.
 - No current future-market outcome is known.
-- No successful AI inference should be claimed as part of the proof.
-- The public browser/API deployment was not re-run during this read-only check.
+- No successful AI inference should be claimed as part of the proof; the live provider remained unavailable/time-out prone.
+- No public browser/API deployment exists in the repository. Local browser verification used the API with `NEAR_RPC_URL=https://archival-rpc.testnet.fastnear.com` because the default public RPC was rate-limited.
+- The Vault is owner-restricted application privacy, not cryptographic encryption.
 
-## Recommended demo order
+## Recommended three-minute judge order
 
-1. Open Markets and inspect the locked Bitcoin rule.
-2. Show the Phase 7D funding proof and NEAR balance.
-3. Show the existing future-market position and entry explorer receipt.
-4. Open the wallet Forecast Passport and show `PENDING`.
-5. Open a historical replay and show its resolved evidence.
-6. Use the historical claim links to demonstrate already-verified payout mechanics.
-7. End by stating that the future market remains pending until
-   `2026-11-25T12:00:00Z`.
+1. **0:00 — Discover and rule.** Open `/app/discover`, show a deterministic
+Scout candidate, then open `/app/markets/s3b-future-btc-20261116-20261123`.
+Show the locked Bitcoin Wikimedia rule, actual attention chart, open deadline,
+and the honest missing-evidence / unavailable research boundary.
+2. **0:35 — Private research boundary.** Open `/app/vault` and show `PRIVATE ·
+owner-only`, the NEP-413 requirement, and the explicit “not end-to-end
+encryption” disclosure. Do not sign or save during a read-only run.
+3. **0:50 — Strategy to paper.** Open `/app/strategy-lab`, then `/app/arena`.
+Run the deterministic four-participant match and inspect Attention Momentum.
+Follow **Send to paper Autopilot**, activate `PAPER_AUTO`, run `Evaluate Now`,
+and show the current live set recorded as `BLOCKED` with audit details. Use the
+Phase 6 evidence file for the separate historical `PAPER_EXECUTED` example.
+4. **1:55 — Real read-only state.** Open `/app/portfolio` and the funded
+account’s Passport route. Show the existing balance/position only; do not
+enter, claim, refund, quote, or transfer. The future call remains `PENDING` and
+accuracy remains unavailable.
+5. **2:35 — Funding proof and close.** Use the Phase 7D document/evidence JSON
+to show the already-verified Base Sepolia → NEAR Testnet Tidepool proof. State
+clearly that it is Testnet sandbox evidence, not official NEAR Intents Mainnet,
+and end with the future market’s resolution eligibility at
+`2026-11-25T12:00:00Z`.
